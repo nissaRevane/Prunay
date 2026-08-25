@@ -4,8 +4,7 @@
       <th><%= t("views.simulations.index.name") %></th>
       <th class="hide-on-mobile"><%= t("views.simulations.index.purchase_date") %></th>
       <th class="hide-on-mobile"><%= t("views.simulations.index.total_investment") %></th>
-      <th class="hide-on-mobile"><%= t("views.simulations.index.annual_cash_flow") %></th>
-      <th><%= t("views.simulations.index.final_immobilized_capital") %></th>
+      <th><%= t("views.simulations.index.annual_cash_flow") %></th>
       <th></th>
     </tr>
   </thead>
@@ -26,13 +25,8 @@
         </td>
         <%# Le cash-flow annuel, loyers moins charges : c'est lui, et non plus le loyer seul,
             qui dit ce que le bien rapporte vraiment chaque année. %>
-        <td class="hide-on-mobile <%= simulation.annual_cash_flow.negative? ? 'text-danger' : 'text-success' %>">
+        <td class="<%= simulation.annual_cash_flow.negative? ? 'text-danger' : 'text-success' %>">
           <%= link_to number_to_currency(simulation.annual_cash_flow), simulation_path(simulation), class: "row-link" %>
-        </td>
-        <%# Un capital immobilisé négatif, c'est un investissement récupéré : il se lit en vert,
-            comme un patrimoine net positif dans Milly. %>
-        <td class="<%= simulation.final_immobilized_capital <= 0 ? 'text-success' : 'text-danger' %>">
-          <%= link_to number_to_currency(simulation.final_immobilized_capital), simulation_path(simulation), class: "row-link" %>
         </td>
         <td class="table-actions">
           <%= link_to "✏️", edit_simulation_path(simulation), class: "btn btn-sm btn-outline" %>

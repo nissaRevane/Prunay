@@ -120,7 +120,6 @@ fr:
         purchase_date: "Date d'acquisition"
         total_investment: Investissement initial
         annual_cash_flow: Cash-flow annuel
-        final_immobilized_capital: "Capital immobilisé à 30 ans"
       form:
         cancel: Annuler
       steps:
