@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000002) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000002) do
     t.decimal "monthly_rent", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "property_type", default: "apartment", null: false
+    t.string "address"
+    t.string "city", default: "", null: false
+    t.string "energy_rating"
+    t.decimal "surface", precision: 8, scale: 2, null: false
+    t.boolean "condominium", default: false, null: false
+    t.decimal "initial_works", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
+    t.string "rental_type", default: "furnished", null: false
+    t.decimal "property_tax", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "maintenance", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "insurance", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "other_charges", precision: 12, scale: 2, default: "0.0", null: false
     t.index ["user_id", "purchase_date"], name: "index_simulations_on_user_id_and_purchase_date"
     t.index ["user_id"], name: "index_simulations_on_user_id"
   end

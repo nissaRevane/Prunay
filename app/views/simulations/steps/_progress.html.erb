@@ -1,0 +1,10 @@
+<%# Où l'on en est des quatre pages. Une étape franchie reste lisible derrière soi : c'est
+    ce qui distingue un formulaire découpé d'un formulaire qui avance à l'aveugle. %>
+<ol class="wizard-progress">
+  <% Simulation::STEPS.each_with_index do |step, index| %>
+    <li class="wizard-progress-step <%= "is-current" if step == current_step %> <%= "is-done" if index < step_index %>">
+      <span class="wizard-progress-number"><%= index + 1 %></span>
+      <span class="wizard-progress-label"><%= t("views.simulations.steps.#{step}.title") %></span>
+    </li>
+  <% end %>
+</ol>

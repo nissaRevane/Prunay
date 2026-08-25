@@ -1,0 +1,16 @@
+<div class="form-group">
+  <%= f.label :monthly_rent %>
+  <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true %>
+  <p class="form-hint"><%= t("views.simulations.steps.rental.monthly_rent_hint") %></p>
+</div>
+
+<div class="form-group">
+  <%= f.label :occupancy_months %>
+  <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true %>
+  <p class="form-hint"><%= t("views.simulations.steps.rental.occupancy_months_hint") %></p>
+</div>
+
+<div class="form-group">
+  <%= f.label :rental_type %>
+  <%= f.select :rental_type, rental_type_options, {}, class: "form-control", required: true %>
+</div>

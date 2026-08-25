@@ -9,20 +9,16 @@ class SimulationsController < ApplicationController
     @projection = @simulation.projection
   end
 
+  # La création vit dans Simulations::StepsController, en quatre pages. `/simulations/new`
+  # en reste la porte : il oublie le brouillon en cours et rouvre la première page.
   def new
-    @simulation = current_user.simulations.build(purchase_date: Date.today)
+    session.delete(Simulations::StepsController::DRAFT_KEY)
+
+    redirect_to new_simulation_step_path(step: Simulation::STEPS.first)
   end
 
-  def create
-    @simulation = current_user.simulations.build(simulation_params)
-
-    if @simulation.save
-      redirect_to @simulation, notice: t("flash.simulations.created")
-    else
-      render :new, status: :unprocessable_entity
-    end
-  end
-
+  # La modification, elle, tient sur une seule page : les quatre étapes n'ont de sens que
+  # pour qui découvre le formulaire, pas pour qui vient corriger un chiffre.
   def edit
   end
 
@@ -46,6 +42,11 @@ class SimulationsController < ApplicationController
   end
 
   def simulation_params
-    params.require(:simulation).permit(:purchase_date, :purchase_price, :monthly_rent)
+    params.require(:simulation).permit(
+      :property_type, :address, :city, :energy_rating, :surface, :condominium,
+      :purchase_price, :initial_works, :purchase_date,
+      :monthly_rent, :occupancy_months, :rental_type,
+      *Simulation::ANNUAL_CHARGES
+    )
   end
 end

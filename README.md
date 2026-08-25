@@ -3,9 +3,9 @@
 A Ruby on Rails 8 application to estimate the profitability of a rental real estate
 investment.
 
-> **Status:** first simulator. A simulation is still deliberately naive — a price, a
-> purchase date and a rent, projected over thirty years with no loan, no charges and no
-> tax. Everything else is there to receive them.
+> **Status:** first simulator. A simulation describes a property, its purchase, its
+> letting and its annual charges, projected over thirty years. No loan and no tax yet —
+> everything else is there to receive them.
 
 ## Tech Stack
 
@@ -53,14 +53,26 @@ docker compose run --rm web bundle exec rspec
   grouped by purchase year in the same accordion Milly uses for its bilans. There is no
   dashboard above the list and therefore no top menu: the brand leads to the only page
   there would be to put in one.
+- **Creation in four pages** (`/simulations/new`, which opens `/simulations/new/property`):
+  the property, the purchase, the letting, the annual charges. Nothing is written to the
+  database before the last page — the answers accumulate in the session, and each page
+  validates only its own fields (see the validation contexts named after
+  `Simulation::STEPS`). Editing, by contrast, is a single form: the four pages only help
+  someone discovering the form.
+- **Amounts proposed from the surface:** the rent and the four annual charges are
+  pre-filled from a reference amount for 50 m², scaled by the square root of the surface
+  and rounded to the nearest ten euros — orders of magnitude to correct, not a calculation.
 - **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
-  year's rent, its cash flow and the capital still immobilized.
+  year's rent, its charges, its cash flow and the capital still immobilized. The
+  immobilized capital starts at the price *plus the initial works*, and the annual rent
+  counts only the months actually let.
 
 ## Project Structure
 
 ```
 app/
-├── controllers/        # ApplicationController (auth guard), Pages, Simulations, Users::Registrations
+├── controllers/        # ApplicationController (auth guard), Pages, Simulations,
+│                       # Simulations::Steps (the four-page creation), Users::Registrations
 ├── models/             # User, Simulation
 ├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
@@ -81,6 +93,12 @@ spec/
 ## Data Model
 
 - **User** (firstname, lastname, email)
-- **Simulation** (purchase_date, purchase_price, monthly_rent) — belongs to a user. The
-  thirty-year projection is derived, never stored: see `Simulation#projection` and its
-  `Year` struct, where the columns a loan or a charge will add have their place waiting.
+- **Simulation** — belongs to a user, and has no name of its own: it reads as
+  "Appartement à Nantes", from its type and its city.
+  - *the property:* property_type, address, city, energy_rating, surface, condominium
+  - *the purchase:* purchase_price, initial_works, purchase_date
+  - *the letting:* monthly_rent, occupancy_months, rental_type
+  - *the annual charges:* property_tax, maintenance, insurance, other_charges
+
+  The thirty-year projection is derived, never stored: see `Simulation#projection` and its
+  `Year` struct, where the column a loan will add has its place waiting.

@@ -1,29 +1,116 @@
+<%# Le formulaire de modification : les quatre pages de la création rassemblées en une
+    seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
+    l'assistant. %>
 <%= form_with(model: simulation, class: "form") do |f| %>
-  <% if simulation.errors.any? %>
-    <div class="alert alert-danger">
-      <ul>
-        <% simulation.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+  <%= render "shared/errors", resource: simulation %>
+
+  <fieldset class="form-fieldset">
+    <legend><%= t("views.simulations.steps.property.title") %></legend>
+
+    <div class="form-group">
+      <%= f.label :property_type %>
+      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true %>
     </div>
-  <% end %>
 
-  <div class="form-group">
-    <%= f.label :purchase_date, t("views.simulations.form.purchase_date") %>
-    <%= f.date_field :purchase_date, class: "form-control", required: true %>
-  </div>
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :city %>
+        <%= f.text_field :city, class: "form-control", required: true %>
+      </div>
 
-  <div class="form-group">
-    <%= f.label :purchase_price, t("views.simulations.form.purchase_price") %>
-    <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
-  </div>
+      <div class="form-group form-group-half">
+        <%= f.label :address %>
+        <%= f.text_field :address, class: "form-control" %>
+      </div>
+    </div>
 
-  <div class="form-group">
-    <%= f.label :monthly_rent, t("views.simulations.form.monthly_rent") %>
-    <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
-    <p class="form-hint"><%= t("views.simulations.form.monthly_rent_hint") %></p>
-  </div>
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :surface %>
+        <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :energy_rating %>
+        <%= f.select :energy_rating, energy_rating_options, { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control" %>
+      </div>
+    </div>
+
+    <div class="form-group form-check">
+      <%= f.check_box :condominium %>
+      <%= f.label :condominium %>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend><%= t("views.simulations.steps.purchase.title") %></legend>
+
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :purchase_price %>
+        <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :initial_works %>
+        <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :purchase_date %>
+      <%= f.date_field :purchase_date, class: "form-control", required: true %>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend><%= t("views.simulations.steps.rental.title") %></legend>
+
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :monthly_rent %>
+        <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :occupancy_months %>
+        <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :rental_type %>
+      <%= f.select :rental_type, rental_type_options, {}, class: "form-control", required: true %>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend><%= t("views.simulations.steps.charges.title") %></legend>
+
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :property_tax %>
+        <%= f.number_field :property_tax, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :maintenance %>
+        <%= f.number_field :maintenance, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group form-group-half">
+        <%= f.label :insurance %>
+        <%= f.number_field :insurance, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :other_charges %>
+        <%= f.number_field :other_charges, step: "0.01", min: "0", class: "form-control", required: true %>
+      </div>
+    </div>
+  </fieldset>
 
   <div class="form-actions">
     <%= f.submit class: "btn btn-primary" %>

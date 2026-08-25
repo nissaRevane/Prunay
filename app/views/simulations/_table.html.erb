@@ -1,9 +1,10 @@
 <table class="table">
   <thead>
     <tr>
-      <th><%= t("views.simulations.index.purchase_date") %></th>
-      <th class="hide-on-mobile"><%= t("views.simulations.index.purchase_price") %></th>
-      <th class="hide-on-mobile"><%= t("views.simulations.index.monthly_rent") %></th>
+      <th><%= t("views.simulations.index.name") %></th>
+      <th class="hide-on-mobile"><%= t("views.simulations.index.purchase_date") %></th>
+      <th class="hide-on-mobile"><%= t("views.simulations.index.total_investment") %></th>
+      <th class="hide-on-mobile"><%= t("views.simulations.index.annual_cash_flow") %></th>
       <th><%= t("views.simulations.index.final_immobilized_capital") %></th>
       <th></th>
     </tr>
@@ -12,16 +13,21 @@
     <% simulations.each do |simulation| %>
       <tr>
         <td>
+          <%= link_to simulation.name, simulation_path(simulation), class: "row-link" %>
+        </td>
+        <td class="hide-on-mobile">
           <%= link_to simulation_path(simulation), class: "row-link" do %>
             <span class="hide-on-mobile"><%= l(simulation.purchase_date, format: :long) %></span>
             <span class="show-on-mobile"><%= l(simulation.purchase_date, format: :default) %></span>
           <% end %>
         </td>
         <td class="hide-on-mobile">
-          <%= link_to number_to_currency(simulation.purchase_price), simulation_path(simulation), class: "row-link" %>
+          <%= link_to number_to_currency(simulation.total_investment), simulation_path(simulation), class: "row-link" %>
         </td>
-        <td class="text-success hide-on-mobile">
-          <%= link_to number_to_currency(simulation.monthly_rent), simulation_path(simulation), class: "row-link" %>
+        <%# Le cash-flow annuel, loyers moins charges : c'est lui, et non plus le loyer seul,
+            qui dit ce que le bien rapporte vraiment chaque année. %>
+        <td class="hide-on-mobile <%= simulation.annual_cash_flow.negative? ? 'text-danger' : 'text-success' %>">
+          <%= link_to number_to_currency(simulation.annual_cash_flow), simulation_path(simulation), class: "row-link" %>
         </td>
         <%# Un capital immobilisé négatif, c'est un investissement récupéré : il se lit en vert,
             comme un patrimoine net positif dans Milly. %>

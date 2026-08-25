@@ -593,6 +593,119 @@ a.icon-btn:hover {
   }
 }
 
+/* Wizard — la création d'une simulation en quatre pages.
+   La frise dit toujours où l'on en est : un formulaire découpé sans repère se vit comme
+   un couloir sans porte. */
+.wizard-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.wizard-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 160px;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.wizard-progress-step.is-done {
+  border-color: var(--color-success);
+  color: var(--color-text);
+}
+
+.wizard-progress-step.is-current {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.wizard-progress-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.wizard-progress-step.is-current .wizard-progress-number {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.wizard-progress-step.is-done .wizard-progress-number {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.wizard-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.wizard-panel-title {
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.wizard-panel-hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Une fiche de caractéristiques : des couples libellé / valeur, jamais un tableau — il n'y
+   a qu'une ligne à lire. */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.detail-value {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .navbar {

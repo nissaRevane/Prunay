@@ -40,6 +40,16 @@ RSpec.describe "Simulations", type: :request do
       expect(items.first.at_css(".badge")&.text&.strip).to eq("2")
     end
 
+    # Une simulation n'a pas de nom saisi : elle se reconnaît à son type et à sa ville.
+    it "names each row after the property it describes" do
+      create(:simulation, user: user, property_type: "house", city: "Rennes")
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Maison à Rennes")
+    end
+
     it "links the row cells to the simulation instead of a dedicated button" do
       simulation = create(:simulation, user: user)
 
@@ -72,7 +82,9 @@ RSpec.describe "Simulations", type: :request do
 
   describe "GET /simulations/:id" do
     let(:simulation) do
-      create(:simulation, user: user, purchase_date: Date.new(2025, 3, 10), purchase_price: 200_000, monthly_rent: 800)
+      create(:simulation, user: user, purchase_date: Date.new(2025, 3, 10), purchase_price: 200_000,
+                          initial_works: 20_000, monthly_rent: 1_000, occupancy_months: 11,
+                          property_tax: 700, maintenance: 1_000, insurance: 150, other_charges: 150)
     end
 
     it "returns success" do
@@ -84,23 +96,24 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      rows = doc.css(".section .table tbody tr")
+      rows = doc.css(".table-scroll .table tbody tr")
 
       expect(rows.size).to eq(Simulation::HORIZON_YEARS)
     end
 
-    it "renders the year, its date, its rent, its cash flow and the capital still immobilized" do
+    it "renders the year, its date, its rent, its charges, its cash flow and the capital still immobilized" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      cells = doc.css(".section .table tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      cells = doc.css(".table-scroll .table tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
       expect(cells).to eq([
         "1",
         "10 mars 2026 10/03/2026",
-        currency(9_600).gsub(/\s+/, " "),
-        currency(9_600).gsub(/\s+/, " "),
-        currency(190_400).gsub(/\s+/, " ")
+        currency(11_000).gsub(/\s+/, " "),
+        currency(2_000).gsub(/\s+/, " "),
+        currency(9_000).gsub(/\s+/, " "),
+        currency(211_000).gsub(/\s+/, " ")
       ])
     end
 
@@ -113,26 +126,6 @@ RSpec.describe "Simulations", type: :request do
     end
   end
 
-  describe "POST /simulations" do
-    it "creates a new simulation" do
-      expect {
-        post simulations_path, params: { simulation: { purchase_date: "2025-03-10", purchase_price: "200000", monthly_rent: "800" } }
-      }.to change(Simulation, :count).by(1)
-
-      expect(response).to redirect_to(Simulation.last)
-    end
-
-    it "explains in French why a price of zero is refused" do
-      expect {
-        post simulations_path, params: { simulation: { purchase_date: "2025-03-10", purchase_price: "0", monthly_rent: "800" } }
-      }.not_to change(Simulation, :count)
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.body).to include(CGI.escapeHTML("Prix d'achat doit être supérieur à 0"))
-      expect(response.body).not_to include("Translation missing")
-    end
-  end
-
   describe "PATCH /simulations/:id" do
     it "updates the simulation" do
       simulation = create(:simulation, user: user, monthly_rent: 800)
@@ -141,6 +134,19 @@ RSpec.describe "Simulations", type: :request do
 
       expect(response).to redirect_to(simulation)
       expect(simulation.reload.monthly_rent).to eq(1_000)
+    end
+
+    # La modification tient sur une seule page : les quatre étapes n'ont de sens que pour
+    # qui découvre le formulaire.
+    it "edits every page of the creation on a single form" do
+      simulation = create(:simulation, user: user)
+
+      get edit_simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css(".form-fieldset legend").map { |legend| legend.text.strip }).to eq(
+        Simulation::STEPS.map { |step| I18n.t("views.simulations.steps.#{step}.title") }
+      )
     end
   end
 

@@ -14,9 +14,22 @@ fr:
       simulation: Simulation
     attributes:
       simulation:
-        purchase_date: Date d'achat
-        purchase_price: Prix d'achat
+        property_type: Type de bien
+        address: Adresse
+        city: Ville
+        energy_rating: DPE
+        surface: "Surface (m²)"
+        condominium: Le bien est en copropriété
+        purchase_date: "Date d'acquisition"
+        purchase_price: "Prix d'achat"
+        initial_works: Travaux initiaux
         monthly_rent: Loyer mensuel
+        occupancy_months: "Taux d'occupation (mois par an)"
+        rental_type: "Type d'exploitation"
+        property_tax: Taxe foncière
+        maintenance: Entretien et petits travaux
+        insurance: Assurance PNO
+        other_charges: Autres frais
       user:
         firstname: Prénom
         lastname: Nom
@@ -65,6 +78,18 @@ fr:
       create: Créer
       update: Mettre à jour
       submit: Enregistrer
+  # Le vocabulaire du domaine, hors des vues : le modèle s'en sert pour nommer une
+  # simulation, et les formulaires pour étiqueter leurs listes déroulantes.
+  simulations:
+    name: "%{type} à %{city}"
+    property_types:
+      apartment: Appartement
+      house: Maison
+      parking: Parking
+      building: Immeuble
+    rental_types:
+      furnished: Meublé
+      unfurnished: Nu
   views:
     nav:
       sign_out: Déconnexion
@@ -88,33 +113,64 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
-        purchase_date: "Date d'achat"
-        purchase_price: "Prix d'achat"
-        monthly_rent: "Loyer mensuel"
+        name: Bien
+        purchase_date: "Date d'acquisition"
+        total_investment: Investissement initial
+        annual_cash_flow: Cash-flow annuel
         final_immobilized_capital: "Capital immobilisé à 30 ans"
       form:
-        purchase_date: Date d'achat
-        purchase_price: Prix d'achat
-        monthly_rent: Loyer mensuel
-        monthly_rent_hint: Le loyer perçu chaque mois, hors charges.
         cancel: Annuler
-      new:
+      steps:
         title: Nouvelle simulation
+        next: Continuer
+        back: Retour
+        cancel: Annuler
+        create: Créer la simulation
+        property:
+          title: Le bien
+          hint: "Ce que l'on achète et où il se trouve. Seules la ville et la surface sont indispensables — la surface sert ensuite à estimer les montants des pages suivantes."
+          address_hint: Facultatif.
+          energy_rating_blank: Non renseigné
+        purchase:
+          title: "L'achat"
+          hint: "Ce que le bien immobilise le premier jour."
+          initial_works_hint: "Les travaux engagés avant la première location. Ils s'ajoutent au prix dans le capital immobilisé."
+          purchase_date_hint: "Proposée trois mois après aujourd'hui, le temps d'un compromis."
+        rental:
+          title: La location
+          hint: "Ce que le bien rapporte une fois loué."
+          monthly_rent_hint: "Le loyer perçu chaque mois, hors charges. Le montant proposé est estimé d'après la surface."
+          occupancy_months_hint: "Le nombre de mois loués dans l'année : onze laissent un mois de vacance locative."
+        charges:
+          title: Les charges annuelles
+          hint: "Quatre montants estimés d'après la surface, à corriger. Leur total se déduit des loyers chaque année de la projection."
       edit:
         title: Modifier la simulation
       show:
-        title: "Simulation d'un achat au %{date}"
+        subtitle: "Acquisition prévue le %{date}"
         edit: Modifier
-        purchase_price: Prix d'achat
-        monthly_rent: Loyer mensuel
-        annual_rent: "%{amount} par an"
+        total_investment: Investissement initial
+        total_investment_hint: "%{price} de prix, %{works} de travaux"
+        annual_rent_card: Loyers annuels
+        annual_rent_hint: "%{rent} par mois sur %{months} mois"
+        annual_charges_card: Charges annuelles
+        annual_cash_flow_hint: "%{amount} de cash-flow annuel"
         final_immobilized_capital: "Capital immobilisé à %{years} ans"
         total_rent: "%{amount} de loyers cumulés"
+        property: Le bien
+        charges_detail: Les charges annuelles
+        annual_charges_total: Total des charges annuelles
+        surface_value: "%{surface} m²"
+        occupancy_value: "%{months} mois par an"
+        not_provided: Non renseigné
+        answer_yes: Oui
+        answer_no: Non
         projection: "Projection sur %{years} ans"
-        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits tous les loyers encaissés depuis l'achat. Ni prêt, ni charges, ni fiscalité pour l'instant."
+        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial — prix et travaux — tous les cash-flows encaissés depuis l'achat. Ni prêt, ni fiscalité pour l'instant."
         year: Année
         date: Date
         annual_rent_column: "Loyers de l'année"
+        annual_charges_column: "Charges de l'année"
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"
@@ -129,6 +185,9 @@ fr:
     errors:
       not_found: La ressource demandée est introuvable.
   number:
+    format:
+      delimiter: " "
+      separator: ","
     percentage:
       format:
         delimiter: " "

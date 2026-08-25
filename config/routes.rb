@@ -16,5 +16,11 @@ Prunay::Application.routes.draw do
 
   root "pages#home"
 
-  resources :simulations
+  # La création se fait en quatre pages, et rien n'est écrit en base avant la dernière :
+  # les routes du formulaire vivent donc à côté de la ressource, pas dedans. `/simulations/new`
+  # reste l'entrée — il ouvre la première page.
+  get   "simulations/new/:step", to: "simulations/steps#show",   as: :new_simulation_step
+  patch "simulations/new/:step", to: "simulations/steps#update"
+
+  resources :simulations, except: [:create]
 end

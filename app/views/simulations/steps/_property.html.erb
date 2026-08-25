@@ -1,0 +1,34 @@
+<div class="form-group">
+  <%= f.label :property_type %>
+  <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true %>
+</div>
+
+<div class="form-row">
+  <div class="form-group form-group-half">
+    <%= f.label :city %>
+    <%= f.text_field :city, class: "form-control", required: true, autofocus: true %>
+  </div>
+
+  <div class="form-group form-group-half">
+    <%= f.label :address %>
+    <%= f.text_field :address, class: "form-control" %>
+    <p class="form-hint"><%= t("views.simulations.steps.property.address_hint") %></p>
+  </div>
+</div>
+
+<div class="form-row">
+  <div class="form-group form-group-half">
+    <%= f.label :surface %>
+    <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+  </div>
+
+  <div class="form-group form-group-half">
+    <%= f.label :energy_rating %>
+    <%= f.select :energy_rating, energy_rating_options, { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control" %>
+  </div>
+</div>
+
+<div class="form-group form-check">
+  <%= f.check_box :condominium %>
+  <%= f.label :condominium %>
+</div>
