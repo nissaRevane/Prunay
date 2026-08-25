@@ -146,6 +146,26 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
     end
 
+    # Le loyer est ce que la simulation a de plus concret : il se lit sur la fiche, au mois
+    # comme un bail l'énonce, et non seulement dans la colonne annuelle de la projection.
+    it "details the letting, its rent first" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.rental_detail") }
+      amounts = section.css(".detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(amounts).to include(
+        Simulation.human_attribute_name(:monthly_rent) => currency(1_000).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:rental_type) => I18n.t("simulations.rental_types.furnished"),
+        Simulation.human_attribute_name(:occupancy_months) => I18n.t("views.simulations.show.occupancy_value", months: 11)
+      )
+      # Onze mois loués, et non douze : la vacance se paie.
+      expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
+    end
+
     # Une ligne à zéro se lirait comme une charge oubliée : la fiche ne détaille que les
     # charges que le bien se voit demander.
     it "details only the charges the property is asked for" do

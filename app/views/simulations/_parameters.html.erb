@@ -30,14 +30,6 @@
       <dt class="detail-label"><%= Simulation.human_attribute_name(:condominium) %></dt>
       <dd class="detail-value"><%= t("views.simulations.show.#{simulation.condominium? ? 'answer_yes' : 'answer_no'}") %></dd>
     </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:rental_type) %></dt>
-      <dd class="detail-value"><%= t("simulations.rental_types.#{simulation.rental_type}") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
-      <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
-    </div>
   </dl>
 </div>
 
@@ -72,6 +64,35 @@
 <% if simulation.credit? %>
   <%= render "credit", simulation: simulation %>
 <% end %>
+
+<%# Ce que le bien rapporte, et à quelles conditions. Le loyer est saisi au mois — c'est
+    ainsi qu'un bail l'énonce — et le total dit ce qu'une année en encaisse réellement, mois
+    de vacance déduits. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.rental_detail") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:monthly_rent) %></dt>
+      <dd class="detail-value text-success"><%= number_to_currency(simulation.monthly_rent) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:rental_type) %></dt>
+      <dd class="detail-value"><%= t("simulations.rental_types.#{simulation.rental_type}") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
+      <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
+    </div>
+  </dl>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.annual_rent_total") %></span>
+    <span><%= number_to_currency(simulation.annual_rent) %></span>
+  </div>
+</div>
 
 <div class="section">
   <div class="section-header">

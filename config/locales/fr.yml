@@ -203,6 +203,8 @@ fr:
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
+        rental_detail: La location
+        annual_rent_total: "Loyers d'une année, vacance déduite"
         charges_detail: Les charges annuelles
         annual_charges_total: Total des charges annuelles
         surface_value: "%{surface} m²"
