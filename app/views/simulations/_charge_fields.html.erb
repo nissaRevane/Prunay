@@ -1,0 +1,32 @@
+<%# Les charges annuelles, groupe par groupe et deux montants par ligne, dans l'ordre que
+    `Simulation::CHARGE_GROUPS` fixe : une charge de plus s'ajoute au modèle, pas ici.
+
+    Trois d'entre elles ne se demandent que sous condition. Le serveur rend l'état juste dès
+    le premier affichage : le champ écarté l'est par `hidden`, et sa saisie par `disabled` —
+    un champ requis et invisible bloquerait l'envoi du formulaire, et le modèle remet à zéro
+    ce qu'il ne reçoit pas. Sur le formulaire de modification, où la copropriété et le meublé
+    se répondent au-dessus, le contrôleur `charges` reprend la main à chaque changement ;
+    dans l'assistant les deux réponses sont déjà derrière nous, et rien ne bouge plus. %>
+<% autofocus = local_assigns.fetch(:autofocus, false) %>
+
+<% Simulation::CHARGE_GROUPS.each do |group, fields| %>
+  <div class="charge-group">
+    <p class="charge-group-title"><%= t("views.simulations.charges.groups.#{group}.title") %></p>
+    <p class="form-hint charge-group-hint"><%= t("views.simulations.charges.groups.#{group}.hint") %></p>
+
+    <% fields.each_slice(2) do |row| %>
+      <div class="form-row">
+        <% row.each do |field| %>
+          <% applicable = f.object.charge_applicable?(field) %>
+          <%= tag.div class: "form-group form-group-half", hidden: !applicable,
+                      data: { charges_condition: charge_condition_name(field) } do %>
+            <%= f.label field %>
+            <%= f.number_field field, step: "0.01", min: "0", class: "form-control",
+                required: true, disabled: !applicable,
+                autofocus: autofocus && field == Simulation::ANNUAL_CHARGES.first %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

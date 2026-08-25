@@ -1,25 +1,4 @@
-<%# Quatre montants annuels, tous proposés d'après la surface : ce sont des ordres de
-    grandeur à corriger, et le total qu'ils forment se retrouve chaque année du tableau. %>
-<div class="form-row">
-  <div class="form-group form-group-half">
-    <%= f.label :property_tax %>
-    <%= f.number_field :property_tax, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true %>
-  </div>
-
-  <div class="form-group form-group-half">
-    <%= f.label :maintenance %>
-    <%= f.number_field :maintenance, step: "0.01", min: "0", class: "form-control", required: true %>
-  </div>
-</div>
-
-<div class="form-row">
-  <div class="form-group form-group-half">
-    <%= f.label :insurance %>
-    <%= f.number_field :insurance, step: "0.01", min: "0", class: "form-control", required: true %>
-  </div>
-
-  <div class="form-group form-group-half">
-    <%= f.label :other_charges %>
-    <%= f.number_field :other_charges, step: "0.01", min: "0", class: "form-control", required: true %>
-  </div>
-</div>
+<%# La quatrième page : ce que le bien coûte chaque année. Les charges de copropriété ne se
+    demandent qu'à un bien en copropriété, la CFE et le comptable qu'à un meublé — les deux
+    réponses sont derrière nous, la page sait donc déjà lesquelles poser. %>
+<%= render "simulations/charge_fields", f: f, autofocus: true %>

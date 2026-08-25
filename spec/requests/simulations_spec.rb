@@ -146,6 +146,24 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
     end
 
+    # Une ligne à zéro se lirait comme une charge oubliée : la fiche ne détaille que les
+    # charges que le bien se voit demander.
+    it "details only the charges the property is asked for" do
+      let_unfurnished = create(:simulation, user: user, condominium: false, rental_type: "unfurnished",
+                                           property_tax: 700)
+
+      get simulation_path(let_unfurnished)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
+      labels = section.css(".detail-label").map { |label| label.text.strip }
+
+      expect(labels).to include(Simulation.human_attribute_name(:property_tax))
+      expect(labels).not_to include(Simulation.human_attribute_name(:condominium_fees))
+      expect(labels).not_to include(Simulation.human_attribute_name(:business_tax))
+      expect(labels).not_to include(Simulation.human_attribute_name(:accounting_fees))
+    end
+
     it "does not serve the simulation of another user" do
       other = create(:simulation, user: create(:user))
 

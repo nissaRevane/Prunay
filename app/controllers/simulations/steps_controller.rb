@@ -61,13 +61,20 @@ module Simulations
       Simulation::STEPS.find { |step| !candidate.valid?(step.to_sym) }
     end
 
-    # La simulation telle que la page l'affiche : ses valeurs proposées, recouvertes par ce
-    # que le brouillon sait déjà, recouvert à son tour par ce que le formulaire vient
-    # d'envoyer. Un champ vidé à la main reste donc vide, il ne repasse pas au défaut.
+    # La simulation telle que la page l'affiche : ce que le brouillon sait déjà, recouvert par
+    # ce que le formulaire vient d'envoyer, puis complété par ce que la page propose là où
+    # personne n'a encore répondu. Un champ vidé à la main reste donc vide, il ne repasse pas
+    # au défaut.
+    #
+    # Les valeurs proposées se demandent à la simulation en construction, et non à la classe :
+    # elles se déduisent des réponses déjà données — la surface, la copropriété, le meublé —
+    # et c'est cet objet-là qui les porte, déjà converties.
     def build_simulation(overrides = {})
-      attributes = Simulation.defaults_for(@step, surface: draft["surface"]).merge(draft).merge(overrides)
+      answers = draft.merge(overrides)
+      simulation = current_user.simulations.build(answers)
 
-      current_user.simulations.build(attributes)
+      simulation.assign_attributes(simulation.defaults_for(@step).except(*answers.keys))
+      simulation
     end
 
     def create_simulation

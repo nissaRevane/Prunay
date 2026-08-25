@@ -18,6 +18,31 @@ class Simulation < ApplicationRecord
   RENTAL_TYPES = %w[furnished unfurnished].freeze
   ENERGY_RATINGS = %w[A B C D E F G].freeze
 
+  # Le meublé, nommé : trois charges ne se demandent qu'à lui.
+  FURNISHED = "furnished"
+
+  # Les charges annuelles, groupées comme le formulaire les demande : ce que la détention du
+  # bien coûte, ce que sa location coûte, ce que le meublé impose, et le reste. Les groupes
+  # portent l'ordre d'affichage autant que le sens, et `ANNUAL_CHARGES` s'en déduit — une
+  # charge de plus s'ajoute donc dans un groupe, et nulle part ailleurs.
+  CHARGE_GROUPS = {
+    ownership: %i[property_tax insurance maintenance condominium_fees],
+    letting: %i[management_fees rent_guarantee],
+    furnished: %i[business_tax accounting_fees],
+    other: %i[other_charges]
+  }.freeze
+
+  ANNUAL_CHARGES = CHARGE_GROUPS.values.flatten.freeze
+
+  # Les charges qu'une condition gouverne. Une maison n'a pas de charges de copropriété, et
+  # un bien loué nu ne paie ni CFE ni comptable : le formulaire ne pose pas ces questions, et
+  # le modèle remet le montant à zéro si la réponse qui le justifiait vient à changer.
+  CHARGE_CONDITIONS = {
+    condominium_fees: :condominium?,
+    business_tax: :furnished?,
+    accounting_fees: :furnished?
+  }.freeze
+
   # Les montants proposés au premier affichage, énoncés pour une surface de référence de
   # 50 m². Ce sont des ordres de grandeur, pas des vérités : le formulaire les affiche
   # pré-remplis pour que l'utilisateur les corrige, pas pour qu'il les subisse.
@@ -26,10 +51,21 @@ class Simulation < ApplicationRecord
   REFERENCE_AMOUNTS = {
     monthly_rent: 650,
     property_tax: 700,
-    maintenance: 1_000,
     insurance: 150,
+    condominium_fees: 1_000,
+    business_tax: 200,
     other_charges: 100
   }.freeze
+
+  # L'entretien se lit à deux références, selon qui porte la façade, la toiture et les
+  # communs : en copropriété les charges de copro les portent déjà, et seul le propriétaire
+  # les porte toutes — d'où le double.
+  MAINTENANCE_REFERENCES = { condominium: 1_000, sole_owner: 2_000 }.freeze
+
+  # Les montants qui ne se déduisent pas de la surface. Un bilan de meublé se paie au
+  # forfait, et une gestion déléguée comme une garantie des loyers impayés ne se supposent
+  # pas : on les propose à zéro, à celui qui les paie de le dire.
+  FIXED_AMOUNTS = { management_fees: 0, rent_guarantee: 0, accounting_fees: 500 }.freeze
 
   # Onze mois sur douze : un mois de vacance locative par an, la vacance moyenne d'un bien
   # correctement loué.
@@ -70,6 +106,11 @@ class Simulation < ApplicationRecord
   # `valid?(:property)` — laisse le champ vide tel que l'utilisateur l'a laissé.
   before_validation :name_after_the_property, on: [:create, :update]
 
+  # Ce qu'une condition ne justifie plus retombe à zéro : un bien qui sort de copropriété
+  # cesse d'en payer les charges, un meublé repassé au nu cesse de payer la CFE. Sans quoi un
+  # montant que le formulaire ne montre plus continuerait de peser sur la projection.
+  before_validation :clear_inapplicable_charges
+
   # Page 1 — le bien.
   validates :property_type, presence: true, inclusion: { in: PROPERTY_TYPES, allow_blank: true },
             on: [:create, :update, :property]
@@ -92,27 +133,36 @@ class Simulation < ApplicationRecord
   validates :rental_type, presence: true, inclusion: { in: RENTAL_TYPES, allow_blank: true },
             on: [:create, :update, :rental]
 
-  # Page 4 — les charges annuelles.
-  ANNUAL_CHARGES = %i[property_tax maintenance insurance other_charges].freeze
-
+  # Page 4 — les charges annuelles. Toutes sont exigées, y compris celles qu'une condition
+  # masque : `clear_inapplicable_charges` les a déjà ramenées à zéro.
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
   # Un montant de référence mis à l'échelle d'une surface, arrondi à la dizaine d'euros.
   # La racine carrée, et non la proportion : un logement deux fois plus grand ne se loue ni
   # ne s'entretient au double du prix.
-  def self.estimate(field, surface)
+  def self.estimate(field, surface, condominium: false)
+    return FIXED_AMOUNTS.fetch(field) if FIXED_AMOUNTS.key?(field)
+
     surface = surface.to_f
     return 0 unless surface.positive?
 
-    scaled = REFERENCE_AMOUNTS.fetch(field) * Math.sqrt(surface / REFERENCE_SURFACE)
+    scaled = reference_amount(field, condominium: condominium) * Math.sqrt(surface / REFERENCE_SURFACE)
     (scaled / ESTIMATE_ROUNDING).round * ESTIMATE_ROUNDING
   end
 
+  def self.reference_amount(field, condominium: false)
+    return MAINTENANCE_REFERENCES.fetch(condominium ? :condominium : :sole_owner) if field == :maintenance
+
+    REFERENCE_AMOUNTS.fetch(field)
+  end
+  private_class_method :reference_amount
+
   # Ce qu'une page propose tant que rien n'y a été saisi. Les trois dernières tirent leurs
-  # montants de la surface annoncée par la première : c'est le seul chiffre dont on dispose
-  # avant que l'utilisateur ne parle d'argent.
-  def self.defaults_for(step, surface: nil)
+  # montants des réponses déjà données — la surface d'abord, mais aussi la copropriété et le
+  # meublé : ce sont les seuls chiffres dont on dispose avant que l'utilisateur ne parle
+  # d'argent. D'où une méthode d'instance : le brouillon porte ces réponses.
+  def defaults_for(step)
     case step.to_s
     when "purchase"
       {
@@ -121,15 +171,38 @@ class Simulation < ApplicationRecord
       }
     when "rental"
       {
-        "monthly_rent" => estimate(:monthly_rent, surface),
+        "monthly_rent" => estimate(:monthly_rent),
         "occupancy_months" => DEFAULT_OCCUPANCY_MONTHS,
         "rental_type" => RENTAL_TYPES.first
       }
     when "charges"
-      ANNUAL_CHARGES.to_h { |field| [field.to_s, estimate(field, surface)] }
+      applicable_charges.to_h { |field| [field.to_s, estimate(field)] }
     else
       {}
     end
+  end
+
+  # Un montant proposé pour ce bien-ci : sa surface, et sa copropriété là où elle change la
+  # référence.
+  def estimate(field)
+    self.class.estimate(field, surface, condominium: condominium?)
+  end
+
+  def furnished?
+    rental_type == FURNISHED
+  end
+
+  # Les charges que ce bien-ci se voit demander : toutes, moins celles dont la condition
+  # n'est pas remplie. C'est cette liste que le formulaire affiche, que la fiche détaille et
+  # que le total additionne.
+  def applicable_charges
+    ANNUAL_CHARGES.select { |field| charge_applicable?(field) }
+  end
+
+  def charge_applicable?(field)
+    condition = CHARGE_CONDITIONS[field.to_sym]
+
+    condition.nil? || public_send(condition)
   end
 
   # Le nom que le bien se donne lui-même : son type, sa ville et sa surface. C'est celui
@@ -167,9 +240,10 @@ class Simulation < ApplicationRecord
     monthly_rent * occupancy_months
   end
 
-  # Les charges d'une année : taxe foncière, entretien, assurance PNO et frais divers.
+  # Les charges d'une année : celles que le bien se voit demander, additionnées. Les autres
+  # sont à zéro de toute façon, mais les exclure dit mieux ce que le total recouvre.
   def annual_charges
-    ANNUAL_CHARGES.sum { |field| public_send(field) }
+    applicable_charges.sum { |field| public_send(field) }
   end
 
   # Le cash-flow d'une année : les entrées moins les sorties. Tant qu'il n'y a pas de prêt,
@@ -219,5 +293,9 @@ class Simulation < ApplicationRecord
 
   def name_after_the_property
     self.name = default_name if name.blank?
+  end
+
+  def clear_inapplicable_charges
+    (ANNUAL_CHARGES - applicable_charges).each { |field| self[field] = 0 }
   end
 end

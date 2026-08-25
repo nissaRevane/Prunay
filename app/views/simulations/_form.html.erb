@@ -1,7 +1,7 @@
 <%# Le formulaire de modification : les quatre pages de la création rassemblées en une
     seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
     l'assistant. %>
-<%= form_with(model: simulation, class: "form") do |f| %>
+<%= form_with(model: simulation, class: "form", data: { controller: "charges" }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <fieldset class="form-fieldset">
@@ -43,7 +43,7 @@
     </div>
 
     <div class="form-group form-check">
-      <%= f.check_box :condominium %>
+      <%= f.check_box :condominium, data: { charges_target: "condominium", action: "change->charges#refresh" } %>
       <%= f.label :condominium %>
     </div>
   </fieldset>
@@ -93,36 +93,15 @@
 
     <div class="form-group">
       <%= f.label :rental_type %>
-      <%= f.select :rental_type, rental_type_options, {}, class: "form-control", required: true %>
+      <%= f.select :rental_type, rental_type_options, {}, class: "form-control", required: true,
+          data: { charges_target: "rentalType", action: "change->charges#refresh" } %>
     </div>
   </fieldset>
 
   <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.charges.title") %></legend>
 
-    <div class="form-row">
-      <div class="form-group form-group-half">
-        <%= f.label :property_tax %>
-        <%= f.number_field :property_tax, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
-
-      <div class="form-group form-group-half">
-        <%= f.label :maintenance %>
-        <%= f.number_field :maintenance, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group form-group-half">
-        <%= f.label :insurance %>
-        <%= f.number_field :insurance, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
-
-      <div class="form-group form-group-half">
-        <%= f.label :other_charges %>
-        <%= f.number_field :other_charges, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
-    </div>
+    <%= render "simulations/charge_fields", f: f %>
   </fieldset>
 
   <div class="form-actions">

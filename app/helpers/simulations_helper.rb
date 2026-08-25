@@ -11,4 +11,11 @@ module SimulationsHelper
   def energy_rating_options
     Simulation::ENERGY_RATINGS
   end
+
+  # La condition qui gouverne une charge, telle que le contrôleur `charges` la reconnaît :
+  # le prédicat du modèle, sans son point d'interrogation. Nil pour une charge que rien ne
+  # conditionne — l'attribut ne s'écrit alors pas.
+  def charge_condition_name(field)
+    Simulation::CHARGE_CONDITIONS[field]&.to_s&.delete("?")
+  end
 end

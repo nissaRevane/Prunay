@@ -44,9 +44,25 @@ RSpec.describe Simulation, type: :model do
 
     it "rounds to the nearest ten euros" do
       expect(described_class.estimate(:property_tax, 30)).to eq(540)
-      expect(described_class.estimate(:maintenance, 30)).to eq(770)
       expect(described_class.estimate(:insurance, 30)).to eq(120)
+      expect(described_class.estimate(:condominium_fees, 30)).to eq(770)
+      expect(described_class.estimate(:business_tax, 30)).to eq(150)
       expect(described_class.estimate(:other_charges, 30)).to eq(80)
+    end
+
+    # L'entretien se lit à deux références : la copropriété porte déjà la façade, la toiture
+    # et les communs, et le propriétaire seul les porte toutes.
+    it "doubles the maintenance of a property no condominium looks after" do
+      expect(described_class.estimate(:maintenance, 50, condominium: true)).to eq(1_000)
+      expect(described_class.estimate(:maintenance, 50)).to eq(2_000)
+    end
+
+    # Un bilan de meublé se paie au forfait, et une gestion déléguée comme une garantie des
+    # loyers impayés ne se supposent pas : on les propose à zéro.
+    it "leaves the amounts that do not follow the surface where they are" do
+      expect(described_class.estimate(:accounting_fees, 200)).to eq(500)
+      expect(described_class.estimate(:management_fees, 200)).to eq(0)
+      expect(described_class.estimate(:rent_guarantee, 200)).to eq(0)
     end
 
     it "has nothing to propose without a surface" do
@@ -55,26 +71,44 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  describe ".defaults_for" do
+  describe "#defaults_for" do
+    def draft(**answers)
+      described_class.new(user: build(:user), **answers)
+    end
+
     it "proposes nothing on the first page: the surface is what it asks for" do
-      expect(described_class.defaults_for("property")).to eq({})
+      expect(draft(surface: 50).defaults_for("property")).to eq({})
     end
 
     it "dates the purchase three months out and assumes no works" do
-      defaults = described_class.defaults_for("purchase")
+      defaults = draft.defaults_for("purchase")
 
       expect(defaults["purchase_date"]).to eq(Date.current >> 3)
       expect(defaults["initial_works"]).to eq(0)
     end
 
     it "leaves a month of vacancy a year" do
-      expect(described_class.defaults_for("rental", surface: 50)["occupancy_months"]).to eq(11)
+      expect(draft(surface: 50).defaults_for("rental")["occupancy_months"]).to eq(11)
     end
 
-    it "estimates every annual charge from the surface" do
-      expect(described_class.defaults_for("charges", surface: 50)).to eq(
-        "property_tax" => 700, "maintenance" => 1_000, "insurance" => 150, "other_charges" => 100
+    # Un bien meublé hors copropriété : pas de charges de copro, un entretien doublé, et les
+    # deux charges que le meublé impose.
+    it "estimates every charge the property is asked for" do
+      defaults = draft(surface: 50, condominium: false, rental_type: "furnished").defaults_for("charges")
+
+      expect(defaults).to eq(
+        "property_tax" => 700, "insurance" => 150, "maintenance" => 2_000,
+        "management_fees" => 0, "rent_guarantee" => 0,
+        "business_tax" => 200, "accounting_fees" => 500,
+        "other_charges" => 100
       )
+    end
+
+    it "asks a condominium for its fees, and halves the maintenance it no longer carries alone" do
+      defaults = draft(surface: 50, condominium: true, rental_type: "unfurnished").defaults_for("charges")
+
+      expect(defaults).to include("condominium_fees" => 1_000, "maintenance" => 1_000)
+      expect(defaults.keys).not_to include("business_tax", "accounting_fees")
     end
   end
 
@@ -118,10 +152,48 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#annual_charges" do
-    it "adds up the four annual charges" do
-      simulation = build(:simulation, property_tax: 700, maintenance: 1_000, insurance: 150, other_charges: 100)
+    it "adds up the charges the property is asked for" do
+      simulation = build(:simulation, condominium: true, rental_type: "furnished",
+                                      property_tax: 700, insurance: 150, maintenance: 1_000,
+                                      condominium_fees: 1_200, management_fees: 600, rent_guarantee: 300,
+                                      business_tax: 200, accounting_fees: 500, other_charges: 100)
 
-      expect(simulation.annual_charges).to eq(1_950)
+      expect(simulation.annual_charges).to eq(4_750)
+    end
+
+    # Une charge qu'aucune condition ne justifie ne pèse pas sur la projection : elle est
+    # ramenée à zéro avant l'enregistrement, et le total ne la compte pas.
+    it "ignores what the property is not asked for" do
+      simulation = create(:simulation, condominium: false, rental_type: "unfurnished",
+                                       property_tax: 700, condominium_fees: 1_200,
+                                       business_tax: 200, accounting_fees: 500)
+
+      expect(simulation.annual_charges).to eq(700)
+      expect(simulation).to have_attributes(condominium_fees: 0, business_tax: 0, accounting_fees: 0)
+    end
+  end
+
+  # Trois charges ne se demandent que sous condition, et ne survivent pas à sa disparition :
+  # les charges de copropriété à un bien en copropriété, la CFE et le comptable à un meublé.
+  describe "the charges a condition governs" do
+    it "asks a condominium for its fees, and a property outside one for nothing of the sort" do
+      expect(build(:simulation, condominium: true).applicable_charges).to include(:condominium_fees)
+      expect(build(:simulation, condominium: false).applicable_charges).not_to include(:condominium_fees)
+    end
+
+    it "asks a furnished letting for its business tax and its accountant, and an unfurnished one for neither" do
+      expect(build(:simulation, rental_type: "furnished").applicable_charges).to include(:business_tax, :accounting_fees)
+      expect(build(:simulation, rental_type: "unfurnished").applicable_charges).not_to include(:business_tax, :accounting_fees)
+    end
+
+    # Sortir de copropriété, c'est cesser d'en payer les charges : un montant que le
+    # formulaire ne montre plus ne doit pas continuer de peser sur la projection.
+    it "clears an amount its condition no longer justifies" do
+      simulation = create(:simulation, condominium: true, condominium_fees: 1_200)
+
+      simulation.update(condominium: false)
+
+      expect(simulation.reload.condominium_fees).to eq(0)
     end
   end
 

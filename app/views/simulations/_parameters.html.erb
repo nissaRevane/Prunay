@@ -74,8 +74,11 @@
     <h2><%= t("views.simulations.show.charges_detail") %></h2>
   </div>
 
+  <%# Les charges que ce bien-ci se voit demander, dans l'ordre des groupes du formulaire.
+      Une maison n'affiche donc pas de charges de copropriété, ni un bien loué nu de CFE :
+      une ligne à zéro se lirait comme une charge oubliée. %>
   <dl class="detail-grid">
-    <% Simulation::ANNUAL_CHARGES.each do |charge| %>
+    <% simulation.applicable_charges.each do |charge| %>
       <div class="detail-item">
         <dt class="detail-label"><%= Simulation.human_attribute_name(charge) %></dt>
         <dd class="detail-value"><%= number_to_currency(simulation.public_send(charge)) %></dd>

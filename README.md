@@ -59,9 +59,19 @@ docker compose run --rm web bundle exec rspec
   validates only its own fields (see the validation contexts named after
   `Simulation::STEPS`). Editing, by contrast, is a single form: the four pages only help
   someone discovering the form.
-- **Amounts proposed from the surface:** the rent and the four annual charges are
-  pre-filled from a reference amount for 50 m², scaled by the square root of the surface
-  and rounded to the nearest ten euros — orders of magnitude to correct, not a calculation.
+- **Amounts proposed from the answers already given:** the rent and most of the annual
+  charges are pre-filled from a reference amount for 50 m², scaled by the square root of
+  the surface and rounded to the nearest ten euros — orders of magnitude to correct, not a
+  calculation. Three of them do not follow the surface at all: an accountant's fee is flat,
+  and a letting agent or a rent guarantee is proposed at zero because neither can be
+  assumed. Maintenance reads two references instead of one: doubled when no condominium
+  already carries the façade, the roof and the common parts.
+- **Charges asked for under a condition:** the condominium fees are only asked of a
+  property in a condominium, and the business tax (CFE) and the accountant only of a
+  furnished letting (`Simulation::CHARGE_CONDITIONS`). A charge whose condition falls away
+  goes back to zero before the record is saved, so an amount the form no longer shows never
+  weighs on the projection — and the simulation page details only the charges the property
+  is actually asked for.
 - **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
   year's rent, its charges, its cash flow and the capital still immobilized. The
   immobilized capital starts at the price *plus the initial works*, and the annual rent
@@ -98,7 +108,12 @@ spec/
   - *the property:* property_type, address, city, energy_rating, surface, condominium
   - *the purchase:* purchase_price, initial_works, purchase_date
   - *the letting:* monthly_rent, occupancy_months, rental_type
-  - *the annual charges:* property_tax, maintenance, insurance, other_charges
+  - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
+    which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):
+    - *owning the property:* property_tax, insurance, maintenance, condominium_fees
+    - *letting it:* management_fees, rent_guarantee
+    - *the furnished regime:* business_tax, accounting_fees
+    - *the rest:* other_charges
 
   The thirty-year projection is derived, never stored: see `Simulation#projection` and its
   `Year` struct, where the column a loan will add has its place waiting.

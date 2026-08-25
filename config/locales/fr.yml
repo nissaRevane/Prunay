@@ -29,8 +29,13 @@ fr:
         occupancy_months: "Taux d'occupation (mois par an)"
         rental_type: "Type d'exploitation"
         property_tax: Taxe foncière
-        maintenance: Entretien et petits travaux
         insurance: Assurance PNO
+        maintenance: Entretien et petits travaux
+        condominium_fees: Charges de copropriété
+        management_fees: Gestion locative
+        rent_guarantee: Garantie loyers impayés
+        business_tax: "CFE (cotisation foncière des entreprises)"
+        accounting_fees: Comptable
         other_charges: Autres frais
       user:
         firstname: Prénom
@@ -122,6 +127,25 @@ fr:
         annual_cash_flow: Cash-flow annuel
       form:
         cancel: Annuler
+      # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
+      # l'assistant comme au formulaire de modification : d'où leur place ici, hors des
+      # étapes. Chaque intertitre dit ce qui engendre la dépense, et son commentaire ce que
+      # le groupe recouvre — y compris les conditions qui font apparaître ou disparaître un
+      # montant.
+      charges:
+        groups:
+          ownership:
+            title: La détention du bien
+            hint: "Ce que le bien coûte, loué ou non. L'entretien est proposé au double quand aucune copropriété ne porte déjà la façade, la toiture et les communs."
+          letting:
+            title: "L'exploitation locative"
+            hint: "Ce que l'on paie pour louer : rien par défaut, car ni une gestion déléguée ni une garantie des loyers impayés ne se supposent."
+          furnished:
+            title: Le régime meublé
+            hint: "Ce que le meublé impose : la cotisation foncière des entreprises, et le bilan qu'un comptable établit. Un bien loué nu ne les paie pas."
+          other:
+            title: Divers
+            hint: "Tout ce que les groupes précédents ne nomment pas."
       steps:
         title: Nouvelle simulation
         next: Continuer
@@ -147,7 +171,7 @@ fr:
           occupancy_months_hint: "Le nombre de mois loués dans l'année : onze laissent un mois de vacance locative."
         charges:
           title: Les charges annuelles
-          hint: "Quatre montants estimés d'après la surface, à corriger. Leur total se déduit des loyers chaque année de la projection."
+          hint: "Ce que le bien coûte chaque année, groupe par groupe. Les montants proposés sont estimés d'après la surface, à corriger. Leur total se déduit des loyers chaque année de la projection."
       edit:
         title: Modifier la simulation
       show:
