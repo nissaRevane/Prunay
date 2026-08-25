@@ -96,6 +96,11 @@ class Simulation < ApplicationRecord
 
   DEFAULT_LOAN_DURATION_YEARS = 20
 
+  # Le jour du mois où la banque prélève : le 5. Le remboursement ne commence donc pas à
+  # l'anniversaire de la signature mais au premier 5 qui la suit — le mois de l'acte quand il
+  # est signé du 1er au 5, le mois d'après sinon.
+  LOAN_PAYMENT_DAY = 5
+
   # Un crédit plus long que la projection ne se lirait qu'à moitié : le tableau s'arrêterait
   # avant sa dernière échéance, et la dernière ligne de la projection porterait encore une
   # annuité. La durée s'arrête donc là où l'horizon s'arrête.
@@ -321,17 +326,19 @@ class Simulation < ApplicationRecord
     loan_duration_years.to_i * MONTHS_PER_YEAR
   end
 
-  # La date de l'échéance numéro +number+, comptée depuis la signature et non depuis la
-  # précédente : Date#>> conserve la fin de mois (31 janvier + 1 mois = 28 février), mais
-  # l'appliquer de proche en proche collerait toutes les échéances suivantes au 28.
+  # La date de l'échéance numéro +number+, comptée depuis la première et non depuis la
+  # précédente : toutes tombent le même jour du mois, un mois après l'autre.
   def loan_payment_due_on(number)
-    purchase_date >> number
+    loan_first_payment_on >> (number - 1)
   end
 
-  # La première échéance tombe un mois après la signature, comme celle de la plupart des
-  # prêts : le déblocage des fonds a lieu chez le notaire, et le prélèvement suit.
+  # La première échéance : le 5 qui suit la signature. Le déblocage des fonds a lieu chez le
+  # notaire et le prélèvement suit, mais il suit au jour du prélèvement — le 5 du mois de
+  # l'acte quand il est signé du 1er au 5, le 5 du mois d'après quand il est signé plus tard.
   def loan_first_payment_on
-    loan_payment_due_on(1)
+    month = purchase_date.day <= LOAN_PAYMENT_DAY ? purchase_date : purchase_date >> 1
+
+    Date.new(month.year, month.month, LOAN_PAYMENT_DAY)
   end
 
   # Le crédit a-t-il de quoi produire un tableau ? Il faut qu'il existe, qu'il porte une

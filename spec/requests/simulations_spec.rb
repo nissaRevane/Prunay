@@ -212,7 +212,7 @@ RSpec.describe "Simulations", type: :request do
 
         cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
         expect(cells.first).to eq("1")
-        expect(cells.second).to include("10 avril 2025")
+        expect(cells.second).to include("05 avril 2025")
         expect(cells.third).to eq(currency(on_credit.monthly_payment).gsub(/\s+/, " "))
       end
 

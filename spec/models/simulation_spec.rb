@@ -276,6 +276,26 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.annual_loan_payment).to eq(BigDecimal("1071.62") * 12)
     end
 
+    # Le remboursement commence le 5 : celui du mois de l'acte quand il est signé du 1er au
+    # 5, celui du mois suivant sinon.
+    it "starts repaying on the fifth that follows the signature" do
+      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 10)).loan_first_payment_on)
+        .to eq(Date.new(2025, 4, 5))
+      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 31)).loan_first_payment_on)
+        .to eq(Date.new(2025, 4, 5))
+      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 2)).loan_first_payment_on)
+        .to eq(Date.new(2025, 3, 5))
+      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 5)).loan_first_payment_on)
+        .to eq(Date.new(2025, 3, 5))
+    end
+
+    # Un acte signé en décembre après le 5 rembourse en janvier de l'année suivante : le mois
+    # d'après, c'est un an de plus quand le mois d'après est janvier.
+    it "rolls over the year when the purchase is signed late in December" do
+      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 12, 20)).loan_first_payment_on)
+        .to eq(Date.new(2026, 1, 5))
+    end
+
     it "borrows nothing when the purchase is paid outright" do
       paid_outright = build(:simulation, credit: false)
 

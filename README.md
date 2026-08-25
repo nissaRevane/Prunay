@@ -83,7 +83,10 @@ docker compose run --rm web bundle exec rspec
   to the cent. The schedule that follows is Milly's — interest on the outstanding capital,
   principal for the rest, the last payment settling the rounding residue — but read the
   other way round: Milly copies a payment already negotiated, Prunay computes the payment
-  that a rate and a duration imply. The table is a tab of its own on the simulation page.
+  that a rate and a duration imply. Repayment starts on the fifth that follows the signature
+  (`Simulation::LOAN_PAYMENT_DAY`): the fifth of the month of the deed when it is signed
+  between the 1st and the 5th, the fifth of the month after when it is signed later. The
+  table is a tab of its own on the simulation page.
 - **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
   year's rent, its charges, the annuity of its credit, its cash flow and the capital still
   immobilized. The annual rent counts only the months actually let, and the annuity is read

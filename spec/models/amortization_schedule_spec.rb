@@ -27,14 +27,24 @@ RSpec.describe AmortizationSchedule do
       expect(schedule.rows.map(&:number)).to eq((1..240).to_a)
     end
 
-    # La première échéance tombe un mois après la signature : les fonds sont débloqués chez
-    # le notaire, et le prélèvement suit.
-    it "starts a month after the purchase and keeps month-end semantics" do
-      expect(schedule.rows.first.due_on).to eq(Date.new(2025, 2, 15))
-      expect(schedule.rows.second.due_on).to eq(Date.new(2025, 3, 15))
+    # Le prélèvement tombe le 5 : celui du mois qui suit la signature, quel que soit le jour
+    # de l'acte, puis un mois après l'autre.
+    it "falls on the fifth of the month after the purchase, then month by month" do
+      expect(schedule.rows.first.due_on).to eq(Date.new(2025, 2, 5))
+      expect(schedule.rows.second.due_on).to eq(Date.new(2025, 3, 5))
 
       month_end = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 31))
-      expect(described_class.new(month_end).rows.second.due_on).to eq(Date.new(2025, 3, 31))
+      expect(described_class.new(month_end).rows.first.due_on).to eq(Date.new(2025, 2, 5))
+    end
+
+    # Un acte signé du 1er au 5 n'attend pas un mois de plus : le 5 de son propre mois n'est
+    # pas encore passé, et c'est celui-là qui ouvre le remboursement.
+    it "starts in the month of the purchase itself when the fifth is still ahead" do
+      early = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 3))
+      on_the_day = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 5))
+
+      expect(described_class.new(early).rows.first.due_on).to eq(Date.new(2025, 1, 5))
+      expect(described_class.new(on_the_day).rows.first.due_on).to eq(Date.new(2025, 1, 5))
     end
 
     # Intérêts = CRD × taux mensuel, capital = mensualité − intérêts : le capital remboursé
