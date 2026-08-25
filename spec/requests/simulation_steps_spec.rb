@@ -25,7 +25,11 @@ RSpec.describe "Simulation steps", type: :request do
   end
 
   PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50", condominium: "1" }.freeze
-  PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15" }.freeze
+  # Un achat comptant : sans crédit, la page du crédit ne s'ouvre pas.
+  PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
+               credit: "0", down_payment: "0" }.freeze
+  ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
+  CREDIT = { loan_rate: "3.5", loan_duration_years: "20" }.freeze
   RENTAL = { monthly_rent: "1000", occupancy_months: "11", rental_type: "unfurnished" }.freeze
   # Le bien de PROPERTY est en copropriété et RENTAL le loue nu : la page des charges lui
   # demande donc les charges de copro, mais ni CFE ni comptable.
@@ -95,6 +99,60 @@ RSpec.describe "Simulation steps", type: :request do
       submit("property", PROPERTY.merge(name: ""))
 
       expect(response).to redirect_to(new_simulation_step_path(step: "purchase"))
+    end
+
+    # La page du crédit ne s'ouvre qu'à qui en coche un : le parcours passe alors de quatre
+    # pages à cinq, et l'achat mène au crédit plutôt qu'à la location.
+    it "walks a fifth page when the purchase is financed by a credit" do
+      submit("property", PROPERTY)
+      submit("purchase", ON_CREDIT)
+      expect(response).to redirect_to(new_simulation_step_path(step: "credit"))
+
+      submit("credit", CREDIT)
+      expect(response).to redirect_to(new_simulation_step_path(step: "rental"))
+
+      submit("rental", RENTAL)
+      expect { submit("charges", CHARGES) }.to change(Simulation, :count).by(1)
+
+      expect(Simulation.last).to have_attributes(
+        credit: true, down_payment: 25_000, loan_rate: 3.5, loan_duration_years: 20,
+        borrowed_capital: 211_612
+      )
+    end
+
+    # Décocher le crédit referme sa page : elle n'est plus dans le parcours, et l'achat mène
+    # de nouveau directement à la location.
+    it "closes the credit page again when the purchase goes back to being paid outright" do
+      submit("property", PROPERTY)
+      submit("purchase", ON_CREDIT)
+      submit("credit", CREDIT)
+
+      submit("purchase", PURCHASE)
+
+      expect(response).to redirect_to(new_simulation_step_path(step: "rental"))
+    end
+
+    # Une page hors parcours se traite comme une page qui n'existe pas : on repart du début.
+    it "refuses the credit page to a purchase paid outright" do
+      submit("property", PROPERTY)
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "credit")
+
+      expect(response).to redirect_to(new_simulation_step_path(step: "property"))
+    end
+
+    # Un achat comptant ne garde rien du crédit qu'il a pu déclarer en chemin.
+    it "writes nothing of a credit the purchase gave up" do
+      submit("property", PROPERTY)
+      submit("purchase", ON_CREDIT)
+      submit("credit", CREDIT)
+      submit("purchase", PURCHASE)
+      submit("rental", RENTAL)
+      submit("charges", CHARGES)
+
+      expect(Simulation.last).to have_attributes(credit: false, down_payment: 0, loan_rate: 0,
+                                                 loan_duration_years: 0)
     end
 
     it "keeps what a previous page has already answered" do
@@ -191,6 +249,16 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
+    # Vingt ans à 3,5 % : le crédit que la page propose tant que rien n'y a été saisi.
+    it "proposes twenty years at 3.5 % on the credit page" do
+      submit("purchase", ON_CREDIT)
+
+      get new_simulation_step_path(step: "credit")
+
+      expect(field_value("simulation_loan_rate")).to eq("3.5")
+      expect(field_value("simulation_loan_duration_years")).to eq("20")
+    end
+
     it "does not overwrite an amount already corrected by hand" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL.merge(monthly_rent: "990"))
@@ -245,16 +313,34 @@ RSpec.describe "Simulation steps", type: :request do
   end
 
   describe "the progress bar" do
-    it "shows the four pages and marks the one being answered" do
+    it "shows the four pages of a purchase paid outright and marks the one being answered" do
       submit("property", PROPERTY)
       follow_redirect!
 
       doc = Nokogiri::HTML(response.body)
       steps = doc.css(".wizard-progress .wizard-progress-step")
 
-      expect(steps.size).to eq(Simulation::STEPS.size)
+      expect(steps.size).to eq(4)
+      expect(steps.map { |step| step.at_css(".wizard-progress-label").text.strip })
+        .not_to include(I18n.t("views.simulations.steps.credit.title"))
       expect(steps.first["class"]).to include("is-done")
       expect(steps[1]["class"]).to include("is-current")
+    end
+
+    # La barre ne doit pas annoncer une page qui ne s'ouvrira pas — ni taire celle qui vient
+    # de s'ouvrir.
+    it "announces the credit page as soon as the purchase declares one" do
+      submit("property", PROPERTY)
+      submit("purchase", ON_CREDIT)
+      follow_redirect!
+
+      doc = Nokogiri::HTML(response.body)
+      steps = doc.css(".wizard-progress .wizard-progress-step")
+
+      expect(steps.size).to eq(5)
+      expect(steps[2]["class"]).to include("is-current")
+      expect(steps[2].at_css(".wizard-progress-label").text.strip)
+        .to eq(I18n.t("views.simulations.steps.credit.title"))
     end
   end
 end

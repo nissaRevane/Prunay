@@ -2,6 +2,9 @@
     rappel de ce que ses colonnes cumulent. %>
 <div class="section">
   <p class="section-hint"><%= t("views.simulations.show.projection_hint") %></p>
+  <% if simulation.credit? %>
+    <p class="section-hint"><%= t("views.simulations.show.projection_credit_hint") %></p>
+  <% end %>
 
   <div class="table-scroll">
     <table class="table">
@@ -11,6 +14,9 @@
           <th><%= t("views.simulations.show.date") %></th>
           <th class="text-right"><%= t("views.simulations.show.annual_rent_column") %></th>
           <th class="text-right"><%= t("views.simulations.show.annual_charges_column") %></th>
+          <% if simulation.credit? %>
+            <th class="text-right"><%= t("views.simulations.show.loan_payments_column") %></th>
+          <% end %>
           <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
           <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
         </tr>
@@ -25,6 +31,9 @@
             </td>
             <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
             <td class="text-right text-danger"><%= number_to_currency(year.annual_charges) %></td>
+            <% if simulation.credit? %>
+              <td class="text-right text-danger"><%= number_to_currency(year.loan_payments) %></td>
+            <% end %>
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>

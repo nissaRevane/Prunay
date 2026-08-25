@@ -261,7 +261,8 @@ a.nav-user-name:hover {
   margin-bottom: 0.75rem;
 }
 
-.form-group[hidden] {
+.form-group[hidden],
+.form-row[hidden] {
   display: none;
 }
 
@@ -381,6 +382,27 @@ a.nav-user-name:hover {
 
 .table-scroll {
   overflow-x: auto;
+}
+
+/* Un tableau qui compte ses lignes par centaines — trois cents échéances d'un crédit sur
+   vingt-cinq ans — défile dans son propre cadre plutôt que d'allonger la page à l'infini.
+   L'en-tête reste visible : sans lui, une colonne de montants ne dit plus lequel elle porte. */
+.table-scroll-tall {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.table-scroll-tall thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg);
+}
+
+/* Des lignes plus serrées, là où il y en a beaucoup. */
+.table-compact th,
+.table-compact td {
+  padding: 0.5rem 0.75rem;
 }
 
 .text-right {

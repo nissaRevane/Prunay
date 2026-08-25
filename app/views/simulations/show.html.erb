@@ -8,8 +8,9 @@
   </div>
 </div>
 
-<%# Deux lectures de la même simulation : ses paramètres d'un côté, sa projection de l'autre.
-    Les deux panneaux sont rendus par le serveur ; l'onglet choisit lequel se montre. %>
+<%# Les lectures d'une même simulation : ses paramètres, sa projection, et le tableau
+    d'amortissement de son crédit quand elle en porte un. Les panneaux sont tous rendus par le
+    serveur ; l'onglet choisit lequel se montre. %>
 <div data-controller="tabs" data-tabs-index-value="0">
   <div class="tabs" role="tablist">
     <button type="button" class="tab" role="tab" id="tab-parameters"
@@ -22,6 +23,13 @@
             data-tabs-target="tab" data-action="click->tabs#select">
       <%= t("views.simulations.show.tab_projection", years: Simulation::HORIZON_YEARS) %>
     </button>
+    <% if @schedule %>
+      <button type="button" class="tab" role="tab" id="tab-amortization"
+              aria-controls="panel-amortization" aria-selected="false"
+              data-tabs-target="tab" data-action="click->tabs#select">
+        <%= t("views.simulations.show.tab_amortization") %>
+      </button>
+    <% end %>
   </div>
 
   <div class="tab-panel" role="tabpanel" id="panel-parameters" aria-labelledby="tab-parameters" data-tabs-target="panel">
@@ -31,6 +39,12 @@
   <div class="tab-panel" role="tabpanel" id="panel-projection" aria-labelledby="tab-projection" data-tabs-target="panel" hidden>
     <%= render "projection", simulation: @simulation, projection: @projection %>
   </div>
+
+  <% if @schedule %>
+    <div class="tab-panel" role="tabpanel" id="panel-amortization" aria-labelledby="tab-amortization" data-tabs-target="panel" hidden>
+      <%= render "amortization", simulation: @simulation, schedule: @schedule %>
+    </div>
+  <% end %>
 </div>
 
 <div class="form-actions">

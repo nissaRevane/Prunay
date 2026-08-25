@@ -1,7 +1,12 @@
 <%# Le formulaire de modification : les quatre pages de la création rassemblées en une
     seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
     l'assistant. %>
-<%= form_with(model: simulation, class: "form", data: { controller: "charges" }) do |f| %>
+<%= form_with(model: simulation, class: "form",
+                  data: { controller: "charges credit",
+                          credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f,
+                          credit_base_value: Simulation::NOTARY_FEES_BASE,
+                          credit_share_value: Simulation::DEFAULT_DOWN_PAYMENT_SHARE.to_f,
+                          credit_rounding_value: Simulation::ESTIMATE_ROUNDING }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <fieldset class="form-fieldset">
@@ -58,12 +63,14 @@
         <div class="form-group form-group-half">
           <%= f.label :purchase_price %>
           <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true,
-              data: { notary_fees_target: "price", action: "input->notary-fees#refresh" } %>
+              data: { notary_fees_target: "price", credit_target: "price",
+                      action: "input->notary-fees#refresh input->credit#suggest" } %>
         </div>
 
         <div class="form-group form-group-half">
           <%= f.label :initial_works %>
-          <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
+          <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true,
+              data: { credit_target: "works", action: "input->credit#suggest" } %>
         </div>
       </div>
 
@@ -74,6 +81,26 @@
       <%= f.label :purchase_date %>
       <%= f.date_field :purchase_date, class: "form-control", required: true %>
     </div>
+  </fieldset>
+
+  <fieldset class="form-fieldset">
+    <legend><%= t("views.simulations.steps.credit.title") %></legend>
+
+    <%= render "simulations/credit_fields", f: f %>
+
+    <%= tag.div class: "form-row", hidden: !simulation.credit?, data: { credit_target: "field" } do %>
+      <div class="form-group form-group-half">
+        <%= f.label :loan_rate %>
+        <%= f.number_field :loan_rate, step: "0.01", min: "0", max: "99.99", class: "form-control",
+            required: true, disabled: !simulation.credit? %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :loan_duration_years %>
+        <%= f.number_field :loan_duration_years, step: "1", min: "1", max: Simulation::MAX_LOAN_DURATION_YEARS,
+            class: "form-control", required: true, disabled: !simulation.credit? %>
+      </div>
+    <% end %>
   </fieldset>
 
   <fieldset class="form-fieldset">

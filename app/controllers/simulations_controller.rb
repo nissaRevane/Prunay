@@ -7,6 +7,7 @@ class SimulationsController < ApplicationController
 
   def show
     @projection = @simulation.projection
+    @schedule = @simulation.amortization_schedule
   end
 
   # La création vit dans Simulations::StepsController, en quatre pages. `/simulations/new`
@@ -44,7 +45,8 @@ class SimulationsController < ApplicationController
   def simulation_params
     params.require(:simulation).permit(
       :name, :property_type, :address, :city, :energy_rating, :surface, :condominium,
-      :purchase_price, :initial_works, :purchase_date,
+      :purchase_price, :initial_works, :purchase_date, :credit, :down_payment,
+      :loan_rate, :loan_duration_years,
       :monthly_rent, :occupancy_months, :rental_type,
       *Simulation::ANNUAL_CHARGES
     )

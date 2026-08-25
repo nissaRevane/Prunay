@@ -25,6 +25,15 @@ fr:
         purchase_price: "Prix d'achat"
         notary_fees: Frais de notaire
         initial_works: Travaux initiaux
+        credit: "L'achat est financé par un crédit"
+        down_payment: Apport
+        borrowed_capital: Capital emprunté
+        loan_rate: "Taux annuel du crédit (%)"
+        loan_duration_years: "Durée du crédit (ans)"
+        monthly_payment: Mensualité
+        annual_loan_payment: "Annuité (12 mensualités)"
+        total_loan_interest: Coût total du crédit
+        loan_first_payment_on: Première échéance
         monthly_rent: Loyer mensuel
         occupancy_months: "Taux d'occupation (mois par an)"
         rental_type: "Type d'exploitation"
@@ -63,6 +72,7 @@ fr:
       not_an_integer: doit être un nombre entier
       greater_than: doit être supérieur à %{count}
       greater_than_or_equal_to: doit être supérieur ou égal à %{count}
+      less_than: doit être inférieur à %{count}
       less_than_or_equal_to: doit être inférieur ou égal à %{count}
   devise:
     sessions:
@@ -163,7 +173,15 @@ fr:
           hint: "Ce que le bien immobilise le premier jour : le prix, les frais de notaire qu'il entraîne, et les travaux à engager avant la première location."
           notary_fees_hint: "Calculés d'après le prix — 7,42 % majorés de 1 772 € — et non saisis. Ils s'ajoutent au prix dans le capital immobilisé."
           initial_works_hint: "Les travaux engagés avant la première location. Ils s'ajoutent au prix dans le capital immobilisé."
+          down_payment_hint: "Ce que vous sortez de votre poche à la signature. Proposé à %{share} du coût du projet — prix, frais de notaire et travaux —, l'ordre de grandeur qu'une banque attend. Le reste est emprunté."
           purchase_date_hint: "Proposée trois mois après aujourd'hui, le temps d'un compromis."
+        credit:
+          title: Le crédit
+          hint: "À quelles conditions la banque prête le reste. La mensualité ne se saisit pas : elle se déduit du capital emprunté, du taux et de la durée."
+          borrowed_capital_hint: "Le coût du projet (%{total}) moins votre apport (%{down_payment})."
+          loan_rate_hint: "Le taux annuel hors assurance emprunteur."
+          loan_duration_hint: "En années, %{years} au plus — au-delà, la projection s'arrêterait avant la dernière échéance."
+          monthly_payment_hint: "Mensualité à annuités constantes, hors assurance : M = C × i / (1 − (1 + i)^−n). Son annuité — douze mensualités — se retranche du cash-flow de chaque année de la projection, tant que le crédit court."
         rental:
           title: La location
           hint: "Ce que le bien rapporte une fois loué."
@@ -177,11 +195,14 @@ fr:
       show:
         subtitle: "Acquisition prévue le %{date}"
         edit: Modifier
-        total_investment: Investissement initial
+        project_cost: Coût du projet
+        initial_outlay: Investissement initial
         tab_parameters: Les paramètres du bien
         tab_projection: "Projection sur %{years} ans"
+        tab_amortization: "Tableau d'amortissement"
         property: Le bien
         purchase_detail: "L'achat"
+        credit_detail: Le crédit
         charges_detail: Les charges annuelles
         annual_charges_total: Total des charges annuelles
         surface_value: "%{surface} m²"
@@ -190,11 +211,22 @@ fr:
         answer_yes: Oui
         answer_no: Non
         projection: "Projection sur %{years} ans"
-        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial — prix, frais de notaire et travaux — tous les cash-flows encaissés depuis l'achat. Ni prêt, ni fiscalité pour l'instant."
+        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial tous les cash-flows encaissés depuis l'achat. Pas de fiscalité pour l'instant."
+        projection_credit_hint: "L'achat est financé à crédit : l'investissement initial se limite à l'apport, et les annuités se retranchent du cash-flow tant que le prêt court. L'année où il se solde n'en porte que le reste, et les suivantes plus rien."
+        duration_value: "%{years} ans (%{months} mois)"
+        amortization_hint: "Une ligne par échéance : %{capital} empruntés à %{rate}, remboursés en %{months} mensualités de %{payment} hors assurance. La première échéance tombe un mois après la signature."
+        payment_number: Échéance
+        due_on: Date
+        payment: Mensualité
+        interest: Intérêts
+        principal: Capital remboursé
+        remaining_capital: Capital restant dû
+        total_loan_cost: Coût total du crédit
         year: Année
         date: Date
         annual_rent_column: "Loyers de l'année"
         annual_charges_column: "Charges de l'année"
+        loan_payments_column: "Annuités de crédit"
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"

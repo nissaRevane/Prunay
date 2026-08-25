@@ -21,5 +21,14 @@ FactoryBot.define do
     business_tax { 0 }
     accounting_fees { 0 }
     other_charges { 0 }
+
+    # Un achat à crédit : 200 000 € de prix, 16 612 € de frais de notaire, 23 388 € d'apport
+    # — soit 193 224 € empruntés sur vingt ans à 3 %.
+    trait :with_credit do
+      credit { true }
+      down_payment { 23_388 }
+      loan_rate { 3.0 }
+      loan_duration_years { 20 }
+    end
   end
 end

@@ -164,6 +164,73 @@ RSpec.describe "Simulations", type: :request do
       expect(labels).not_to include(Simulation.human_attribute_name(:accounting_fees))
     end
 
+    # Un achat comptant n'a pas de tableau d'amortissement, et sa projection n'a donc pas de
+    # colonne d'annuités : une colonne à zéro se lirait comme un crédit oublié.
+    it "carries neither an amortization tab nor an annuity column without a credit" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("#tab-amortization")).to be_nil
+      expect(doc.css(".tabs .tab").size).to eq(2)
+      expect(doc.css("#panel-projection thead th").map { |th| th.text.strip })
+        .not_to include(I18n.t("views.simulations.show.loan_payments_column"))
+    end
+
+    describe "of a purchase financed by a credit" do
+      let(:on_credit) do
+        create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
+                                          purchase_price: 200_000, initial_works: 0,
+                                          monthly_rent: 1_000, occupancy_months: 11)
+      end
+
+      it "opens a third tab on the amortization table, one line per payment" do
+        get simulation_path(on_credit)
+
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.css(".tabs .tab").size).to eq(3)
+        expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan_duration_months)
+
+        cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+        expect(cells.first).to eq("1")
+        expect(cells.second).to include("10 avril 2025")
+        expect(cells.third).to eq(currency(on_credit.monthly_payment).gsub(/\s+/, " "))
+      end
+
+      # L'annuité pèse sur le cash-flow de chaque année où le crédit court.
+      it "adds an annuity column to the projection and takes it out of the cash flow" do
+        get simulation_path(on_credit)
+
+        doc = Nokogiri::HTML(response.body)
+        headers = doc.css("#panel-projection thead th").map { |th| th.text.strip }
+        cells = doc.css("#panel-projection tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+
+        expect(headers).to include(I18n.t("views.simulations.show.loan_payments_column"))
+        # Année, date, loyers, charges, annuités, cash-flow, capital immobilisé.
+        expect(cells[4]).to eq(currency(on_credit.annual_loan_payment).gsub(/\s+/, " "))
+        expect(cells[5]).to eq(currency(11_000 - on_credit.annual_loan_payment).gsub(/\s+/, " "))
+      end
+
+      # Ce qui est réellement immobilisé le premier jour, c'est l'apport : le capital
+      # emprunté se rembourse par les annuités, et le compter deux fois ferait payer le bien
+      # deux fois.
+      it "details the credit and immobilizes the down payment alone" do
+        get simulation_path(on_credit)
+
+        doc = Nokogiri::HTML(response.body)
+        section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.credit_detail") }
+        amounts = section.css(".detail-item").to_h do |item|
+          [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+        end
+
+        expect(amounts).to include(
+          Simulation.human_attribute_name(:borrowed_capital) => currency(193_224).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.monthly_payment).gsub(/\s+/, " ")
+        )
+        expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(23_388).gsub(/\s+/, " "))
+      end
+    end
+
     it "does not serve the simulation of another user" do
       other = create(:simulation, user: create(:user))
 
@@ -180,6 +247,19 @@ RSpec.describe "Simulations", type: :request do
       patch simulation_path(simulation), params: { simulation: { name: "Le deux-pièces du port" } }
 
       expect(simulation.reload.name).to eq("Le deux-pièces du port")
+    end
+
+    # Le formulaire de modification rassemble les cinq pages : la case du crédit y est, et
+    # ses conditions avec elle.
+    it "turns a purchase paid outright into a purchase financed by a credit" do
+      simulation = create(:simulation, user: user, purchase_price: 200_000, initial_works: 0)
+
+      patch simulation_path(simulation), params: {
+        simulation: { credit: "1", down_payment: "23388", loan_rate: "3.0", loan_duration_years: "20" }
+      }
+
+      expect(simulation.reload).to have_attributes(credit: true, down_payment: 23_388,
+                                                   borrowed_capital: 193_224)
     end
 
     it "updates the simulation" do

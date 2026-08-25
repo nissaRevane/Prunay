@@ -1,7 +1,10 @@
-<%# Où l'on en est des quatre pages. Une étape franchie reste lisible derrière soi : c'est
-    ce qui distingue un formulaire découpé d'un formulaire qui avance à l'aveugle. %>
+<%# Où l'on en est du parcours. Une étape franchie reste lisible derrière soi : c'est ce qui
+    distingue un formulaire découpé d'un formulaire qui avance à l'aveugle.
+
+    Les étapes viennent du brouillon et non de la constante : la page du crédit n'existe que
+    pour qui en a coché un, et la barre ne doit pas annoncer une page qui ne s'ouvrira pas. %>
 <ol class="wizard-progress">
-  <% Simulation::STEPS.each_with_index do |step, index| %>
+  <% steps.each_with_index do |step, index| %>
     <li class="wizard-progress-step <%= "is-current" if step == current_step %> <%= "is-done" if index < step_index %>">
       <span class="wizard-progress-number"><%= index + 1 %></span>
       <span class="wizard-progress-label"><%= t("views.simulations.steps.#{step}.title") %></span>

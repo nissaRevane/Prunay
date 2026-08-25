@@ -1,19 +1,28 @@
-<div data-controller="notary-fees"
+<%# La page de l'achat : ce que le projet coûte, et comment il se finance. La case du crédit
+    est ce qui ouvre — ou non — la page suivante ; l'apport ne se demande qu'avec elle. %>
+<div data-controller="notary-fees credit"
      data-notary-fees-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
-     data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>">
+     data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>"
+     data-credit-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
+     data-credit-base-value="<%= Simulation::NOTARY_FEES_BASE %>"
+     data-credit-share-value="<%= Simulation::DEFAULT_DOWN_PAYMENT_SHARE.to_f %>"
+     data-credit-rounding-value="<%= Simulation::ESTIMATE_ROUNDING %>">
   <div class="form-group">
     <%= f.label :purchase_price %>
     <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true,
-        data: { notary_fees_target: "price", action: "input->notary-fees#refresh" } %>
+        data: { notary_fees_target: "price", credit_target: "price", action: "input->notary-fees#refresh input->credit#suggest" } %>
   </div>
 
   <%= render "simulations/notary_fees", simulation: f.object %>
-</div>
 
-<div class="form-group">
-  <%= f.label :initial_works %>
-  <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
-  <p class="form-hint"><%= t("views.simulations.steps.purchase.initial_works_hint") %></p>
+  <div class="form-group">
+    <%= f.label :initial_works %>
+    <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true,
+        data: { credit_target: "works", action: "input->credit#suggest" } %>
+    <p class="form-hint"><%= t("views.simulations.steps.purchase.initial_works_hint") %></p>
+  </div>
+
+  <%= render "simulations/credit_fields", f: f %>
 </div>
 
 <div class="form-group">

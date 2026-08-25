@@ -13,6 +13,29 @@ RSpec.describe Simulation, type: :model do
     it { is_expected.to validate_numericality_of(:purchase_price).is_greater_than(0).on(:purchase) }
     it { is_expected.to validate_numericality_of(:initial_works).is_greater_than_or_equal_to(0).on(:purchase) }
 
+    # Le crédit ne se juge qu'à qui en prend un : sans crédit, la page n'existe pas, et
+    # l'apport comme le taux et la durée sont remis à zéro avant même d'être validés.
+    context "of a purchase financed by a credit" do
+      subject { build(:simulation, :with_credit) }
+
+      it { is_expected.to validate_numericality_of(:down_payment).is_greater_than_or_equal_to(0).on(:purchase) }
+      it { is_expected.to validate_numericality_of(:loan_rate).is_greater_than_or_equal_to(0).is_less_than(100).on(:credit) }
+      it { is_expected.to validate_numericality_of(:loan_duration_years).only_integer.is_greater_than(0).on(:credit) }
+
+      # Un apport qui couvrirait tout le projet ne laisserait rien à emprunter.
+      it "refuses a down payment that leaves nothing to borrow" do
+        simulation = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
+                                                      down_payment: 216_612)
+
+        expect(simulation).not_to be_valid(:purchase)
+        expect(simulation.errors[:down_payment]).to be_present
+      end
+    end
+
+    it "asks nothing of the credit of a purchase paid outright" do
+      expect(build(:simulation, credit: false, loan_rate: 0, loan_duration_years: 0)).to be_valid(:credit)
+    end
+
     it { is_expected.to validate_numericality_of(:monthly_rent).is_greater_than_or_equal_to(0).on(:rental) }
     it { is_expected.to validate_numericality_of(:occupancy_months).is_greater_than(0).is_less_than_or_equal_to(12).on(:rental) }
     it { is_expected.to validate_inclusion_of(:rental_type).in_array(described_class::RENTAL_TYPES).on(:rental) }
@@ -31,6 +54,15 @@ RSpec.describe Simulation, type: :model do
       draft = described_class.new(user: build(:user), property_type: "house", city: "Nantes", surface: 50)
 
       expect(draft).not_to be_valid
+    end
+  end
+
+  # Le parcours n'est pas le même pour tout le monde : la page du crédit ne s'ouvre qu'à qui
+  # en a coché un sur la page de l'achat.
+  describe "#steps" do
+    it "walks the credit page only when there is a credit" do
+      expect(build(:simulation, :with_credit).steps).to eq(%w[property purchase credit rental charges])
+      expect(build(:simulation, credit: false).steps).to eq(%w[property purchase rental charges])
     end
   end
 
@@ -85,6 +117,18 @@ RSpec.describe Simulation, type: :model do
 
       expect(defaults["purchase_date"]).to eq(Date.current >> 3)
       expect(defaults["initial_works"]).to eq(0)
+    end
+
+    # Un dixième du coût du projet — 216 612 € font 21 660 €, arrondis à la dizaine d'euros
+    # comme les autres montants proposés. La page de l'achat s'ouvre avant que le prix n'y
+    # soit tapé : elle ne peut alors rien proposer.
+    it "proposes a tenth of the project cost as a down payment" do
+      expect(draft(purchase_price: 200_000, initial_works: 0).defaults_for("purchase")["down_payment"]).to eq(21_660)
+      expect(draft.defaults_for("purchase")["down_payment"]).to eq(0)
+    end
+
+    it "proposes twenty years at 3.5 % for the credit" do
+      expect(draft.defaults_for("credit")).to eq("loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20)
     end
 
     it "leaves a month of vacancy a year" do
@@ -220,6 +264,46 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "the credit" do
+    subject(:simulation) do
+      build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0, down_payment: 23_388)
+    end
+
+    # Le coût du projet moins l'apport : 216 612 − 23 388.
+    it "borrows what the down payment does not cover" do
+      expect(simulation.borrowed_capital).to eq(193_224)
+      expect(simulation.monthly_payment).to eq(BigDecimal("1071.62"))
+      expect(simulation.annual_loan_payment).to eq(BigDecimal("1071.62") * 12)
+    end
+
+    it "borrows nothing when the purchase is paid outright" do
+      paid_outright = build(:simulation, credit: false)
+
+      expect(paid_outright.borrowed_capital).to eq(0)
+      expect(paid_outright.monthly_payment).to eq(0)
+      expect(paid_outright.amortization_schedule).to be_nil
+    end
+
+    # Le capital emprunté n'est pas immobilisé : il se rembourse par les annuités, que la
+    # projection retranche du cash-flow. Le compter deux fois ferait payer le bien deux fois.
+    it "immobilizes the down payment alone, where a purchase paid outright immobilizes it all" do
+      expect(simulation.initial_outlay).to eq(23_388)
+      expect(build(:simulation, credit: false, purchase_price: 200_000, initial_works: 0).initial_outlay)
+        .to eq(216_612)
+    end
+
+    # Renoncer au crédit, c'est cesser d'en porter les conditions : un taux et une durée que
+    # le formulaire ne montre plus ne doivent pas continuer de produire un tableau.
+    it "clears what a purchase paid outright no longer answers" do
+      saved = create(:simulation, :with_credit)
+
+      saved.update(credit: false)
+
+      expect(saved.reload).to have_attributes(down_payment: 0, loan_rate: 0, loan_duration_years: 0)
+      expect(saved.amortization_schedule).to be_nil
+    end
+  end
+
   describe "#projection" do
     subject(:projection) { simulation.projection }
 
@@ -264,6 +348,32 @@ RSpec.describe Simulation, type: :model do
 
       expect(recovered.first.number).to eq(27)
       expect(projection.take(26).map(&:recovered?)).to all(be(false))
+    end
+
+    # Le crédit pèse sur chaque année tant qu'il court, et cesse de peser le jour où il est
+    # soldé : une projection de trente ans porte vingt annuités d'un prêt de vingt ans.
+    describe "of a purchase financed by a credit" do
+      subject(:projection) do
+        build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0, down_payment: 23_388,
+                                         monthly_rent: 800, occupancy_months: 12).projection
+      end
+
+      it "deducts the annuity from the cash flow for as long as the loan runs" do
+        expect(projection.first.loan_payments).to eq(BigDecimal("1071.62") * 12)
+        expect(projection.first.cash_flow).to eq(9_600 - BigDecimal("1071.62") * 12)
+      end
+
+      it "stops deducting anything once the loan is cleared" do
+        expect(projection[19].loan_payments).to be_positive
+        expect(projection[20].loan_payments).to eq(0)
+        expect(projection[20].cash_flow).to eq(9_600)
+      end
+
+      # L'apport seul est immobilisé le premier jour, et les annuités le creusent avant que
+      # les loyers ne le comblent.
+      it "starts from the down payment and not from the whole project" do
+        expect(projection.first.immobilized_capital).to eq(23_388 - projection.first.cash_flow)
+      end
     end
 
     it "keeps a 29 February purchase on a real date" do

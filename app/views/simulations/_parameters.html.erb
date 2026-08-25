@@ -64,10 +64,14 @@
   </dl>
 
   <div class="section-total">
-    <span><%= t("views.simulations.show.total_investment") %></span>
+    <span><%= t("views.simulations.show.project_cost") %></span>
     <span><%= number_to_currency(simulation.total_investment) %></span>
   </div>
 </div>
+
+<% if simulation.credit? %>
+  <%= render "credit", simulation: simulation %>
+<% end %>
 
 <div class="section">
   <div class="section-header">

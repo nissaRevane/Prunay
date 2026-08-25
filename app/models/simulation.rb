@@ -2,17 +2,23 @@ class Simulation < ApplicationRecord
   # Un investissement locatif projeté sur trente ans.
   #
   # Le modèle décrit le bien (type, ville, surface), son achat (prix, frais de notaire et
-  # travaux initiaux), son exploitation (loyer, mois loués, meublé ou nu) et ses charges
-  # annuelles. Ni prêt ni fiscalité : ils viendront, et chacun ajoutera une colonne à la
-  # projection sans en changer la forme.
+  # travaux initiaux), son financement (comptant ou à crédit), son exploitation (loyer, mois
+  # loués, meublé ou nu) et ses charges annuelles. Reste la fiscalité : elle viendra, et
+  # ajoutera sa colonne à la projection sans en changer la forme.
   HORIZON_YEARS = 30
 
   MONTHS_PER_YEAR = 12
 
-  # Les quatre pages de la création, dans l'ordre. Chaque nom est aussi un contexte de
-  # validation : `valid?(:purchase)` ne juge que ce que la page achat a demandé, ce qui
-  # permet de valider une étape sans exiger les réponses des suivantes.
-  STEPS = %w[property purchase rental charges].freeze
+  # Les pages de la création, dans l'ordre. Chaque nom est aussi un contexte de validation :
+  # `valid?(:purchase)` ne juge que ce que la page achat a demandé, ce qui permet de valider
+  # une étape sans exiger les réponses des suivantes.
+  STEPS = %w[property purchase credit rental charges].freeze
+
+  # Les étapes qu'une condition gouverne, comme CHARGE_CONDITIONS gouverne les charges : la
+  # page du crédit ne s'ouvre qu'à qui en a coché un sur la page de l'achat. Le parcours, la
+  # barre de progression et l'enchaînement des pages lisent tous #steps, jamais STEPS — un
+  # achat comptant n'a que quatre pages.
+  STEP_CONDITIONS = { "credit" => :credit? }.freeze
 
   PROPERTY_TYPES = %w[apartment house parking building].freeze
   RENTAL_TYPES = %w[furnished unfurnished].freeze
@@ -81,18 +87,37 @@ class Simulation < ApplicationRecord
 
   NOTARY_FEES_BASE = 1_772
 
+  # L'apport proposé : un dixième du coût du projet — l'ordre de grandeur qu'une banque
+  # attend pour couvrir les frais de notaire sans les financer.
+  DEFAULT_DOWN_PAYMENT_SHARE = BigDecimal("0.10")
+
+  # Le crédit proposé tant que rien n'a été saisi : vingt ans à 3,5 %.
+  DEFAULT_LOAN_RATE = BigDecimal("3.5")
+
+  DEFAULT_LOAN_DURATION_YEARS = 20
+
+  # Un crédit plus long que la projection ne se lirait qu'à moitié : le tableau s'arrêterait
+  # avant sa dernière échéance, et la dernière ligne de la projection porterait encore une
+  # annuité. La durée s'arrête donc là où l'horizon s'arrête.
+  MAX_LOAN_DURATION_YEARS = HORIZON_YEARS
+
   # L'arrondi des montants proposés : la dizaine d'euros. Une estimation au centime se
   # lirait comme un calcul, alors que ce n'en est pas un.
   ESTIMATE_ROUNDING = 10
 
   # Une année de la projection, telle que le tableau la lit.
   #
+  # +loan_payments+ est ce que le crédit prélève cette année-là : douze mensualités tant
+  # qu'il court, ce qu'il en reste l'année où il se solde, et zéro ensuite — un crédit de
+  # vingt ans ne pèse pas sur les dix dernières lignes d'une projection qui en compte trente.
+  #
   # +immobilized_capital+ est cumulatif : c'est ce qui reste engagé après avoir déduit de
   # l'investissement initial tous les cash-flows encaissés depuis l'achat, et non le seul
   # cash-flow de l'année. Il décroît donc d'année en année, et passe sous zéro l'année où
   # l'investissement est récupéré — un capital immobilisé recalculé à chaque ligne sur le
   # seul cash-flow annuel rendrait trente fois le même montant.
-  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :cash_flow, :immobilized_capital, keyword_init: true) do
+  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_payments, :cash_flow,
+                    :immobilized_capital, keyword_init: true) do
     def recovered?
       immobilized_capital <= 0
     end
@@ -111,20 +136,42 @@ class Simulation < ApplicationRecord
   # montant que le formulaire ne montre plus continuerait de peser sur la projection.
   before_validation :clear_inapplicable_charges
 
-  # Page 1 — le bien.
+  # Ce qu'un achat comptant n'a pas à répondre retombe à zéro, comme pour les charges : une
+  # simulation qui renonce à son crédit ne doit pas garder un taux et une durée que le
+  # formulaire ne montre plus, et que le tableau d'amortissement continuerait de lire.
+  before_validation :clear_loan_without_credit
+
+  # La page du bien.
   validates :property_type, presence: true, inclusion: { in: PROPERTY_TYPES, allow_blank: true },
             on: [:create, :update, :property]
   validates :city, presence: true, on: [:create, :update, :property]
   validates :surface, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :property]
   validates :energy_rating, inclusion: { in: ENERGY_RATINGS, allow_blank: true }, on: [:create, :update, :property]
 
-  # Page 2 — l'achat.
+  # La page de l'achat — le financement compris : c'est la case du crédit qui ouvre la page
+  # suivante.
   validates :purchase_date, presence: true, on: [:create, :update, :purchase]
   validates :purchase_price, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :purchase]
   validates :initial_works, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :purchase]
+  validates :down_payment, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :purchase]
+  # Un apport qui couvrirait tout le projet ne laisserait rien à emprunter : ce n'est plus un
+  # achat à crédit. La comparaison attend le prix, sans quoi il n'y a pas encore de coût du
+  # projet à comparer.
+  validates :down_payment, numericality: { less_than: :total_investment },
+            on: [:create, :update, :purchase],
+            if: -> { credit? && purchase_price.present? && initial_works.present? }
 
-  # Page 3 — la location.
+  # La page du crédit, pour qui en prend un. Le contexte ne juge que lui : sans crédit, la
+  # page n'existe pas et ses deux champs sont déjà retombés à zéro.
+  validates :loan_rate, presence: true, numericality: { greater_than_or_equal_to: 0, less_than: 100 },
+            on: [:create, :update, :credit], if: :credit?
+  validates :loan_duration_years, presence: true,
+            numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: MAX_LOAN_DURATION_YEARS },
+            on: [:create, :update, :credit], if: :credit?
+
+  # La page de la location.
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
   validates :occupancy_months, presence: true,
@@ -133,7 +180,7 @@ class Simulation < ApplicationRecord
   validates :rental_type, presence: true, inclusion: { in: RENTAL_TYPES, allow_blank: true },
             on: [:create, :update, :rental]
 
-  # Page 4 — les charges annuelles. Toutes sont exigées, y compris celles qu'une condition
+  # La page des charges annuelles. Toutes sont exigées, y compris celles qu'une condition
   # masque : `clear_inapplicable_charges` les a déjà ramenées à zéro.
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
@@ -167,7 +214,13 @@ class Simulation < ApplicationRecord
     when "purchase"
       {
         "purchase_date" => Date.current >> DEFAULT_PURCHASE_DELAY_MONTHS,
-        "initial_works" => 0
+        "initial_works" => 0,
+        "down_payment" => default_down_payment
+      }
+    when "credit"
+      {
+        "loan_rate" => DEFAULT_LOAN_RATE,
+        "loan_duration_years" => DEFAULT_LOAN_DURATION_YEARS
       }
     when "rental"
       {
@@ -180,6 +233,29 @@ class Simulation < ApplicationRecord
     else
       {}
     end
+  end
+
+  # Les pages que CETTE simulation traverse : toutes, moins celles dont la condition n'est
+  # pas remplie. C'est cette liste que le parcours suit et que la barre de progression
+  # affiche — un achat comptant saute la page du crédit.
+  def steps
+    STEPS.select { |step| step_applicable?(step) }
+  end
+
+  def step_applicable?(step)
+    condition = STEP_CONDITIONS[step.to_s]
+
+    condition.nil? || public_send(condition)
+  end
+
+  # L'apport proposé sur la page de l'achat : un dixième du coût du projet, arrondi à la
+  # dizaine d'euros comme les autres montants proposés. Zéro tant qu'aucun prix n'a été tapé
+  # — la page s'ouvre avant lui, et un dixième de rien ne veut rien dire.
+  def default_down_payment
+    return 0 if purchase_price.blank? || initial_works.blank?
+
+    scaled = total_investment * DEFAULT_DOWN_PAYMENT_SHARE
+    (scaled / ESTIMATE_ROUNDING).round * ESTIMATE_ROUNDING
   end
 
   # Un montant proposé pour ce bien-ci : sa surface, et sa copropriété là où elle change la
@@ -226,11 +302,63 @@ class Simulation < ApplicationRecord
     (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
   end
 
-  # Ce que l'achat immobilise le premier jour : le prix, les frais de notaire qu'il
-  # entraîne, et les travaux qu'il faut engager avant de pouvoir louer. C'est de ce montant
-  # que les cash-flows se déduiront.
+  # Ce que le projet coûte : le prix, les frais de notaire qu'il entraîne, et les travaux
+  # qu'il faut engager avant de pouvoir louer. C'est le montant à financer — comptant ou à
+  # crédit —, et non ce que l'acheteur immobilise (voir #initial_outlay).
   def total_investment
     purchase_price + notary_fees + initial_works
+  end
+
+  # Ce que la banque prête : le coût du projet moins l'apport. Comme les frais de notaire,
+  # il se recalcule au lieu de se stocker — il ne découle que de trois montants déjà saisis.
+  def borrowed_capital
+    return 0 unless credit?
+
+    [total_investment - down_payment, 0].max
+  end
+
+  def loan_duration_months
+    loan_duration_years.to_i * MONTHS_PER_YEAR
+  end
+
+  # La date de l'échéance numéro +number+, comptée depuis la signature et non depuis la
+  # précédente : Date#>> conserve la fin de mois (31 janvier + 1 mois = 28 février), mais
+  # l'appliquer de proche en proche collerait toutes les échéances suivantes au 28.
+  def loan_payment_due_on(number)
+    purchase_date >> number
+  end
+
+  # La première échéance tombe un mois après la signature, comme celle de la plupart des
+  # prêts : le déblocage des fonds a lieu chez le notaire, et le prélèvement suit.
+  def loan_first_payment_on
+    loan_payment_due_on(1)
+  end
+
+  # Le crédit a-t-il de quoi produire un tableau ? Il faut qu'il existe, qu'il porte une
+  # durée, et qu'il reste quelque chose à emprunter une fois l'apport déduit.
+  def amortizable?
+    credit? && purchase_date.present? && loan_duration_months.positive? && borrowed_capital.positive?
+  end
+
+  def amortization_schedule
+    return nil unless amortizable?
+
+    @amortization_schedule ||= AmortizationSchedule.new(self)
+  end
+
+  def monthly_payment
+    amortization_schedule&.monthly_payment || 0
+  end
+
+  # L'annuité : douze mensualités. C'est ce que le crédit prélève sur une année pleine — la
+  # dernière année, celle où il se solde, en porte moins (voir Year#loan_payments).
+  def annual_loan_payment
+    monthly_payment * MONTHS_PER_YEAR
+  end
+
+  # Ce que le crédit coûte en tout : les intérêts de toutes ses échéances.
+  def total_loan_interest
+    amortization_schedule&.total_interest || 0
   end
 
   # Les loyers d'une année. Le loyer est saisi au mois — c'est ainsi qu'un bail l'énonce —
@@ -246,27 +374,40 @@ class Simulation < ApplicationRecord
     applicable_charges.sum { |field| public_send(field) }
   end
 
-  # Le cash-flow d'une année : les entrées moins les sorties. Tant qu'il n'y a pas de prêt,
-  # les sorties sont les seules charges — la mensualité aura ici sa place.
+  # Le cash-flow d'une année pleine : les loyers, moins les charges, moins l'annuité du
+  # crédit. C'est le cash-flow récurrent, celui que la liste des simulations met en avant —
+  # la projection, elle, lit l'annuité année par année et voit le crédit s'éteindre.
   def annual_cash_flow
-    annual_rent - annual_charges
+    annual_rent - annual_charges - annual_loan_payment
+  end
+
+  # Ce que l'acheteur sort réellement de sa poche le premier jour : tout le projet quand il
+  # le paie comptant, son seul apport quand un crédit finance le reste. Le capital emprunté
+  # n'est pas immobilisé — il se rembourse ensuite par les annuités, que la projection
+  # retranche du cash-flow. Le compter deux fois ferait payer le bien deux fois.
+  def initial_outlay
+    credit? ? down_payment : total_investment
   end
 
   # La projection, une ligne par anniversaire de l'achat. La première ligne est le premier
   # anniversaire, pas le jour de l'achat : elle porte les loyers des douze mois écoulés.
   def projection
     cumulative_cash_flow = 0
+    loan_payments = amortization_schedule&.annual_payments || {}
 
     (1..HORIZON_YEARS).map do |number|
-      cumulative_cash_flow += annual_cash_flow
+      due = loan_payments.fetch(number, 0)
+      cash_flow = annual_rent - annual_charges - due
+      cumulative_cash_flow += cash_flow
 
       Year.new(
         number: number,
         date: purchase_date >> (number * MONTHS_PER_YEAR),
         annual_rent: annual_rent,
         annual_charges: annual_charges,
-        cash_flow: annual_cash_flow,
-        immobilized_capital: total_investment - cumulative_cash_flow
+        loan_payments: due,
+        cash_flow: cash_flow,
+        immobilized_capital: initial_outlay - cumulative_cash_flow
       )
     end
   end
@@ -274,7 +415,7 @@ class Simulation < ApplicationRecord
   # Le chiffre que la liste met en avant : ce qui reste immobilisé au bout de l'horizon.
   # Négatif, l'investissement est récupéré et a rapporté au-delà.
   def final_immobilized_capital
-    total_investment - total_cash_flow
+    initial_outlay - total_cash_flow
   end
 
   def total_rent
@@ -285,8 +426,10 @@ class Simulation < ApplicationRecord
     annual_charges * HORIZON_YEARS
   end
 
+  # Le cumul se lit sur la projection, et ne se multiplie plus : un crédit qui s'éteint
+  # avant l'horizon rend les années inégales entre elles.
   def total_cash_flow
-    annual_cash_flow * HORIZON_YEARS
+    projection.sum(&:cash_flow)
   end
 
   private
@@ -297,5 +440,13 @@ class Simulation < ApplicationRecord
 
   def clear_inapplicable_charges
     (ANNUAL_CHARGES - applicable_charges).each { |field| self[field] = 0 }
+  end
+
+  def clear_loan_without_credit
+    return if credit?
+
+    self.down_payment = 0
+    self.loan_rate = 0
+    self.loan_duration_years = 0
   end
 end

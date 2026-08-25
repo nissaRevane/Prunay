@@ -1,0 +1,45 @@
+<%# La page du crédit : le capital emprunté est déjà connu — le coût du projet moins l'apport
+    — et seuls le taux et la durée restent à dire. La mensualité en découle, et se recalcule à
+    la frappe pour que l'on voie tout de suite ce qu'une année de plus ou un dixième de point
+    changent. %>
+<div data-controller="loan"
+     data-loan-capital-value="<%= f.object.borrowed_capital.to_f %>">
+  <div class="form-group">
+    <span class="form-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></span>
+    <p class="form-static"><%= number_to_currency(f.object.borrowed_capital) %></p>
+    <p class="form-hint"><%= t("views.simulations.steps.credit.borrowed_capital_hint",
+                               total: number_to_currency(f.object.total_investment),
+                               down_payment: number_to_currency(f.object.down_payment)) %></p>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group form-group-half">
+      <%= f.label :loan_rate %>
+      <%= f.number_field :loan_rate, step: "0.01", min: "0", max: "99.99", class: "form-control", required: true, autofocus: true,
+          data: { loan_target: "rate", action: "input->loan#refresh" } %>
+      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_rate_hint") %></p>
+    </div>
+
+    <div class="form-group form-group-half">
+      <%= f.label :loan_duration_years %>
+      <%= f.number_field :loan_duration_years, step: "1", min: "1", max: Simulation::MAX_LOAN_DURATION_YEARS,
+          class: "form-control", required: true,
+          data: { loan_target: "duration", action: "input->loan#refresh" } %>
+      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_duration_hint", years: Simulation::MAX_LOAN_DURATION_YEARS) %></p>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group form-group-half">
+      <span class="form-label"><%= Simulation.human_attribute_name(:monthly_payment) %></span>
+      <p class="form-static" data-loan-target="payment"><%= number_to_currency(f.object.monthly_payment) %></p>
+    </div>
+
+    <div class="form-group form-group-half">
+      <span class="form-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></span>
+      <p class="form-static" data-loan-target="interest"><%= number_to_currency(f.object.total_loan_interest) %></p>
+    </div>
+  </div>
+
+  <p class="form-hint"><%= t("views.simulations.steps.credit.monthly_payment_hint") %></p>
+</div>

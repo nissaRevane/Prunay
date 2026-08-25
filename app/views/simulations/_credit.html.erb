@@ -1,0 +1,49 @@
+<%# Le crédit tel que la fiche le résume : ce qui est emprunté, à quelles conditions, et ce
+    que cela coûte. Le détail échéance par échéance a son propre onglet. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.credit_detail") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:down_payment) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.down_payment) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.borrowed_capital) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_rate) %></dt>
+      <dd class="detail-value"><%= number_to_percentage(simulation.loan_rate, precision: 2, strip_insignificant_zeros: true) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_duration_years) %></dt>
+      <dd class="detail-value"><%= t("views.simulations.show.duration_value", years: simulation.loan_duration_years, months: simulation.loan_duration_months) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:monthly_payment) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.monthly_payment) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:annual_loan_payment) %></dt>
+      <dd class="detail-value text-danger"><%= number_to_currency(simulation.annual_loan_payment) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_interest) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_first_payment_on) %></dt>
+      <dd class="detail-value"><%= l(simulation.loan_first_payment_on, format: :long) %></dd>
+    </div>
+  </dl>
+
+  <%# Ce que l'acheteur sort réellement de sa poche : son apport. Le capital emprunté, lui,
+      ne s'immobilise pas — il se rembourse par les annuités que la projection retranche. %>
+  <div class="section-total">
+    <span><%= t("views.simulations.show.initial_outlay") %></span>
+    <span><%= number_to_currency(simulation.initial_outlay) %></span>
+  </div>
+</div>

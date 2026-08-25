@@ -1,0 +1,44 @@
+<%# Le tableau d'amortissement : une ligne par échéance, du premier prélèvement au solde du
+    prêt. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
+<div class="section">
+  <p class="section-hint"><%= t("views.simulations.show.amortization_hint",
+                               capital: number_to_currency(simulation.borrowed_capital),
+                               rate: number_to_percentage(simulation.loan_rate, precision: 2, strip_insignificant_zeros: true),
+                               months: schedule.rows.size,
+                               payment: number_to_currency(simulation.monthly_payment)) %></p>
+
+  <div class="table-scroll table-scroll-tall">
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th><%= t("views.simulations.show.payment_number") %></th>
+          <th><%= t("views.simulations.show.due_on") %></th>
+          <th class="text-right"><%= t("views.simulations.show.payment") %></th>
+          <th class="text-right"><%= t("views.simulations.show.interest") %></th>
+          <th class="text-right"><%= t("views.simulations.show.principal") %></th>
+          <th class="text-right"><%= t("views.simulations.show.remaining_capital") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% schedule.rows.each do |row| %>
+          <tr>
+            <td><%= row.number %></td>
+            <td>
+              <span class="hide-on-mobile"><%= l(row.due_on, format: :long) %></span>
+              <span class="show-on-mobile"><%= l(row.due_on, format: :default) %></span>
+            </td>
+            <td class="text-right"><%= number_to_currency(row.payment) %></td>
+            <td class="text-right text-danger"><%= number_to_currency(row.interest) %></td>
+            <td class="text-right"><%= number_to_currency(row.principal) %></td>
+            <td class="text-right"><%= number_to_currency(row.remaining_capital) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.total_loan_cost") %></span>
+    <span><%= number_to_currency(schedule.total_interest) %></span>
+  </div>
+</div>

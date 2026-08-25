@@ -1,0 +1,20 @@
+<%# La case qui déclare le crédit et l'apport qu'elle fait apparaître, partagés par la page
+    de l'achat et par le formulaire de modification : deux copies auraient fini par ne plus
+    proposer la même chose.
+
+    L'apport écarté reste dans la page, masqué et désactivé — requis et invisible, il
+    bloquerait l'envoi du formulaire, et le modèle remet à zéro ce qu'il ne reçoit pas. Le
+    cadre — le contrôleur `credit` et les montants d'où l'apport se déduit — reste à
+    l'appelant : c'est lui qui porte le prix et les travaux. %>
+<div class="form-group form-check">
+  <%= f.check_box :credit, data: { credit_target: "toggle", action: "change->credit#refresh" } %>
+  <%= f.label :credit %>
+</div>
+
+<%= tag.div class: "form-group", hidden: !f.object.credit?, data: { credit_target: "field" } do %>
+  <%= f.label :down_payment %>
+  <%= f.number_field :down_payment, step: "0.01", min: "0", class: "form-control",
+      required: true, disabled: !f.object.credit?,
+      data: { credit_target: "downPayment", action: "input->credit#markManual" } %>
+  <p class="form-hint"><%= t("views.simulations.steps.purchase.down_payment_hint", share: number_to_percentage(Simulation::DEFAULT_DOWN_PAYMENT_SHARE * 100, precision: 0)) %></p>
+<% end %>

@@ -21,7 +21,7 @@
           <% end %>
         </td>
         <td class="hide-on-mobile">
-          <%= link_to number_to_currency(simulation.total_investment), simulation_path(simulation), class: "row-link" %>
+          <%= link_to number_to_currency(simulation.initial_outlay), simulation_path(simulation), class: "row-link" %>
         </td>
         <%# Le cash-flow annuel, loyers moins charges : c'est lui, et non plus le loyer seul,
             qui dit ce que le bien rapporte vraiment chaque année. %>
