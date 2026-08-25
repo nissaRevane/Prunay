@@ -8,172 +8,28 @@
   </div>
 </div>
 
-<%# Les hypothèses de la simulation, relues avant sa projection : ce qu'elle immobilise,
-    ce qu'elle encaisse, ce qu'elle dépense, et ce qu'il en reste au bout de trente ans. %>
-<div class="stat-grid">
-  <div class="stat-card">
-    <span class="stat-label"><%= t("views.simulations.show.total_investment") %></span>
-    <span class="stat-value"><%= number_to_currency(@simulation.total_investment) %></span>
-    <span class="stat-hint">
-      <%= t("views.simulations.show.total_investment_hint",
-            price: number_to_currency(@simulation.purchase_price),
-            fees: number_to_currency(@simulation.notary_fees),
-            works: number_to_currency(@simulation.initial_works)) %>
-    </span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-label"><%= t("views.simulations.show.annual_rent_card") %></span>
-    <span class="stat-value text-success"><%= number_to_currency(@simulation.annual_rent) %></span>
-    <span class="stat-hint">
-      <%= t("views.simulations.show.annual_rent_hint",
-            rent: number_to_currency(@simulation.monthly_rent),
-            months: number_with_precision(@simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %>
-    </span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-label"><%= t("views.simulations.show.annual_charges_card") %></span>
-    <span class="stat-value text-danger"><%= number_to_currency(@simulation.annual_charges) %></span>
-    <span class="stat-hint"><%= t("views.simulations.show.annual_cash_flow_hint", amount: number_to_currency(@simulation.annual_cash_flow)) %></span>
-  </div>
-  <div class="stat-card stat-card-highlight">
-    <span class="stat-label"><%= t("views.simulations.show.final_immobilized_capital", years: Simulation::HORIZON_YEARS) %></span>
-    <span class="stat-value <%= @simulation.final_immobilized_capital <= 0 ? 'text-success' : 'text-danger' %>">
-      <%= number_to_currency(@simulation.final_immobilized_capital) %>
-    </span>
-    <span class="stat-hint"><%= t("views.simulations.show.total_rent", amount: number_to_currency(@simulation.total_rent)) %></span>
-  </div>
-</div>
-
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.property") %></h2>
+<%# Deux lectures de la même simulation : ses paramètres d'un côté, sa projection de l'autre.
+    Les deux panneaux sont rendus par le serveur ; l'onglet choisit lequel se montre. %>
+<div data-controller="tabs" data-tabs-index-value="0">
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" id="tab-parameters"
+            aria-controls="panel-parameters" aria-selected="true"
+            data-tabs-target="tab" data-action="click->tabs#select">
+      <%= t("views.simulations.show.tab_parameters") %>
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-projection"
+            aria-controls="panel-projection" aria-selected="false"
+            data-tabs-target="tab" data-action="click->tabs#select">
+      <%= t("views.simulations.show.tab_projection", years: Simulation::HORIZON_YEARS) %>
+    </button>
   </div>
 
-  <dl class="detail-grid">
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:property_type) %></dt>
-      <dd class="detail-value"><%= t("simulations.property_types.#{@simulation.property_type}") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:city) %></dt>
-      <dd class="detail-value"><%= @simulation.city %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:address) %></dt>
-      <dd class="detail-value"><%= @simulation.address.presence || t("views.simulations.show.not_provided") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:surface) %></dt>
-      <dd class="detail-value"><%= t("views.simulations.show.surface_value", surface: number_with_precision(@simulation.surface, precision: 2, strip_insignificant_zeros: true)) %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:energy_rating) %></dt>
-      <dd class="detail-value"><%= @simulation.energy_rating.presence || t("views.simulations.show.not_provided") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:condominium) %></dt>
-      <dd class="detail-value"><%= t("views.simulations.show.#{@simulation.condominium? ? 'answer_yes' : 'answer_no'}") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:rental_type) %></dt>
-      <dd class="detail-value"><%= t("simulations.rental_types.#{@simulation.rental_type}") %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
-      <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(@simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
-    </div>
-  </dl>
-</div>
-
-<%# Le détail de ce que la signature coûte : le prix, les frais de notaire qu'il entraîne
-    et les travaux à engager avant la première location. %>
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.purchase_detail") %></h2>
+  <div class="tab-panel" role="tabpanel" id="panel-parameters" aria-labelledby="tab-parameters" data-tabs-target="panel">
+    <%= render "parameters", simulation: @simulation %>
   </div>
 
-  <dl class="detail-grid">
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:purchase_price) %></dt>
-      <dd class="detail-value"><%= number_to_currency(@simulation.purchase_price) %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:notary_fees) %></dt>
-      <dd class="detail-value"><%= number_to_currency(@simulation.notary_fees) %></dd>
-    </div>
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:initial_works) %></dt>
-      <dd class="detail-value"><%= number_to_currency(@simulation.initial_works) %></dd>
-    </div>
-  </dl>
-
-  <div class="section-total">
-    <span><%= t("views.simulations.show.total_investment") %></span>
-    <span><%= number_to_currency(@simulation.total_investment) %></span>
-  </div>
-</div>
-
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.charges_detail") %></h2>
-  </div>
-
-  <dl class="detail-grid">
-    <% Simulation::ANNUAL_CHARGES.each do |charge| %>
-      <div class="detail-item">
-        <dt class="detail-label"><%= Simulation.human_attribute_name(charge) %></dt>
-        <dd class="detail-value"><%= number_to_currency(@simulation.public_send(charge)) %></dd>
-      </div>
-    <% end %>
-  </dl>
-
-  <div class="section-total">
-    <span><%= t("views.simulations.show.annual_charges_total") %></span>
-    <span><%= number_to_currency(@simulation.annual_charges) %></span>
-  </div>
-</div>
-
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.projection", years: Simulation::HORIZON_YEARS) %></h2>
-  </div>
-  <p class="section-hint"><%= t("views.simulations.show.projection_hint") %></p>
-
-  <div class="table-scroll">
-    <table class="table">
-      <thead>
-        <tr>
-          <th><%= t("views.simulations.show.year") %></th>
-          <th><%= t("views.simulations.show.date") %></th>
-          <th class="text-right"><%= t("views.simulations.show.annual_rent_column") %></th>
-          <th class="text-right"><%= t("views.simulations.show.annual_charges_column") %></th>
-          <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
-          <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @projection.each do |year| %>
-          <tr>
-            <td><%= year.number %></td>
-            <td>
-              <span class="hide-on-mobile"><%= l(year.date, format: :long) %></span>
-              <span class="show-on-mobile"><%= l(year.date, format: :default) %></span>
-            </td>
-            <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
-            <td class="text-right text-danger"><%= number_to_currency(year.annual_charges) %></td>
-            <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
-            <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
-              <%= number_to_currency(year.immobilized_capital) %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section-total">
-    <span><%= t("views.simulations.show.total_cash_flow", years: Simulation::HORIZON_YEARS) %></span>
-    <span><%= number_to_currency(@simulation.total_cash_flow) %></span>
+  <div class="tab-panel" role="tabpanel" id="panel-projection" aria-labelledby="tab-projection" data-tabs-target="panel" hidden>
+    <%= render "projection", simulation: @simulation, projection: @projection %>
   </div>
 </div>
 

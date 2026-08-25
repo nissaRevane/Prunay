@@ -1,0 +1,90 @@
+<%# Les hypothèses de la simulation : le bien, ce que sa signature coûte et ce qu'il dépense
+    chaque année. C'est ce que l'on relit avant de croire à la projection. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.property") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:property_type) %></dt>
+      <dd class="detail-value"><%= t("simulations.property_types.#{simulation.property_type}") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:city) %></dt>
+      <dd class="detail-value"><%= simulation.city %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:address) %></dt>
+      <dd class="detail-value"><%= simulation.address.presence || t("views.simulations.show.not_provided") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:surface) %></dt>
+      <dd class="detail-value"><%= t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:energy_rating) %></dt>
+      <dd class="detail-value"><%= simulation.energy_rating.presence || t("views.simulations.show.not_provided") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:condominium) %></dt>
+      <dd class="detail-value"><%= t("views.simulations.show.#{simulation.condominium? ? 'answer_yes' : 'answer_no'}") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:rental_type) %></dt>
+      <dd class="detail-value"><%= t("simulations.rental_types.#{simulation.rental_type}") %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
+      <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
+    </div>
+  </dl>
+</div>
+
+<%# Le détail de ce que la signature coûte : le prix, les frais de notaire qu'il entraîne
+    et les travaux à engager avant la première location. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.purchase_detail") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:purchase_price) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.purchase_price) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:notary_fees) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.notary_fees) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:initial_works) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.initial_works) %></dd>
+    </div>
+  </dl>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.total_investment") %></span>
+    <span><%= number_to_currency(simulation.total_investment) %></span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.charges_detail") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <% Simulation::ANNUAL_CHARGES.each do |charge| %>
+      <div class="detail-item">
+        <dt class="detail-label"><%= Simulation.human_attribute_name(charge) %></dt>
+        <dd class="detail-value"><%= number_to_currency(simulation.public_send(charge)) %></dd>
+      </div>
+    <% end %>
+  </dl>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.annual_charges_total") %></span>
+    <span><%= number_to_currency(simulation.annual_charges) %></span>
+  </div>
+</div>

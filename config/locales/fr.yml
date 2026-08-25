@@ -154,13 +154,8 @@ fr:
         subtitle: "Acquisition prévue le %{date}"
         edit: Modifier
         total_investment: Investissement initial
-        total_investment_hint: "%{price} de prix, %{fees} de frais de notaire, %{works} de travaux"
-        annual_rent_card: Loyers annuels
-        annual_rent_hint: "%{rent} par mois sur %{months} mois"
-        annual_charges_card: Charges annuelles
-        annual_cash_flow_hint: "%{amount} de cash-flow annuel"
-        final_immobilized_capital: "Capital immobilisé à %{years} ans"
-        total_rent: "%{amount} de loyers cumulés"
+        tab_parameters: Les paramètres du bien
+        tab_projection: "Projection sur %{years} ans"
         property: Le bien
         purchase_detail: "L'achat"
         charges_detail: Les charges annuelles
