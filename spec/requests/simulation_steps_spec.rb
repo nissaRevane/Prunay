@@ -125,6 +125,19 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_other_charges")).to eq("200")
     end
 
+    # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix, et
+    # n'offre donc aucun champ où les taper.
+    it "computes the notary fees from the price instead of asking for them" do
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "purchase")
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("#simulation_notary_fees")).to be_nil
+      expect(doc.at_css("[data-notary-fees-target='amount']").text.gsub(/\s+/, " ").strip)
+        .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
+    end
+
     it "does not overwrite an amount already corrected by hand" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL.merge(monthly_rent: "990"))

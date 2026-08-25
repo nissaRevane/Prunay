@@ -1,0 +1,8 @@
+<%# Les frais de notaire : un montant que l'on lit, pas un champ que l'on remplit. Ils
+    suivent le prix saisi juste au-dessus, recalculés à la frappe par le contrôleur
+    `notary-fees` que porte l'élément englobant. %>
+<div class="form-group">
+  <span class="form-label"><%= Simulation.human_attribute_name(:notary_fees) %></span>
+  <p class="form-static" data-notary-fees-target="amount"><%= number_to_currency(simulation.notary_fees) %></p>
+  <p class="form-hint"><%= t("views.simulations.steps.purchase.notary_fees_hint") %></p>
+</div>

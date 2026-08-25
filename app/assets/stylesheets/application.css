@@ -158,7 +158,8 @@ a.nav-user-name:hover {
   margin-bottom: 1rem;
 }
 
-.form-group label {
+.form-group label,
+.form-group .form-label {
   display: block;
   font-weight: 500;
   margin-bottom: 0.25rem;
@@ -202,6 +203,18 @@ a.nav-user-name:hover {
 .form-hint {
   color: var(--color-text-muted);
   font-size: 0.75rem;
+}
+
+/* Un montant que la page calcule et que personne ne saisit : la forme d'un champ, le
+   trait discontinu en plus, pour qu'on n'essaie pas d'y taper. */
+.form-static {
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .form-actions {

@@ -125,9 +125,26 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "#notary_fees" do
+    # 7,42 % de 200 000 € font 14 840 €, que la part fixe porte à 16 612 €.
+    it "is a share of the price raised by a fixed part" do
+      expect(build(:simulation, purchase_price: 200_000).notary_fees).to eq(16_612)
+    end
+
+    it "follows the price and nothing else" do
+      expect(build(:simulation, purchase_price: 100_000).notary_fees).to eq(9_192)
+    end
+
+    # La page de l'achat s'affiche avant qu'un prix n'y soit tapé : elle ne doit pas
+    # annoncer la part fixe toute seule, comme si un bien à zéro euro coûtait 1 772 € de notaire.
+    it "is nothing as long as no price has been named" do
+      expect(build(:simulation, purchase_price: nil).notary_fees).to eq(0)
+    end
+  end
+
   describe "#total_investment" do
-    it "adds the initial works to the price" do
-      expect(build(:simulation, purchase_price: 200_000, initial_works: 15_000).total_investment).to eq(215_000)
+    it "adds the notary fees and the initial works to the price" do
+      expect(build(:simulation, purchase_price: 200_000, initial_works: 15_000).total_investment).to eq(231_612)
     end
   end
 
@@ -162,19 +179,19 @@ RSpec.describe Simulation, type: :model do
       expect(projection.map(&:cash_flow).uniq).to eq([9_000])
     end
 
-    # Les travaux initiaux s'immobilisent avec le prix : ils sont engagés avant le premier
-    # loyer, et c'est de leur somme que les cash-flows se déduisent.
-    it "deducts the cash flows accumulated since the purchase from the price and the works" do
-      expect(projection.first.immobilized_capital).to eq(220_000 - 9_000)
-      expect(projection.second.immobilized_capital).to eq(220_000 - 18_000)
-      expect(projection.last.immobilized_capital).to eq(220_000 - 270_000)
+    # Les frais de notaire et les travaux initiaux s'immobilisent avec le prix : ils sont
+    # engagés avant le premier loyer, et c'est de leur somme que les cash-flows se déduisent.
+    it "deducts the cash flows accumulated since the purchase from the price, the fees and the works" do
+      expect(projection.first.immobilized_capital).to eq(236_612 - 9_000)
+      expect(projection.second.immobilized_capital).to eq(236_612 - 18_000)
+      expect(projection.last.immobilized_capital).to eq(236_612 - 270_000)
     end
 
     it "marks a line as recovered once the capital has come back" do
       recovered = projection.select(&:recovered?)
 
-      expect(recovered.first.number).to eq(25)
-      expect(projection.take(24).map(&:recovered?)).to all(be(false))
+      expect(recovered.first.number).to eq(27)
+      expect(projection.take(26).map(&:recovered?)).to all(be(false))
     end
 
     it "keeps a 29 February purchase on a real date" do

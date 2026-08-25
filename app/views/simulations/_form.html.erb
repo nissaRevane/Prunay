@@ -51,16 +51,23 @@
   <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.purchase.title") %></legend>
 
-    <div class="form-row">
-      <div class="form-group form-group-half">
-        <%= f.label :purchase_price %>
-        <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
+    <div data-controller="notary-fees"
+         data-notary-fees-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
+         data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>">
+      <div class="form-row">
+        <div class="form-group form-group-half">
+          <%= f.label :purchase_price %>
+          <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true,
+              data: { notary_fees_target: "price", action: "input->notary-fees#refresh" } %>
+        </div>
+
+        <div class="form-group form-group-half">
+          <%= f.label :initial_works %>
+          <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
+        </div>
       </div>
 
-      <div class="form-group form-group-half">
-        <%= f.label :initial_works %>
-        <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
+      <%= render "simulations/notary_fees", simulation: f.object %>
     </div>
 
     <div class="form-group">

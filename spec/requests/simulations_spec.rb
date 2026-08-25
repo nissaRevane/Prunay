@@ -81,11 +81,11 @@ RSpec.describe "Simulations", type: :request do
     end
 
     it "ignores the simulations of another user" do
-      create(:simulation, user: create(:user), purchase_price: 999_999)
+      other = create(:simulation, user: create(:user), purchase_price: 999_999)
 
       get simulations_path
 
-      expect(response.body).not_to include(currency(999_999))
+      expect(response.body).not_to include(currency(other.total_investment))
     end
   end
 
@@ -122,8 +122,28 @@ RSpec.describe "Simulations", type: :request do
         currency(11_000).gsub(/\s+/, " "),
         currency(2_000).gsub(/\s+/, " "),
         currency(9_000).gsub(/\s+/, " "),
-        currency(211_000).gsub(/\s+/, " ")
+        currency(227_612).gsub(/\s+/, " ")
       ])
+    end
+
+    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix et
+    # les additionne au capital immobilisé le premier jour.
+    it "details the purchase, notary fees included, and totals what it immobilizes" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.purchase_detail") }
+
+      amounts = section.css(".detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(amounts).to eq(
+        Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " ")
+      )
+      expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
     end
 
     it "does not serve the simulation of another user" do

@@ -1,10 +1,10 @@
 class Simulation < ApplicationRecord
   # Un investissement locatif projeté sur trente ans.
   #
-  # Le modèle décrit le bien (type, ville, surface), son achat (prix et travaux initiaux),
-  # son exploitation (loyer, mois loués, meublé ou nu) et ses charges annuelles. Ni prêt ni
-  # fiscalité : ils viendront, et chacun ajoutera une colonne à la projection sans en
-  # changer la forme.
+  # Le modèle décrit le bien (type, ville, surface), son achat (prix, frais de notaire et
+  # travaux initiaux), son exploitation (loyer, mois loués, meublé ou nu) et ses charges
+  # annuelles. Ni prêt ni fiscalité : ils viendront, et chacun ajoutera une colonne à la
+  # projection sans en changer la forme.
   HORIZON_YEARS = 30
 
   MONTHS_PER_YEAR = 12
@@ -37,6 +37,13 @@ class Simulation < ApplicationRecord
 
   # Trois mois entre la simulation et la signature — le temps d'un compromis.
   DEFAULT_PURCHASE_DELAY_MONTHS = 3
+
+  # Les frais de notaire, approchés par une droite : 7,42 % du prix, majorés de 1 772 €.
+  # Droits de mutation, émoluments et débours confondus, ils suivent le prix d'assez près
+  # pour qu'une formule en tienne lieu — et l'utilisateur ne les saisit donc pas.
+  NOTARY_FEES_RATE = BigDecimal("0.0742")
+
+  NOTARY_FEES_BASE = 1_772
 
   # L'arrondi des montants proposés : la dizaine d'euros. Une estimation au centime se
   # lirait comme un calcul, alors que ce n'en est pas un.
@@ -137,10 +144,20 @@ class Simulation < ApplicationRecord
     )
   end
 
-  # Ce que l'achat immobilise le premier jour : le prix, et les travaux qu'il faut engager
-  # avant de pouvoir louer. C'est de ce montant que les cash-flows se déduiront.
+  # Les frais de notaire dus à la signature. Ils ne découlent que du prix, d'où l'absence
+  # de colonne en base : les recalculer coûte moins que de les stocker et de risquer qu'ils
+  # démentent un jour le prix affiché à côté d'eux.
+  def notary_fees
+    return 0 if purchase_price.blank?
+
+    (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
+  end
+
+  # Ce que l'achat immobilise le premier jour : le prix, les frais de notaire qu'il
+  # entraîne, et les travaux qu'il faut engager avant de pouvoir louer. C'est de ce montant
+  # que les cash-flows se déduiront.
   def total_investment
-    purchase_price + initial_works
+    purchase_price + notary_fees + initial_works
   end
 
   # Les loyers d'une année. Le loyer est saisi au mois — c'est ainsi qu'un bail l'énonce —

@@ -17,6 +17,7 @@
     <span class="stat-hint">
       <%= t("views.simulations.show.total_investment_hint",
             price: number_to_currency(@simulation.purchase_price),
+            fees: number_to_currency(@simulation.notary_fees),
             works: number_to_currency(@simulation.initial_works)) %>
     </span>
   </div>
@@ -82,6 +83,34 @@
       <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(@simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
     </div>
   </dl>
+</div>
+
+<%# Le détail de ce que la signature coûte : le prix, les frais de notaire qu'il entraîne
+    et les travaux à engager avant la première location. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.purchase_detail") %></h2>
+  </div>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:purchase_price) %></dt>
+      <dd class="detail-value"><%= number_to_currency(@simulation.purchase_price) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:notary_fees) %></dt>
+      <dd class="detail-value"><%= number_to_currency(@simulation.notary_fees) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:initial_works) %></dt>
+      <dd class="detail-value"><%= number_to_currency(@simulation.initial_works) %></dd>
+    </div>
+  </dl>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.total_investment") %></span>
+    <span><%= number_to_currency(@simulation.total_investment) %></span>
+  </div>
 </div>
 
 <div class="section">

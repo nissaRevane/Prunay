@@ -23,6 +23,7 @@ fr:
         condominium: Le bien est en copropriété
         purchase_date: "Date d'acquisition"
         purchase_price: "Prix d'achat"
+        notary_fees: Frais de notaire
         initial_works: Travaux initiaux
         monthly_rent: Loyer mensuel
         occupancy_months: "Taux d'occupation (mois par an)"
@@ -136,7 +137,8 @@ fr:
           energy_rating_blank: Non renseigné
         purchase:
           title: "L'achat"
-          hint: "Ce que le bien immobilise le premier jour."
+          hint: "Ce que le bien immobilise le premier jour : le prix, les frais de notaire qu'il entraîne, et les travaux à engager avant la première location."
+          notary_fees_hint: "Calculés d'après le prix — 7,42 % majorés de 1 772 € — et non saisis. Ils s'ajoutent au prix dans le capital immobilisé."
           initial_works_hint: "Les travaux engagés avant la première location. Ils s'ajoutent au prix dans le capital immobilisé."
           purchase_date_hint: "Proposée trois mois après aujourd'hui, le temps d'un compromis."
         rental:
@@ -153,7 +155,7 @@ fr:
         subtitle: "Acquisition prévue le %{date}"
         edit: Modifier
         total_investment: Investissement initial
-        total_investment_hint: "%{price} de prix, %{works} de travaux"
+        total_investment_hint: "%{price} de prix, %{fees} de frais de notaire, %{works} de travaux"
         annual_rent_card: Loyers annuels
         annual_rent_hint: "%{rent} par mois sur %{months} mois"
         annual_charges_card: Charges annuelles
@@ -161,6 +163,7 @@ fr:
         final_immobilized_capital: "Capital immobilisé à %{years} ans"
         total_rent: "%{amount} de loyers cumulés"
         property: Le bien
+        purchase_detail: "L'achat"
         charges_detail: Les charges annuelles
         annual_charges_total: Total des charges annuelles
         surface_value: "%{surface} m²"
@@ -169,7 +172,7 @@ fr:
         answer_yes: Oui
         answer_no: Non
         projection: "Projection sur %{years} ans"
-        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial — prix et travaux — tous les cash-flows encaissés depuis l'achat. Ni prêt, ni fiscalité pour l'instant."
+        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial — prix, frais de notaire et travaux — tous les cash-flows encaissés depuis l'achat. Ni prêt, ni fiscalité pour l'instant."
         year: Année
         date: Date
         annual_rent_column: "Loyers de l'année"
