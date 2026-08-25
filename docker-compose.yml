@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: prunay
+      POSTGRES_PASSWORD: prunay_password
+      POSTGRES_DB: prunay_development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # 5434 plutôt que 5433 : Milly tient déjà ce port, et les deux projets doivent
+    # pouvoir tourner en même temps sur la même machine.
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prunay -d prunay_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && rails server -b 0.0.0.0"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+    # Idem : 3000 est celui de Milly.
+    ports:
+      - "3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://prunay:prunay_password@db:5432/prunay_development
+      TEST_DATABASE_URL: postgres://prunay:prunay_password@db:5432/prunay_test
+      RAILS_ENV: development
+      SECRET_KEY_BASE: dev_secret_key_base_change_in_production
+
+volumes:
+  postgres_data:
+  bundle_cache:
