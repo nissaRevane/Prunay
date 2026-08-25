@@ -40,14 +40,23 @@ RSpec.describe "Simulations", type: :request do
       expect(items.first.at_css(".badge")&.text&.strip).to eq("2")
     end
 
-    # Une simulation n'a pas de nom saisi : elle se reconnaît à son type et à sa ville.
+    # Une simulation que personne n'a nommée se reconnaît à son bien : type, ville, surface.
     it "names each row after the property it describes" do
-      create(:simulation, user: user, property_type: "house", city: "Rennes")
+      create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Maison à Rennes")
+      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Maison à Rennes, 62,5 m²")
+    end
+
+    it "carries the name given at the creation when there is one" do
+      create(:simulation, user: user, name: "Le studio du port")
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Le studio du port")
     end
 
     it "links the row cells to the simulation instead of a dedicated button" do
@@ -127,6 +136,14 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "PATCH /simulations/:id" do
+    it "renames the simulation" do
+      simulation = create(:simulation, user: user, name: "Le studio du port")
+
+      patch simulation_path(simulation), params: { simulation: { name: "Le deux-pièces du port" } }
+
+      expect(simulation.reload.name).to eq("Le deux-pièces du port")
+    end
+
     it "updates the simulation" do
       simulation = create(:simulation, user: user, monthly_rent: 800)
 

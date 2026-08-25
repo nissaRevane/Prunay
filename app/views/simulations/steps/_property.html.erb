@@ -1,3 +1,11 @@
+<%# Le nom d'abord, et sans astérisque : celui qui sait comment il appelle ce bien le dit
+    ici, les autres laissent le champ vide et la simulation prendra le nom de son bien. %>
+<div class="form-group">
+  <%= f.label :name %>
+  <%= f.text_field :name, class: "form-control", autofocus: true %>
+  <p class="form-hint"><%= t("views.simulations.steps.property.name_hint") %></p>
+</div>
+
 <div class="form-group">
   <%= f.label :property_type %>
   <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true %>
@@ -6,7 +14,7 @@
 <div class="form-row">
   <div class="form-group form-group-half">
     <%= f.label :city %>
-    <%= f.text_field :city, class: "form-control", required: true, autofocus: true %>
+    <%= f.text_field :city, class: "form-control", required: true %>
   </div>
 
   <div class="form-group form-group-half">

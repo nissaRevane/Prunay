@@ -14,6 +14,7 @@ fr:
       simulation: Simulation
     attributes:
       simulation:
+        name: Nom de la simulation
         property_type: Type de bien
         address: Adresse
         city: Ville
@@ -79,9 +80,10 @@ fr:
       update: Mettre à jour
       submit: Enregistrer
   # Le vocabulaire du domaine, hors des vues : le modèle s'en sert pour nommer une
-  # simulation, et les formulaires pour étiqueter leurs listes déroulantes.
+  # simulation que personne n'a nommée, et les formulaires pour étiqueter leurs listes
+  # déroulantes.
   simulations:
-    name: "%{type} à %{city}"
+    default_name: "%{type} à %{city}, %{surface} m²"
     property_types:
       apartment: Appartement
       house: Maison
@@ -113,7 +115,7 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
-        name: Bien
+        name: Nom
         purchase_date: "Date d'acquisition"
         total_investment: Investissement initial
         annual_cash_flow: Cash-flow annuel
@@ -129,6 +131,7 @@ fr:
         property:
           title: Le bien
           hint: "Ce que l'on achète et où il se trouve. Seules la ville et la surface sont indispensables — la surface sert ensuite à estimer les montants des pages suivantes."
+          name_hint: "Facultatif : à défaut, la simulation prendra le nom de son bien — type, ville et surface."
           address_hint: Facultatif.
           energy_rating_blank: Non renseigné
         purchase:

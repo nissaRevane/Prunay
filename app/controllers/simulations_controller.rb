@@ -43,7 +43,7 @@ class SimulationsController < ApplicationController
 
   def simulation_params
     params.require(:simulation).permit(
-      :property_type, :address, :city, :energy_rating, :surface, :condominium,
+      :name, :property_type, :address, :city, :energy_rating, :surface, :condominium,
       :purchase_price, :initial_works, :purchase_date,
       :monthly_rent, :occupancy_months, :rental_type,
       *Simulation::ANNUAL_CHARGES

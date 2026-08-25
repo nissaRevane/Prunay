@@ -57,11 +57,30 @@ RSpec.describe "Simulation steps", type: :request do
       simulation = Simulation.last
       expect(response).to redirect_to(simulation)
       expect(simulation).to have_attributes(
-        user: user, property_type: "apartment", city: "Nantes", surface: 50, condominium: true,
+        user: user, name: "Appartement à Nantes, 50 m²",
+        property_type: "apartment", city: "Nantes", surface: 50, condominium: true,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
         monthly_rent: 1_000, occupancy_months: 11, rental_type: "unfurnished",
         property_tax: 700, maintenance: 1_000, insurance: 150, other_charges: 150
       )
+    end
+
+    # Le nom se demande à la première page sans être exigé : donné, il est gardé tel quel.
+    it "keeps the name the first page was given" do
+      submit("property", PROPERTY.merge(name: "Le studio du port"))
+      submit("purchase", PURCHASE)
+      submit("rental", RENTAL)
+      submit("charges", CHARGES)
+
+      expect(Simulation.last.name).to eq("Le studio du port")
+    end
+
+    # ... et laissé vide, la page du bien ne s'en formalise pas : le nom est le seul champ
+    # qu'aucune page n'exige.
+    it "lets the first page through without a name" do
+      submit("property", PROPERTY.merge(name: ""))
+
+      expect(response).to redirect_to(new_simulation_step_path(step: "purchase"))
     end
 
     it "keeps what a previous page has already answered" do

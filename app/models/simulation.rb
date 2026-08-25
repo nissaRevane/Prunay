@@ -57,6 +57,12 @@ class Simulation < ApplicationRecord
 
   belongs_to :user
 
+  # Le nom est le seul champ qu'aucune page n'exige. Il se propose dès la première, pour qui
+  # sait déjà comment il appelle ce bien, et sinon le bien le lui dicte à l'enregistrement :
+  # `on: [:create, :update]` et non un callback nu, pour que la validation d'une étape —
+  # `valid?(:property)` — laisse le champ vide tel que l'utilisateur l'a laissé.
+  before_validation :name_after_the_property, on: [:create, :update]
+
   # Page 1 — le bien.
   validates :property_type, presence: true, inclusion: { in: PROPERTY_TYPES, allow_blank: true },
             on: [:create, :update, :property]
@@ -119,11 +125,16 @@ class Simulation < ApplicationRecord
     end
   end
 
-  # Le nom d'une simulation ne se saisit pas : il se lit du bien lui-même. Un type et une
-  # ville suffisent à le reconnaître dans une liste, et un nom libre ne serait qu'un champ
-  # de plus à remplir pour dire la même chose.
-  def name
-    I18n.t("simulations.name", type: I18n.t("simulations.property_types.#{property_type}"), city: city)
+  # Le nom que le bien se donne lui-même : son type, sa ville et sa surface. C'est celui
+  # que porte une simulation dont l'utilisateur n'a rien nommé — trois chiffres et deux mots
+  # suffisent à la reconnaître dans une liste.
+  def default_name
+    I18n.t(
+      "simulations.default_name",
+      type: I18n.t("simulations.property_types.#{property_type}"),
+      city: city,
+      surface: ActiveSupport::NumberHelper.number_to_rounded(surface, precision: 2, strip_insignificant_zeros: true)
+    )
   end
 
   # Ce que l'achat immobilise le premier jour : le prix, et les travaux qu'il faut engager
@@ -185,5 +196,11 @@ class Simulation < ApplicationRecord
 
   def total_cash_flow
     annual_cash_flow * HORIZON_YEARS
+  end
+
+  private
+
+  def name_after_the_property
+    self.name = default_name if name.blank?
   end
 end

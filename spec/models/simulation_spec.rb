@@ -78,9 +78,35 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  describe "#name" do
-    it "reads the property itself rather than asking for a name" do
-      expect(build(:simulation, property_type: "house", city: "Rennes").name).to eq("Maison à Rennes")
+  # Le nom peut se donner dès la première page, mais rien n'y oblige : à l'enregistrement,
+  # une simulation sans nom prend celui de son bien.
+  describe "the name" do
+    it "keeps the one the first page was given" do
+      expect(create(:simulation, name: "Le studio du port").name).to eq("Le studio du port")
+    end
+
+    it "reads the property itself when nobody named the simulation" do
+      simulation = create(:simulation, name: "", property_type: "house", city: "Rennes", surface: 62.5)
+
+      expect(simulation.name).to eq("Maison à Rennes, 62,5 m²")
+    end
+
+    it "names the simulation again when its name is emptied by hand" do
+      simulation = create(:simulation, name: "Le studio du port")
+
+      simulation.update(name: "  ")
+
+      expect(simulation.reload.name).to eq(simulation.default_name)
+    end
+
+    # Valider une étape, ce n'est pas enregistrer : la page du bien ne doit pas remplir à
+    # l'utilisateur un champ qu'il a laissé vide.
+    it "leaves the field empty while a page is being validated" do
+      draft = described_class.new(user: build(:user), property_type: "house", city: "Rennes", surface: 50)
+
+      draft.valid?(:property)
+
+      expect(draft.name).to be_blank
     end
   end
 
