@@ -11,7 +11,12 @@ fr:
   activerecord:
     models:
       user: Utilisateur
+      simulation: Simulation
     attributes:
+      simulation:
+        purchase_date: Date d'achat
+        purchase_price: Prix d'achat
+        monthly_rent: Loyer mensuel
       user:
         firstname: Prénom
         lastname: Nom
@@ -62,7 +67,6 @@ fr:
       submit: Enregistrer
   views:
     nav:
-      dashboard: Tableau de bord
       sign_out: Déconnexion
       sign_in: Connexion
       sign_up: Inscription
@@ -79,10 +83,49 @@ fr:
         title: Bienvenue sur Prunay
         subtitle: Estimez la rentabilité de votre investissement locatif
         cta: Commencer
-    dashboard:
-      title: Tableau de bord
-      empty: Rien à afficher pour le moment — le simulateur n'est pas encore branché.
+    simulations:
+      index:
+        title: Mes simulations
+        new: Nouvelle simulation
+        empty: Aucune simulation enregistrée.
+        purchase_date: "Date d'achat"
+        purchase_price: "Prix d'achat"
+        monthly_rent: "Loyer mensuel"
+        final_immobilized_capital: "Capital immobilisé à 30 ans"
+      form:
+        purchase_date: Date d'achat
+        purchase_price: Prix d'achat
+        monthly_rent: Loyer mensuel
+        monthly_rent_hint: Le loyer perçu chaque mois, hors charges.
+        cancel: Annuler
+      new:
+        title: Nouvelle simulation
+      edit:
+        title: Modifier la simulation
+      show:
+        title: "Simulation d'un achat au %{date}"
+        edit: Modifier
+        purchase_price: Prix d'achat
+        monthly_rent: Loyer mensuel
+        annual_rent: "%{amount} par an"
+        final_immobilized_capital: "Capital immobilisé à %{years} ans"
+        total_rent: "%{amount} de loyers cumulés"
+        projection: "Projection sur %{years} ans"
+        projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits tous les loyers encaissés depuis l'achat. Ni prêt, ni charges, ni fiscalité pour l'instant."
+        year: Année
+        date: Date
+        annual_rent_column: "Loyers de l'année"
+        cash_flow: Cash-flow
+        immobilized_capital: Capital immobilisé
+        total_cash_flow: "Cash-flow cumulé sur %{years} ans"
+        back: Retour aux simulations
+        delete: Supprimer
+        confirm_delete: Êtes-vous sûr ?
   flash:
+    simulations:
+      created: Simulation créée avec succès.
+      updated: Simulation mise à jour avec succès.
+      destroyed: Simulation supprimée avec succès.
     errors:
       not_found: La ressource demandée est introuvable.
   number:

@@ -1,0 +1,39 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th><%= t("views.simulations.index.purchase_date") %></th>
+      <th class="hide-on-mobile"><%= t("views.simulations.index.purchase_price") %></th>
+      <th class="hide-on-mobile"><%= t("views.simulations.index.monthly_rent") %></th>
+      <th><%= t("views.simulations.index.final_immobilized_capital") %></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% simulations.each do |simulation| %>
+      <tr>
+        <td>
+          <%= link_to simulation_path(simulation), class: "row-link" do %>
+            <span class="hide-on-mobile"><%= l(simulation.purchase_date, format: :long) %></span>
+            <span class="show-on-mobile"><%= l(simulation.purchase_date, format: :default) %></span>
+          <% end %>
+        </td>
+        <td class="hide-on-mobile">
+          <%= link_to number_to_currency(simulation.purchase_price), simulation_path(simulation), class: "row-link" %>
+        </td>
+        <td class="text-success hide-on-mobile">
+          <%= link_to number_to_currency(simulation.monthly_rent), simulation_path(simulation), class: "row-link" %>
+        </td>
+        <%# Un capital immobilisé négatif, c'est un investissement récupéré : il se lit en vert,
+            comme un patrimoine net positif dans Milly. %>
+        <td class="<%= simulation.final_immobilized_capital <= 0 ? 'text-success' : 'text-danger' %>">
+          <%= link_to number_to_currency(simulation.final_immobilized_capital), simulation_path(simulation), class: "row-link" %>
+        </td>
+        <td class="table-actions">
+          <%= link_to "✏️", edit_simulation_path(simulation), class: "btn btn-sm btn-outline" %>
+          <%= button_to "🗑️", simulation_path(simulation), method: :delete, class: "btn btn-sm btn-danger",
+              form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

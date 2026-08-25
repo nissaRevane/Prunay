@@ -18,14 +18,14 @@ RSpec.describe "Home", type: :request do
       expect(doc.at_css(".navbar-links a[href='#{new_user_session_path}']")).not_to be_nil
     end
 
-    # La racine sert deux pages selon qui la demande : la vitrine au visiteur, le tableau
-    # de bord à l'utilisateur connecté (voir la contrainte `authenticated :user` des routes).
-    it "is the dashboard for a signed-in user" do
+    # La racine sert deux pages selon qui la demande : la vitrine au visiteur, la liste de
+    # ses simulations à l'utilisateur connecté (voir la contrainte `authenticated :user`).
+    it "is the simulations list for a signed-in user" do
       sign_in create(:user)
 
       get root_path
 
-      expect(response.body).to include(I18n.t("views.dashboard.title"))
+      expect(response.body).to include(I18n.t("views.simulations.index.title"))
       expect(response.body).not_to include(I18n.t("views.pages.home.subtitle"))
     end
   end

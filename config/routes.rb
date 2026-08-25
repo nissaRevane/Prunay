@@ -7,11 +7,14 @@ Prunay::Application.routes.draw do
     get "mon-compte", to: "users/registrations#edit", as: :account
   end
 
-  # L'accueil d'un utilisateur connecté est son tableau de bord ; la page publique reste
-  # la vitrine, pour les visiteurs.
+  # L'accueil d'un utilisateur connecté est la liste de ses simulations ; la page publique
+  # reste la vitrine, pour les visiteurs. Il n'y a pas de tableau de bord : tant que la seule
+  # chose à voir est la liste, une page de plus au-dessus d'elle n'aurait rien à dire.
   authenticated :user do
-    root "dashboard#show", as: :authenticated_root
+    root "simulations#index", as: :authenticated_root
   end
 
   root "pages#home"
+
+  resources :simulations
 end

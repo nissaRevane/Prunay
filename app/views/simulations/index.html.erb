@@ -1,0 +1,26 @@
+<div class="page-header">
+  <h1><%= t("views.simulations.index.title") %></h1>
+  <%= link_to t("views.simulations.index.new"), new_simulation_path, class: "btn btn-primary" %>
+</div>
+
+<% if @simulations.any? %>
+  <% grouped_simulations = @simulations.group_by { |simulation| simulation.purchase_date.year } %>
+  <% expanded_year = grouped_simulations.keys.first %>
+
+  <div class="simulations-accordion">
+    <% grouped_simulations.each do |year, yearly_simulations| %>
+      <details class="accordion-item" <%= "open" if year == expanded_year %>>
+        <summary class="accordion-summary">
+          <span class="accordion-year"><%= year %></span>
+          <span class="badge badge-secondary"><%= yearly_simulations.size %></span>
+        </summary>
+
+        <div class="accordion-content">
+          <%= render "simulations/table", simulations: yearly_simulations %>
+        </div>
+      </details>
+    <% end %>
+  </div>
+<% else %>
+  <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
+<% end %>

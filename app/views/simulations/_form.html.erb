@@ -1,0 +1,32 @@
+<%= form_with(model: simulation, class: "form") do |f| %>
+  <% if simulation.errors.any? %>
+    <div class="alert alert-danger">
+      <ul>
+        <% simulation.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= f.label :purchase_date, t("views.simulations.form.purchase_date") %>
+    <%= f.date_field :purchase_date, class: "form-control", required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :purchase_price, t("views.simulations.form.purchase_price") %>
+    <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :monthly_rent, t("views.simulations.form.monthly_rent") %>
+    <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+    <p class="form-hint"><%= t("views.simulations.form.monthly_rent_hint") %></p>
+  </div>
+
+  <div class="form-actions">
+    <%= f.submit class: "btn btn-primary" %>
+    <%= link_to t("views.simulations.form.cancel"), simulations_path, class: "btn btn-outline" %>
+  </div>
+<% end %>

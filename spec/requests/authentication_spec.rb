@@ -4,12 +4,12 @@ RSpec.describe "Authentication", type: :request do
   let(:user) { create(:user) }
 
   describe "POST /users/sign_in" do
-    it "signs the user in and lands on the dashboard" do
+    it "signs the user in and lands on their simulations" do
       post user_session_path, params: { user: { email: user.email, password: "password123" } }
 
       expect(response).to redirect_to(root_path)
       follow_redirect!
-      expect(response.body).to include(I18n.t("views.dashboard.title"))
+      expect(response.body).to include(I18n.t("views.simulations.index.title"))
     end
 
     it "rejects a wrong password without saying which field is wrong" do

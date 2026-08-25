@@ -1,0 +1,75 @@
+<div class="page-header">
+  <h1><%= t("views.simulations.show.title", date: l(@simulation.purchase_date, format: :long)) %></h1>
+  <div class="page-header-actions">
+    <%= link_to t("views.simulations.show.edit"), edit_simulation_path(@simulation), class: "btn btn-primary" %>
+  </div>
+</div>
+
+<%# Les hypothèses de la simulation, relues avant sa projection : trois chiffres saisis, un
+    quatrième déduit d'eux. %>
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label"><%= t("views.simulations.show.purchase_price") %></span>
+    <span class="stat-value"><%= number_to_currency(@simulation.purchase_price) %></span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label"><%= t("views.simulations.show.monthly_rent") %></span>
+    <span class="stat-value"><%= number_to_currency(@simulation.monthly_rent) %></span>
+    <span class="stat-hint"><%= t("views.simulations.show.annual_rent", amount: number_to_currency(@simulation.annual_rent)) %></span>
+  </div>
+  <div class="stat-card stat-card-highlight">
+    <span class="stat-label"><%= t("views.simulations.show.final_immobilized_capital", years: Simulation::HORIZON_YEARS) %></span>
+    <span class="stat-value <%= @simulation.final_immobilized_capital <= 0 ? 'text-success' : 'text-danger' %>">
+      <%= number_to_currency(@simulation.final_immobilized_capital) %>
+    </span>
+    <span class="stat-hint"><%= t("views.simulations.show.total_rent", amount: number_to_currency(@simulation.total_rent)) %></span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.projection", years: Simulation::HORIZON_YEARS) %></h2>
+  </div>
+  <p class="section-hint"><%= t("views.simulations.show.projection_hint") %></p>
+
+  <div class="table-scroll">
+    <table class="table">
+      <thead>
+        <tr>
+          <th><%= t("views.simulations.show.year") %></th>
+          <th><%= t("views.simulations.show.date") %></th>
+          <th class="text-right"><%= t("views.simulations.show.annual_rent_column") %></th>
+          <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
+          <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @projection.each do |year| %>
+          <tr>
+            <td><%= year.number %></td>
+            <td>
+              <span class="hide-on-mobile"><%= l(year.date, format: :long) %></span>
+              <span class="show-on-mobile"><%= l(year.date, format: :default) %></span>
+            </td>
+            <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
+            <td class="text-right text-success"><%= number_to_currency(year.cash_flow) %></td>
+            <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
+              <%= number_to_currency(year.immobilized_capital) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.total_cash_flow", years: Simulation::HORIZON_YEARS) %></span>
+    <span><%= number_to_currency(@simulation.total_cash_flow) %></span>
+  </div>
+</div>
+
+<div class="form-actions">
+  <%= link_to t("views.simulations.show.back"), simulations_path, class: "btn btn-outline" %>
+  <%= button_to t("views.simulations.show.delete"), simulation_path(@simulation), method: :delete, class: "btn btn-danger",
+      form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } } %>
+</div>

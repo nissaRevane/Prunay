@@ -433,6 +433,18 @@ a.icon-btn:hover {
 .section-hint {
   color: var(--color-text-muted);
   font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.section-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-weight: 700;
 }
 
 /* Hero */
@@ -525,6 +537,47 @@ a.icon-btn:hover {
   margin-top: 1rem;
 }
 
+/* Simulations accordion */
+.simulations-accordion {
+  display: grid;
+  gap: 1rem;
+}
+
+.accordion-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.accordion-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-year {
+  font-size: 1.125rem;
+}
+
+.accordion-content {
+  padding: 0 1rem 1rem;
+}
+
+.accordion-content .table {
+  margin-bottom: 0;
+}
+
 /* Responsive utilities */
 .show-on-mobile {
   display: none;
@@ -551,6 +604,19 @@ a.icon-btn:hover {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+
+  .accordion-summary {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .accordion-year {
+    font-size: 1rem;
+  }
+
+  .accordion-content {
+    padding: 0 0.5rem 0.5rem;
+    overflow-x: auto;
   }
 }
 

@@ -3,9 +3,9 @@
 A Ruby on Rails 8 application to estimate the profitability of a rental real estate
 investment.
 
-> **Status:** architecture only. Authentication, the design system and the navigation
-> shell are in place; the simulator itself is not implemented yet, so the dashboard is
-> deliberately empty.
+> **Status:** first simulator. A simulation is still deliberately naive — a price, a
+> purchase date and a rent, projected over thirty years with no loan, no charges and no
+> tax. Everything else is there to receive them.
 
 ## Tech Stack
 
@@ -49,16 +49,20 @@ docker compose run --rm web bundle exec rspec
   the public landing page is the single explicit opt-out.
 - **Account page** (`/mon-compte`): identity and password change.
 - **Landing page:** the public shop window, for visitors.
-- **Dashboard:** the home page of a signed-in user, and the place the simulator will
-  take. Empty for now, and it says so.
+- **Simulations** (`/simulations`, and the home page of a signed-in user): the full CRUD,
+  grouped by purchase year in the same accordion Milly uses for its bilans. There is no
+  dashboard above the list and therefore no top menu: the brand leads to the only page
+  there would be to put in one.
+- **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
+  year's rent, its cash flow and the capital still immobilized.
 
 ## Project Structure
 
 ```
 app/
-├── controllers/        # ApplicationController (auth guard), Pages, Dashboard, Users::Registrations
-├── models/             # User
-├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, dashboard)
+├── controllers/        # ApplicationController (auth guard), Pages, Simulations, Users::Registrations
+├── models/             # User, Simulation
+├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
 └── assets/             # CSS design system
 config/
@@ -76,4 +80,7 @@ spec/
 
 ## Data Model
 
-- **User** (firstname, lastname, email) — the only table so far.
+- **User** (firstname, lastname, email)
+- **Simulation** (purchase_date, purchase_price, monthly_rent) — belongs to a user. The
+  thirty-year projection is derived, never stored: see `Simulation#projection` and its
+  `Year` struct, where the columns a loan or a charge will add have their place waiting.
