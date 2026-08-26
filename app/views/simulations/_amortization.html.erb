@@ -2,13 +2,34 @@
     prêt. La mensualité y est ce que la banque prélève — intérêts, capital et prime
     d'assurance. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
 <div class="section">
-  <p class="section-hint"><%= t("views.simulations.show.amortization_hint",
-                               capital: number_to_currency(simulation.borrowed_capital),
-                               rate: number_to_percentage(simulation.loan_rate, precision: 2, strip_insignificant_zeros: true),
-                               months: schedule.rows.size,
-                               payment: number_to_currency(simulation.loan.monthly_payment),
-                               insurance: number_to_currency(simulation.loan_insurance),
-                               total_payment: number_to_currency(simulation.loan.total_monthly_payment)) %></p>
+  <%# Ce que le crédit engage, avant le détail ligne à ligne : ce qui est emprunté, sur
+      combien d'échéances, et ce que la banque prélève chaque mois — prime comprise. %>
+  <% loan = simulation.loan %>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></span>
+      <span class="stat-value"><%= number_to_currency(loan.capital) %></span>
+      <span class="stat-hint"><%= t("views.simulations.show.amortization_rate_hint",
+                                    rate: number_to_percentage(loan.annual_rate, precision: 2, strip_insignificant_zeros: true)) %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label"><%= t("views.simulations.show.amortization_duration") %></span>
+      <span class="stat-value"><%= t("views.simulations.show.payment_count", months: schedule.rows.size) %></span>
+      <span class="stat-hint"><%= t("views.simulations.show.amortization_first_payment_hint",
+                                    date: l(loan.first_payment_on, format: :long)) %></span>
+    </div>
+    <div class="stat-card stat-card-highlight">
+      <span class="stat-label"><%= t("views.simulations.show.amortization_total_payment") %></span>
+      <span class="stat-value"><%= number_to_currency(loan.total_monthly_payment) %></span>
+      <span class="stat-hint">
+        <%= if loan.insurance.positive?
+              t("views.simulations.show.amortization_insurance_hint", insurance: number_to_currency(loan.insurance))
+            else
+              t("views.simulations.show.amortization_no_insurance_hint")
+            end %>
+      </span>
+    </div>
+  </div>
 
   <div class="table-scroll table-scroll-tall">
     <table class="table table-compact">

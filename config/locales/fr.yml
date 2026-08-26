@@ -242,7 +242,13 @@ fr:
         answer_no: Non
         projection: "Projection sur %{years} ans"
         duration_value: "%{years} ans (%{months} mois)"
-        amortization_hint: "Une ligne par échéance : %{capital} empruntés à %{rate}, remboursés en %{months} mensualités de %{payment}, auxquelles s'ajoute %{insurance} d'assurance emprunteur — soit %{total_payment} prélevés chaque mois. La première échéance tombe un mois après la signature."
+        amortization_duration: Durée
+        payment_count: "%{months} mensualités"
+        amortization_rate_hint: "Au taux annuel de %{rate}"
+        amortization_first_payment_hint: "Première échéance le %{date}"
+        amortization_total_payment: Prélevé chaque mois
+        amortization_insurance_hint: "Dont %{insurance} d'assurance emprunteur"
+        amortization_no_insurance_hint: "Capital et intérêts, sans assurance"
         payment_number: Échéance
         due_on: Date
         payment: Mensualité
