@@ -138,7 +138,7 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # Ce que le tableau ne montre pas se déplie sous la ligne de l'année, caché au chargement.
-    it "folds the charges, the annuities, the cumulated cash flow and the price under each year" do
+    it "folds the charges, the annuities and the price of the property under each year" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -152,7 +152,6 @@ RSpec.describe "Simulations", type: :request do
       expect(amounts).to eq(
         I18n.t("views.simulations.show.annual_charges_column") => currency(2_000).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.loan_payments_column") => I18n.t("views.simulations.show.no_loan_payment"),
-        I18n.t("views.simulations.show.cumulative_cash_flow_column") => currency(18_000).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.property_value_column") => currency(200_000).gsub(/\s+/, " ")
       )
     end

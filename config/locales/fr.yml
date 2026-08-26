@@ -270,7 +270,6 @@ fr:
         annual_charges_column: "Charges de l'année"
         loan_payments_column: "Annuités du crédit"
         no_loan_payment: Aucune échéance
-        cumulative_cash_flow_column: Cash-flow cumulé
         property_value_column: Valeur du bien
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"
         final_property_value: "Valeur du bien au bout de %{years} ans"

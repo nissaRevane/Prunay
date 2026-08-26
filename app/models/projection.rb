@@ -5,10 +5,10 @@
 class Projection
   HORIZON_YEARS = 30
 
-  # +loan_payments+ est ce que le crédit prélève cette année-là ; +cumulative_cash_flow+ et
-  # +immobilized_capital+ sont cumulatifs, et +property_value+ vaut à cette date-là.
+  # +loan_payments+ est ce que le crédit prélève cette année-là ; +immobilized_capital+ est
+  # cumulatif, et +property_value+ est ce que le bien vaut à cette date-là.
   Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_payments, :cash_flow,
-                    :cumulative_cash_flow, :immobilized_capital, :property_value, keyword_init: true) do
+                    :immobilized_capital, :property_value, keyword_init: true) do
     def recovered?
       immobilized_capital <= 0
     end
@@ -70,7 +70,6 @@ class Projection
         annual_charges: charges,
         loan_payments: due,
         cash_flow: cash_flow,
-        cumulative_cash_flow: cumulative_cash_flow,
         immobilized_capital: outlay - cumulative_cash_flow,
         property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       )
@@ -88,7 +87,6 @@ class Projection
       annual_charges: 0,
       loan_payments: 0,
       cash_flow: 0,
-      cumulative_cash_flow: 0,
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price
     )
