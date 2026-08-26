@@ -107,7 +107,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      rows = doc.css(".table-scroll .table tbody tr")
+      rows = doc.css("#panel-projection tbody tr.row-expandable")
 
       expect(rows.size).to eq(Projection::HORIZON_YEARS + 1)
       expect(rows.first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }).to eq([
@@ -126,7 +126,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      cells = doc.css(".table-scroll .table tbody tr")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      cells = doc.css("#panel-projection tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
       expect(cells).to eq([
         "1",
@@ -135,6 +135,26 @@ RSpec.describe "Simulations", type: :request do
         currency(9_000).gsub(/\s+/, " "),
         currency(227_612).gsub(/\s+/, " ")
       ])
+    end
+
+    # Ce que le tableau ne montre pas se déplie sous la ligne de l'année, caché au chargement.
+    it "folds the charges, the annuities, the cumulated cash flow and the price under each year" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      detail = doc.at_css("#panel-projection #year-2-detail")
+      amounts = detail.css(".detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(detail["hidden"]).not_to be_nil
+      expect(doc.at_css("#panel-projection .row-toggle")["aria-expanded"]).to eq("false")
+      expect(amounts).to eq(
+        I18n.t("views.simulations.show.annual_charges_column") => currency(2_000).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.loan_payments_column") => I18n.t("views.simulations.show.no_loan_payment"),
+        I18n.t("views.simulations.show.cumulative_cash_flow_column") => currency(18_000).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.property_value_column") => currency(200_000).gsub(/\s+/, " ")
+      )
     end
 
     # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix et
@@ -236,7 +256,7 @@ RSpec.describe "Simulations", type: :request do
 
         doc = Nokogiri::HTML(response.body)
         headers = doc.css("#panel-projection thead th").map { |th| th.text.strip }
-        cells = doc.css("#panel-projection tbody tr")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+        cells = doc.css("#panel-projection tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
         # Année, date, loyers, cash-flow, capital immobilisé.
         expect(headers.size).to eq(5)

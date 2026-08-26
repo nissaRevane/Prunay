@@ -384,6 +384,54 @@ a.nav-user-name:hover {
   overflow-x: auto;
 }
 
+/* Une ligne qui se déplie : tout son corps est cliquable, le bouton du premier bloc n'étant
+   là que pour le clavier et les lecteurs d'écran. */
+.row-expandable {
+  cursor: pointer;
+}
+
+.row-expandable:hover,
+.row-expandable.is-open {
+  background: var(--color-bg);
+}
+
+.row-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Le chevron est un décor, pas un texte : il reste hors du DOM pour ne pas se lire avec
+   le numéro de l'année. */
+.row-toggle::before {
+  content: "\203A";
+  color: var(--color-text-muted);
+  transition: transform 0.15s;
+}
+
+.row-expandable.is-open .row-toggle::before {
+  transform: rotate(90deg);
+}
+
+.row-detail > td {
+  background: var(--color-bg);
+}
+
+/* Le détail vit dans la ligne : la fiche y perd son cadre et son ombre. */
+.detail-grid-flat {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
 /* Un tableau qui compte ses lignes par centaines — trois cents échéances d'un crédit sur
    vingt-cinq ans — défile dans son propre cadre plutôt que d'allonger la page à l'infini.
    L'en-tête reste visible : sans lui, une colonne de montants ne dit plus lequel elle porte. */

@@ -18,5 +18,8 @@ application.register("loan", LoanController)
 import NotaryFeesController from "controllers/notary_fees_controller"
 application.register("notary-fees", NotaryFeesController)
 
+import ProjectionController from "controllers/projection_controller"
+application.register("projection", ProjectionController)
+
 import TabsController from "controllers/tabs_controller"
 application.register("tabs", TabsController)
