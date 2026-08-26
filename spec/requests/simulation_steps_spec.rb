@@ -35,7 +35,8 @@ RSpec.describe "Simulation steps", type: :request do
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
   CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16",
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
-  RENTAL = { monthly_rent: "1000", occupancy_months: "11" }.freeze
+  # Le loyer se détaille : 1 000 € hors charges, et 150 € de provision par-dessus.
+  RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11" }.freeze
   # Le bien de PROPERTY est en copropriété : la page des charges lui demande donc les
   # charges de copro.
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
@@ -81,7 +82,7 @@ RSpec.describe "Simulation steps", type: :request do
         user: user, name: "Appartement à Nantes, 50 m²",
         property_type: "apartment", city: "Nantes", surface: 50, condominium: true,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
-        monthly_rent: 1_000, occupancy_months: 11,
+        monthly_rent: 1_000, monthly_charges: 150, occupancy_months: 11,
         property_tax: 700, insurance: 150, maintenance: 1_000, condominium_fees: 1_200,
         management_fees: 0, rent_guarantee: 0, other_charges: 150
       )
@@ -181,23 +182,28 @@ RSpec.describe "Simulation steps", type: :request do
       submit("charges", CHARGES)
     end
 
+    # La tranche d'imposition ne s'y demande pas davantage : elle est héritée comme les taux,
+    # d'où un champ de plus à ne trouver nulle part — et une liste déroulante, non un nombre.
     it "asks for none of them along the way" do
-      names = EconomicConditions::RATES.map { |rate| "simulation[#{rate}]" }
+      names = EconomicConditions::ASSUMPTIONS.map { |assumption| "simulation[#{assumption}]" }
 
       { "property" => PROPERTY, "purchase" => PURCHASE, "rental" => RENTAL, "charges" => CHARGES }.each do |step, answers|
         get new_simulation_step_path(step: step)
 
-        expect(Nokogiri::HTML(response.body).css("input").map { |input| input["name"] }).not_to include(*names)
+        fields = Nokogiri::HTML(response.body).css("input, select").map { |field| field["name"] }
+        expect(fields).not_to include(*names)
         submit(step, answers)
       end
     end
 
     it "gives the new simulation those of the user who creates it" do
-      create(:economic_conditions, user: user, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5)
+      create(:economic_conditions, user: user, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,
+                                   marginal_tax_rate: 41)
 
       walk
 
-      expect(Simulation.last).to have_attributes(rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5)
+      expect(Simulation.last).to have_attributes(rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,
+                                                 marginal_tax_rate: 41)
     end
 
     it "falls back on what Prunay assumes for a user who has never decided" do
@@ -235,13 +241,16 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_initial_works")).to eq("0")
     end
 
-    # 650 € pour 50 m², mis à l'échelle par la racine carrée : 200 m² en font le double.
-    it "estimates the rent from the surface and leaves a month of vacancy" do
+    # 650 € pour 50 m², mis à l'échelle par la racine carrée : 200 m² en font le double. La
+    # provision pour charges, elle, ne se déduit d'aucune surface : elle se lit sur l'appel
+    # de charges de la copropriété, et rien n'est donc proposé.
+    it "estimates the rent from the surface, supposes no provision and leaves a month of vacancy" do
       submit("purchase", PURCHASE)
 
       get new_simulation_step_path(step: "rental")
 
       expect(field_value("simulation_monthly_rent")).to eq("1300")
+      expect(field_value("simulation_monthly_charges")).to eq("0")
       expect(field_value("simulation_occupancy_months")).to eq("11")
     end
 

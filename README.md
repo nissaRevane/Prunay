@@ -4,8 +4,8 @@ A Ruby on Rails 8 application to estimate the profitability of a rental real est
 investment.
 
 > **Status:** first simulator. A simulation describes a property, its purchase, how it is
-> financed — outright or on credit — its letting and its annual charges, projected over
-> thirty years. No tax yet — everything else is there to receive it.
+> financed — outright or on credit — its letting, its annual charges and the tax the rents
+> cost, projected over thirty years. One tax regime only for now: the micro-foncier.
 
 ## Tech Stack
 
@@ -105,11 +105,19 @@ docker compose run --rm web bundle exec rspec
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, which reopens on itself
   after each change (`?tab=economic_conditions`).
+- **The taxation** (`Taxation`): the micro-foncier, and it alone. The assessment is the year's
+  rent excluding charges — the provision for charges the tenant repays is collected with the
+  rent but is not a revenue, it settles an expense — reduced by the flat 30 % allowance that
+  stands in for every deductible charge. What is left bears the marginal bracket of the
+  household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation, 30 %
+  by default) and 17.2 % of social charges, which no bracket governs: a household the scale
+  does not reach still owes them. The parameters tab details the calculation line by line, and
+  the tax weighs on the cash flow of every year of the projection.
 - **The projection:** thirty lines, one per anniversary of the purchase. The table carries
   five columns and no commentary — the year, its month, its rent, its cash flow and the
-  capital still immobilized. The charges and the annuity weigh on the cash flow without a
-  column of their own: they are what the parameters tab is for, and a table one reads to
-  decide is not a table that explains itself. The annual rent counts only the months actually
+  capital still immobilized. The charges, the tax and the annuity weigh on the cash flow
+  without a column of their own: they are what the parameters tab is for, and a table one
+  reads to decide is not a table that explains itself. The annual rent counts only the months actually
   let, and the annuity — the insurance premium included — is read from the schedule year by
   year: twelve payments while the loan runs, what is left of it the year it is cleared,
   nothing after. What is immobilized on day one is what actually leaves the buyer's pocket —
@@ -129,7 +137,7 @@ app/
 │                       # Simulations::Steps (the four-page creation), EconomicConditions and
 │                       # Simulations::EconomicConditions, Users::Registrations
 ├── models/             # User, Simulation, EconomicConditions, Loan, Projection,
-│                       # AmortizationSchedule
+│                       # AmortizationSchedule, Taxation
 ├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
 └── assets/             # CSS design system
@@ -150,8 +158,8 @@ spec/
 
 - **User** (firstname, lastname, email) — has at most one **EconomicConditions**, the
   defaults every simulation he creates inherits: rent_growth_rate, property_growth_rate,
-  inflation_rate. The row only exists once he has changed something; `EconomicConditions.for`
-  stands in for it until then.
+  inflation_rate and marginal_tax_rate. The row only exists once he has changed something;
+  `EconomicConditions.for` stands in for it until then.
 - **Simulation** — belongs to a user, and has no name of its own: it reads as
   "Appartement à Nantes", from its type and its city.
   - *the property:* property_type, address, city, energy_rating, surface, condominium
@@ -159,16 +167,17 @@ spec/
   - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance —
     the capital borrowed, the monthly payment and the amortization schedule are derived from
     them, never stored (like the notary fees)
-  - *the letting:* monthly_rent, occupancy_months, rental_type
+  - *the letting:* monthly_rent (excluding charges, the only taxable part), monthly_charges
+    (the provision the tenant repays on top of it) and occupancy_months
   - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
     which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):
     - *owning the property:* property_tax, insurance, maintenance, condominium_fees
     - *letting it:* management_fees, rent_guarantee
     - *the furnished regime:* business_tax, accounting_fees
     - *the rest:* other_charges
-  - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate — the
-    same three columns as `EconomicConditions`, copied from the user's defaults at the
-    creation and corrected afterwards for this simulation alone
+  - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
+    marginal_tax_rate — the same four columns as `EconomicConditions`, copied from the user's
+    defaults at the creation and corrected afterwards for this simulation alone
 
   The thirty-year projection is derived, never stored: see `Simulation#projection` and its
-  `Year` struct, where the column a tax will add has its place waiting.
+  `Year` struct, the tax of the year included.

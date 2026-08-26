@@ -23,6 +23,6 @@ class EconomicConditionsController < ApplicationController
   end
 
   def economic_conditions_params
-    params.require(:economic_conditions).permit(*EconomicConditions::RATES)
+    params.require(:economic_conditions).permit(*EconomicConditions::ASSUMPTIONS)
   end
 end

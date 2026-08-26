@@ -18,7 +18,7 @@ module Simulations
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees],
-      "rental" => [:monthly_rent, :occupancy_months],
+      "rental" => [:monthly_rent, :monthly_charges, :occupancy_months],
       "charges" => Simulation::ANNUAL_CHARGES
     }.freeze
 
@@ -96,10 +96,11 @@ module Simulations
       simulation
     end
 
-    # Les conditions économiques ne sont demandées par aucune page : la simulation naît avec
-    # celles de l'utilisateur, et son onglet les corrigera ensuite pour elle seule.
+    # Les conditions économiques ne sont demandées par aucune page — la tranche d'imposition
+    # comprise : la simulation naît avec celles de l'utilisateur, et son onglet les corrigera
+    # ensuite pour elle seule.
     def create_simulation
-      simulation = current_user.simulations.build(EconomicConditions.for(current_user).rates.merge(draft))
+      simulation = current_user.simulations.build(EconomicConditions.for(current_user).assumptions.merge(draft))
 
       if simulation.save
         session.delete(DRAFT_KEY)

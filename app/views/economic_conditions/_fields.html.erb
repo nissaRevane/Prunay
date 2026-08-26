@@ -1,6 +1,6 @@
-<%# Les trois taux, dans le même ordre partout : les loyers, le bien, puis les charges. Le
-    même partiel sert aux conditions par défaut et à celles d'une simulation — ce sont les
-    mêmes colonnes des deux côtés. %>
+<%# Les trois taux dans le même ordre partout — les loyers, le bien, puis les charges —, et
+    la tranche d'imposition du foyer après eux. Le même partiel sert aux conditions par défaut
+    et à celles d'une simulation : ce sont les mêmes colonnes des deux côtés. %>
 <div class="form-group">
   <%= f.label :rent_growth_rate %>
   <%= f.number_field :rent_growth_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
@@ -20,4 +20,14 @@
   <%= f.number_field :inflation_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
       max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
   <p class="form-hint"><%= t("views.economic_conditions.fields.inflation_rate_hint") %></p>
+</div>
+
+<%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
+<div class="form-group">
+  <%= f.label :marginal_tax_rate %>
+  <%# Aucune option vide : la colonne porte toujours une tranche, ne serait-ce que celle à zéro. %>
+  <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
+  <p class="form-hint"><%= t("views.economic_conditions.fields.marginal_tax_rate_hint",
+                             allowance: number_to_percentage(Taxation::ALLOWANCE_RATE, precision: 0),
+                             social_charges: number_to_percentage(Taxation::SOCIAL_CHARGES_RATE, precision: 2, strip_insignificant_zeros: true)) %></p>
 </div>

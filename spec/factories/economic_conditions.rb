@@ -5,5 +5,6 @@ FactoryBot.define do
     rent_growth_rate { 1 }
     property_growth_rate { 1 }
     inflation_rate { 2 }
+    marginal_tax_rate { 30 }
   end
 end

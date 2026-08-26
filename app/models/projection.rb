@@ -1,13 +1,15 @@
 # La projection d'un investissement locatif sur trente ans, une ligne par anniversaire de
 # l'achat, précédée de l'année zéro : le jour de la signature, où rien n'a encore été encaissé
 # et où le capital vient tout juste d'être immobilisé. Les anniversaires qui suivent portent
-# chacun les loyers des douze mois écoulés, composés par les conditions économiques.
+# chacun les loyers des douze mois écoulés, composés par les conditions économiques, et
+# l'impôt que ces loyers-là valent au foyer (voir Taxation).
 class Projection
   HORIZON_YEARS = 30
 
-  # +loan_payments+ est ce que le crédit prélève cette année-là ; +immobilized_capital+ est
-  # cumulatif, et +property_value+ est ce que le bien vaut à cette date-là.
-  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_payments, :cash_flow,
+  # +loan_payments+ est ce que le crédit prélève cette année-là, +taxes+ ce que l'impôt et les
+  # prélèvements sociaux prennent des loyers de l'année ; +immobilized_capital+ est cumulatif,
+  # et +property_value+ est ce que le bien vaut à cette date-là.
+  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_payments, :taxes, :cash_flow,
                     :immobilized_capital, :property_value, keyword_init: true) do
     def recovered?
       immobilized_capital <= 0
@@ -29,6 +31,10 @@ class Projection
 
   def total_charges
     years.sum(&:annual_charges)
+  end
+
+  def total_taxes
+    years.sum(&:taxes)
   end
 
   # Le cumul ne se multiplie plus : un crédit qui s'éteint rend les années inégales entre elles.
@@ -60,7 +66,11 @@ class Projection
       rent = compound(@simulation.annual_rent, @simulation.rent_growth_rate, number - 1)
       charges = compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1)
       due = payments.fetch(number, 0)
-      cash_flow = rent - charges - due
+      # L'assiette suit le loyer hors charges de cette année-là, et non les loyers encaissés :
+      # la provision pour charges n'est pas un revenu, elle rembourse une dépense.
+      taxes = @simulation.taxation(compound(@simulation.annual_rent_excluding_charges,
+                                            @simulation.rent_growth_rate, number - 1)).total
+      cash_flow = rent - charges - taxes - due
       cumulative_cash_flow += cash_flow
 
       Year.new(
@@ -69,6 +79,7 @@ class Projection
         annual_rent: rent,
         annual_charges: charges,
         loan_payments: due,
+        taxes: taxes,
         cash_flow: cash_flow,
         immobilized_capital: outlay - cumulative_cash_flow,
         property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
@@ -86,6 +97,7 @@ class Projection
       annual_rent: 0,
       annual_charges: 0,
       loan_payments: 0,
+      taxes: 0,
       cash_flow: 0,
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price

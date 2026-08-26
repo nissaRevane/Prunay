@@ -10,6 +10,7 @@ FactoryBot.define do
     purchase_price { 200_000 }
     initial_works { 0 }
     monthly_rent { 800 }
+    monthly_charges { 0 }
     occupancy_months { 12 }
     property_tax { 0 }
     insurance { 0 }
@@ -24,6 +25,10 @@ FactoryBot.define do
     rent_growth_rate { 0 }
     property_growth_rate { 0 }
     inflation_rate { 0 }
+
+    # Un foyer que le barème n'atteint pas : seuls les prélèvements sociaux pèsent alors sur
+    # les loyers — 17,2 % des 70 % imposables, soit 12,04 % —, car eux ne se choisissent pas.
+    marginal_tax_rate { 0 }
 
     # Un achat à crédit : 200 000 € de prix, 16 612 € de frais de notaire, 23 388 € d'apport
     # — soit 193 224 € empruntés sur vingt ans à 3 %.

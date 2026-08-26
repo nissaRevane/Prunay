@@ -40,9 +40,13 @@ RSpec.describe Simulation, type: :model do
     end
 
     it { is_expected.to validate_numericality_of(:monthly_rent).is_greater_than_or_equal_to(0).on(:rental) }
+    it { is_expected.to validate_numericality_of(:monthly_charges).is_greater_than_or_equal_to(0).on(:rental) }
     it { is_expected.to validate_numericality_of(:occupancy_months).is_greater_than(0).is_less_than_or_equal_to(12).on(:rental) }
 
     it { is_expected.to validate_numericality_of(:property_tax).is_greater_than_or_equal_to(0).on(:charges) }
+
+    # La tranche marginale se choisit dans le barème : un taux inventé n'y a pas de place.
+    it { is_expected.to validate_inclusion_of(:marginal_tax_rate).in_array(Taxation::MARGINAL_TAX_RATES).on(:update) }
 
     it "leaves the pages that have not been reached alone" do
       draft = described_class.new(user: build(:user), property_type: "house", city: "Nantes", surface: 50)
@@ -104,6 +108,43 @@ RSpec.describe Simulation, type: :model do
     # Onze mois loués ne font pas douze loyers : la vacance locative se paie.
     it "counts only the months actually let" do
       expect(build(:simulation, monthly_rent: 800, occupancy_months: 11).annual_rent).to eq(8_800)
+    end
+
+    # Le locataire rembourse ses charges par-dessus le loyer : c'est encaissé, et cela compte
+    # dans le cash-flow — 800 + 60, onze fois.
+    it "collects the provision for charges next to the rent" do
+      let_out = build(:simulation, monthly_rent: 800, monthly_charges: 60, occupancy_months: 11)
+
+      expect(let_out.annual_rent).to eq(9_460)
+    end
+  end
+
+  # L'assiette de l'impôt, et rien d'autre : la provision pour charges n'en fait pas partie.
+  describe "#annual_rent_excluding_charges" do
+    it "counts the rent alone, the provision for charges left out" do
+      let_out = build(:simulation, monthly_rent: 800, monthly_charges: 60, occupancy_months: 11)
+
+      expect(let_out.annual_rent_excluding_charges).to eq(8_800)
+    end
+  end
+
+  # Le micro-foncier est dans Taxation : la simulation ne fait que lui passer son assiette et
+  # la tranche de son foyer.
+  describe "#annual_taxes" do
+    it "taxes the rent excluding charges at the bracket of the household" do
+      taxed = build(:simulation, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
+                                 marginal_tax_rate: 30)
+
+      # 12 000 € de loyers hors charges, 8 400 € imposables après abattement, 47,2 % dessus.
+      expect(taxed.taxation).to have_attributes(rent_excluding_charges: 12_000, taxable_income: 8_400)
+      expect(taxed.annual_taxes).to eq(BigDecimal("3964.80"))
+    end
+
+    # Les prélèvements sociaux ne se choisissent pas : 12,04 % des loyers hors charges restent
+    # dus même au foyer que le barème n'atteint pas.
+    it "still owes the social charges when the bracket is nil" do
+      expect(build(:simulation, monthly_rent: 1_000, occupancy_months: 12, marginal_tax_rate: 0).annual_taxes)
+        .to eq(BigDecimal("1444.80"))
     end
   end
 
@@ -236,13 +277,16 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#annual_cash_flow" do
-    # Le cash-flow d'une année pleine, celui que la liste des simulations met en avant.
-    it "takes the annuity out of what the charges leave of the rent" do
+    # Le cash-flow d'une année pleine, celui que la liste des simulations met en avant :
+    # l'impôt y pèse comme les charges et l'annuité — 12,04 % de 9 600 € de loyers.
+    it "takes the taxes and the annuity out of what the charges leave of the rent" do
       simulation = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
                                                     down_payment: 23_388, monthly_rent: 800,
                                                     occupancy_months: 12, property_tax: 700)
 
-      expect(simulation.annual_cash_flow).to eq(9_600 - 700 - BigDecimal("1071.62") * 12)
+      expect(simulation.annual_taxes).to eq(BigDecimal("1155.84"))
+      expect(simulation.annual_cash_flow)
+        .to eq(9_600 - 700 - BigDecimal("1155.84") - BigDecimal("1071.62") * 12)
     end
   end
 

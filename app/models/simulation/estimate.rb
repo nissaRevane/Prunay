@@ -16,8 +16,9 @@ module Simulation::Estimate
   # En copropriété les charges de copro portent déjà façade, toiture et communs — d'où le double.
   MAINTENANCE_AMOUNTS = { condominium: 1_000, sole_owner: 2_000 }.freeze
 
-  # Ce qui ne suit pas la surface : un montant que l'on ne suppose pas.
-  FIXED_AMOUNTS = { management_fees: 0, rent_guarantee: 0 }.freeze
+  # Ce qui ne suit pas la surface : un montant que l'on ne suppose pas. La provision pour
+  # charges en est : elle se lit sur l'appel de charges de la copropriété, pas sur une surface.
+  FIXED_AMOUNTS = { monthly_charges: 0, management_fees: 0, rent_guarantee: 0 }.freeze
 
   # L'apport qu'une banque attend pour couvrir les frais de notaire sans les financer.
   DOWN_PAYMENT_SHARE = BigDecimal("0.10")

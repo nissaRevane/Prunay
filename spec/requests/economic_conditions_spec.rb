@@ -17,6 +17,11 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#economic_conditions_rent_growth_rate")["value"]).to eq("1.0")
       expect(doc.at_css("#economic_conditions_property_growth_rate")["value"]).to eq("1.0")
       expect(doc.at_css("#economic_conditions_inflation_rate")["value"]).to eq("2.0")
+      # La tranche se choisit dans le barème, et non sur une échelle : cinq options, celle de
+      # la plupart des foyers qui investissent étant sélectionnée.
+      options = doc.css("#economic_conditions_marginal_tax_rate option")
+      expect(options.map { |option| option["value"] }).to eq(%w[0 11 30 41 45])
+      expect(options.find { |option| option["selected"] }["value"]).to eq("30")
     end
 
     it "opens on what the user has decided once he has decided it" do
@@ -74,6 +79,32 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#panel-economic_conditions form")["action"])
         .to eq(simulation_economic_conditions_path(simulation))
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
+    end
+
+    # La tranche marginale se corrige là où se corrige le reste du contexte : c'est elle qui
+    # dit ce que l'impôt prend des loyers, et la projection s'en trouve refaite.
+    it "carries the tax bracket of the household next to the rates" do
+      taxed = create(:simulation, user: user, marginal_tax_rate: 30)
+
+      get simulation_path(taxed)
+
+      doc = Nokogiri::HTML(response.body)
+      selected = doc.css("#simulation_marginal_tax_rate option").find { |option| option["selected"] }
+      expect(selected["value"]).to eq("30")
+
+      patch simulation_economic_conditions_path(taxed), params: { simulation: { marginal_tax_rate: "41" } }
+
+      expect(taxed.reload.marginal_tax_rate).to eq(41)
+    end
+
+    # Une tranche que le barème ne connaît pas n'est pas une hypothèse : c'est une faute.
+    it "refuses a bracket the scale does not know" do
+      taxed = create(:simulation, user: user, marginal_tax_rate: 30)
+
+      patch simulation_economic_conditions_path(taxed), params: { simulation: { marginal_tax_rate: "25" } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(taxed.reload.marginal_tax_rate).to eq(30)
     end
 
     it "comes back to that tab once corrected" do

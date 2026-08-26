@@ -1,6 +1,6 @@
 <%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
-    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Le reste — charges, annuités,
-    cumul, valeur du bien — se déplie d'un clic sur la ligne de l'année. %>
+    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Le reste — charges, impôt,
+    annuités, valeur du bien — se déplie d'un clic sur la ligne de l'année. %>
 <div class="section" data-controller="projection">
   <div class="table-scroll">
     <table class="table">
@@ -35,6 +35,10 @@
                 <div class="detail-item">
                   <span class="detail-label"><%= t("views.simulations.show.annual_charges_column") %></span>
                   <span class="detail-value"><%= number_to_currency(year.annual_charges) %></span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label"><%= t("views.simulations.show.annual_taxes_column") %></span>
+                  <span class="detail-value"><%= number_to_currency(year.taxes) %></span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label"><%= t("views.simulations.show.loan_payments_column") %></span>

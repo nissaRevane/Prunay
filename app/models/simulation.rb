@@ -75,8 +75,11 @@ class Simulation < ApplicationRecord
   validates :loan_application_fees, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :credit], if: :credit?
 
-  # La page de la location.
+  # La page de la location. Le loyer se détaille en deux montants : hors charges, la seule
+  # part imposable, et la provision pour charges que le locataire rembourse par-dessus.
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :rental]
+  validates :monthly_charges, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
   validates :occupancy_months, presence: true,
             numericality: { greater_than: 0, less_than_or_equal_to: MONTHS_PER_YEAR },
@@ -92,6 +95,10 @@ class Simulation < ApplicationRecord
             numericality: { greater_than_or_equal_to: EconomicConditions::MIN_RATE,
                             less_than_or_equal_to: EconomicConditions::MAX_RATE },
             on: [:create, :update])
+
+  # La tranche marginale, elle, se choisit dans le barème et non sur une échelle.
+  validates :marginal_tax_rate, presence: true, inclusion: { in: Taxation::MARGINAL_TAX_RATES },
+            on: [:create, :update]
 
   # Les pages que CETTE simulation traverse : le parcours et la barre de progression lisent #steps.
   def steps
@@ -163,7 +170,14 @@ class Simulation < ApplicationRecord
   end
 
   # Par les mois effectivement loués : un bien vide un mois par an ne fait pas douze loyers.
+  # Ce qui est encaissé, provision pour charges comprise — c'est elle que le locataire
+  # rembourse par-dessus le loyer, et que la copropriété reprend ensuite.
   def annual_rent
+    (monthly_rent + monthly_charges) * occupancy_months
+  end
+
+  # Le loyer seul, hors charges : la part imposable, et rien d'autre.
+  def annual_rent_excluding_charges
     monthly_rent * occupancy_months
   end
 
@@ -172,9 +186,19 @@ class Simulation < ApplicationRecord
     applicable_charges.sum { |field| public_send(field) }
   end
 
+  # L'impôt d'une année, au micro-foncier. La projection lui passe les loyers qu'elle a
+  # composés : ce sont les mêmes règles, sur une assiette qui a grandi.
+  def taxation(rent_excluding_charges = annual_rent_excluding_charges)
+    Taxation.new(rent_excluding_charges: rent_excluding_charges, marginal_tax_rate: marginal_tax_rate)
+  end
+
+  def annual_taxes
+    taxation.total
+  end
+
   # Une année pleine : la projection, elle, lit l'annuité par année et voit le crédit s'éteindre.
   def annual_cash_flow
-    annual_rent - annual_charges - loan.annual_payment
+    annual_rent - annual_charges - annual_taxes - loan.annual_payment
   end
 
   # Tout le projet comptant ; à crédit, l'apport et les frais du prêt — eux se paient à la

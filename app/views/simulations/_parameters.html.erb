@@ -66,8 +66,8 @@
 <% end %>
 
 <%# Ce que le bien rapporte, et à quelles conditions. Le loyer est saisi au mois — c'est
-    ainsi qu'un bail l'énonce — et le total dit ce qu'une année en encaisse réellement, mois
-    de vacance déduits. %>
+    ainsi qu'un bail l'énonce —, détaillé comme lui en un loyer hors charges et une provision
+    pour charges, et le total dit ce qu'une année encaisse réellement, mois de vacance déduits. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
@@ -77,6 +77,10 @@
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:monthly_rent) %></dt>
       <dd class="detail-value text-success"><%= number_to_currency(simulation.monthly_rent) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:monthly_charges) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.monthly_charges) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
@@ -110,5 +114,47 @@
   <div class="section-total">
     <span><%= t("views.simulations.show.annual_charges_total") %></span>
     <span><%= number_to_currency(simulation.annual_charges) %></span>
+  </div>
+</div>
+
+<%# L'impôt d'une année pleine, au micro-foncier : les loyers hors charges abattus de 30 %,
+    puis la tranche du foyer et les prélèvements sociaux. Les charges réelles n'entrent pas
+    dans ce calcul — l'abattement en tient lieu —, et la provision pour charges n'y entre pas
+    davantage : elle rembourse une dépense, elle ne rapporte rien. %>
+<% taxation = simulation.taxation %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.taxation_detail") %></h2>
+  </div>
+
+  <p class="section-hint"><%= t("views.simulations.show.taxation_hint",
+                                allowance: number_to_percentage(Taxation::ALLOWANCE_RATE, precision: 0)) %></p>
+
+  <dl class="detail-grid">
+    <div class="detail-item">
+      <dt class="detail-label"><%= t("views.simulations.show.taxable_rent") %></dt>
+      <dd class="detail-value"><%= number_to_currency(taxation.rent_excluding_charges) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= t("views.simulations.show.allowance", rate: number_to_percentage(Taxation::ALLOWANCE_RATE, precision: 0)) %></dt>
+      <dd class="detail-value text-success"><%= number_to_currency(-taxation.allowance) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= t("views.simulations.show.taxable_income") %></dt>
+      <dd class="detail-value"><%= number_to_currency(taxation.taxable_income) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= t("views.simulations.show.income_tax", rate: number_to_percentage(simulation.marginal_tax_rate, precision: 0)) %></dt>
+      <dd class="detail-value"><%= number_to_currency(taxation.income_tax) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= t("views.simulations.show.social_charges", rate: number_to_percentage(Taxation::SOCIAL_CHARGES_RATE, precision: 2, strip_insignificant_zeros: true)) %></dt>
+      <dd class="detail-value"><%= number_to_currency(taxation.social_charges) %></dd>
+    </div>
+  </dl>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.annual_taxes_total") %></span>
+    <span><%= number_to_currency(simulation.annual_taxes) %></span>
   </div>
 </div>
