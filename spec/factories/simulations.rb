@@ -22,6 +22,12 @@ FactoryBot.define do
     accounting_fees { 0 }
     other_charges { 0 }
 
+    # Une économie immobile, comme le reste du bien par défaut : un test qui parle d'évolution
+    # énonce lui-même ses taux, et les autres n'ont pas à s'en défendre.
+    rent_growth_rate { 0 }
+    property_growth_rate { 0 }
+    inflation_rate { 0 }
+
     # Un achat à crédit : 200 000 € de prix, 16 612 € de frais de notaire, 23 388 € d'apport
     # — soit 193 224 € empruntés sur vingt ans à 3 %.
     trait :with_credit do

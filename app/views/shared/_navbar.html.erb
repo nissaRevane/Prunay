@@ -7,10 +7,13 @@
     <% end %>
   </div>
 
-  <%# Pas de menu pour un utilisateur connecté : la marque mène à la seule page qu'il y aurait
-      à y mettre — la liste des simulations. Une entrée unique pointant là où le logo pointe
-      déjà ne dirait rien de plus. %>
+  <%# Le menu ne porte que ce que la marque ne mène pas déjà : elle ouvre la liste des
+      simulations, et les conditions économiques par défaut sont la seule autre page. %>
   <% if user_signed_in? %>
+    <div class="navbar-links">
+      <%= link_to t("views.nav.economic_conditions"), edit_economic_conditions_path, class: "nav-link" %>
+    </div>
+
     <div class="navbar-user">
       <%= link_to current_user.full_name, account_path, class: "nav-user-name" %>
       <%= button_to t("views.nav.sign_out"), destroy_user_session_path, method: :delete, class: "btn btn-outline btn-sm" %>

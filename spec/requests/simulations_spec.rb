@@ -110,7 +110,7 @@ RSpec.describe "Simulations", type: :request do
       expect(rows.size).to eq(Projection::HORIZON_YEARS)
     end
 
-    it "renders the year, its date, its rent, its charges, its cash flow and the capital still immobilized" do
+    it "renders the year, its date, its rent, its charges, its cash flow, the capital still immobilized and what the property is worth" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -122,7 +122,8 @@ RSpec.describe "Simulations", type: :request do
         currency(11_000).gsub(/\s+/, " "),
         currency(2_000).gsub(/\s+/, " "),
         currency(9_000).gsub(/\s+/, " "),
-        currency(227_612).gsub(/\s+/, " ")
+        currency(227_612).gsub(/\s+/, " "),
+        currency(200_000).gsub(/\s+/, " ")
       ])
     end
 
@@ -191,7 +192,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      expect(doc.css(".tabs .tab").size).to eq(2)
+      expect(doc.css(".tabs .tab").size).to eq(3)
       expect(doc.css("#panel-projection thead th").map { |th| th.text.strip })
         .not_to include(I18n.t("views.simulations.show.loan_payments_column"))
     end
@@ -204,11 +205,11 @@ RSpec.describe "Simulations", type: :request do
                                           monthly_rent: 1_000, occupancy_months: 11)
       end
 
-      it "opens a third tab on the amortization table, one line per payment" do
+      it "opens a tab of its own on the amortization table, one line per payment" do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css(".tabs .tab").size).to eq(3)
+        expect(doc.css(".tabs .tab").size).to eq(4)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant
@@ -325,14 +326,14 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "the navigation shell" do
-    # Il n'y a qu'une page à voir : la marque y mène, et un menu qui répéterait ce lien
-    # n'aurait rien à dire de plus.
-    it "carries no top menu for a signed-in user" do
+    # La marque mène à la liste : le menu ne porte que ce qu'elle ne mène pas déjà, soit les
+    # conditions économiques par défaut, et rien d'autre tant qu'il n'y a rien d'autre à voir.
+    it "carries the general settings alone in the top menu of a signed-in user" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".navbar-logo")["href"]).to eq(root_path)
-      expect(doc.css(".navbar-links .nav-link")).to be_empty
+      expect(doc.css(".navbar-links .nav-link").map { |link| link["href"] }).to eq([edit_economic_conditions_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
       expect(doc.at_css(".nav-user-name").text).to eq(user.full_name)
     end

@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000007) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "economic_conditions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.decimal "rent_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
+    t.decimal "property_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
+    t.decimal "inflation_rate", precision: 5, scale: 2, default: "2.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_economic_conditions_on_user_id", unique: true
+  end
 
   create_table "simulations", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -45,6 +55,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000007) do
     t.decimal "loan_rate", precision: 6, scale: 3, default: "0.0", null: false
     t.integer "loan_duration_years", default: 0, null: false
     t.decimal "loan_insurance", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "rent_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
+    t.decimal "property_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
+    t.decimal "inflation_rate", precision: 5, scale: 2, default: "2.0", null: false
     t.index ["user_id", "purchase_date"], name: "index_simulations_on_user_id_and_purchase_date"
     t.index ["user_id"], name: "index_simulations_on_user_id"
   end
@@ -63,5 +76,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000007) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "economic_conditions", "users"
   add_foreign_key "simulations", "users"
 end

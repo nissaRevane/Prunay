@@ -1,0 +1,19 @@
+<div class="page-header">
+  <div>
+    <h1><%= t("views.economic_conditions.edit.title") %></h1>
+    <p class="page-header-hint"><%= t("views.economic_conditions.edit.subtitle") %></p>
+  </div>
+</div>
+
+<div class="section">
+  <%= render "shared/errors", resource: @economic_conditions %>
+
+  <%= form_with(model: @economic_conditions, url: economic_conditions_path, method: :patch, class: "form") do |f| %>
+    <%= render "economic_conditions/fields", f: f %>
+
+    <div class="form-actions">
+      <%= f.submit t("views.economic_conditions.edit.save"), class: "btn btn-primary" %>
+      <%= link_to t("views.simulations.form.cancel"), authenticated_root_path, class: "btn btn-outline" %>
+    </div>
+  <% end %>
+</div>

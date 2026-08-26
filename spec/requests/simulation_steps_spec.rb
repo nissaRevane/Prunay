@@ -165,6 +165,42 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
+  # Aucune page ne les demande : la simulation naît avec les conditions de l'utilisateur, et
+  # c'est son onglet, une fois qu'elle est écrite, qui les corrigera.
+  describe "the economic conditions" do
+    def walk
+      submit("property", PROPERTY)
+      submit("purchase", PURCHASE)
+      submit("rental", RENTAL)
+      submit("charges", CHARGES)
+    end
+
+    it "asks for none of them along the way" do
+      names = EconomicConditions::RATES.map { |rate| "simulation[#{rate}]" }
+
+      { "property" => PROPERTY, "purchase" => PURCHASE, "rental" => RENTAL, "charges" => CHARGES }.each do |step, answers|
+        get new_simulation_step_path(step: step)
+
+        expect(Nokogiri::HTML(response.body).css("input").map { |input| input["name"] }).not_to include(*names)
+        submit(step, answers)
+      end
+    end
+
+    it "gives the new simulation those of the user who creates it" do
+      create(:economic_conditions, user: user, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5)
+
+      walk
+
+      expect(Simulation.last).to have_attributes(rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5)
+    end
+
+    it "falls back on what Prunay assumes for a user who has never decided" do
+      walk
+
+      expect(Simulation.last).to have_attributes(EconomicConditions::DEFAULTS)
+    end
+  end
+
   describe "the amounts a page proposes" do
     before { submit("property", PROPERTY.merge(surface: "200")) }
 

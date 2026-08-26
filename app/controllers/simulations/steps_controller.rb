@@ -95,8 +95,10 @@ module Simulations
       simulation
     end
 
+    # Les conditions économiques ne sont demandées par aucune page : la simulation naît avec
+    # celles de l'utilisateur, et son onglet les corrigera ensuite pour elle seule.
     def create_simulation
-      simulation = current_user.simulations.build(draft)
+      simulation = current_user.simulations.build(EconomicConditions.for(current_user).rates.merge(draft))
 
       if simulation.save
         session.delete(DRAFT_KEY)

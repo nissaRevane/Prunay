@@ -2,6 +2,10 @@
     rappel de ce que ses colonnes cumulent. %>
 <div class="section">
   <p class="section-hint"><%= t("views.simulations.show.projection_hint") %></p>
+  <p class="section-hint"><%= t("views.simulations.show.projection_conditions_hint",
+                                rent: number_to_percentage(simulation.rent_growth_rate, precision: 2, strip_insignificant_zeros: true),
+                                inflation: number_to_percentage(simulation.inflation_rate, precision: 2, strip_insignificant_zeros: true),
+                                property: number_to_percentage(simulation.property_growth_rate, precision: 2, strip_insignificant_zeros: true)) %></p>
   <% if simulation.credit? %>
     <p class="section-hint"><%= t("views.simulations.show.projection_credit_hint") %></p>
   <% end %>
@@ -19,6 +23,7 @@
           <% end %>
           <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
           <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
+          <th class="text-right"><%= t("views.simulations.show.property_value") %></th>
         </tr>
       </thead>
       <tbody>
@@ -38,6 +43,7 @@
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
             </td>
+            <td class="text-right"><%= number_to_currency(year.property_value) %></td>
           </tr>
         <% end %>
       </tbody>
@@ -47,5 +53,10 @@
   <div class="section-total">
     <span><%= t("views.simulations.show.total_cash_flow", years: Projection::HORIZON_YEARS) %></span>
     <span><%= number_to_currency(projection.total_cash_flow) %></span>
+  </div>
+
+  <div class="section-total">
+    <span><%= t("views.simulations.show.final_property_value", years: Projection::HORIZON_YEARS) %></span>
+    <span><%= number_to_currency(projection.final_property_value) %></span>
   </div>
 </div>

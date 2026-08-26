@@ -51,8 +51,8 @@ docker compose run --rm web bundle exec rspec
 - **Landing page:** the public shop window, for visitors.
 - **Simulations** (`/simulations`, and the home page of a signed-in user): the full CRUD,
   grouped by purchase year in the same accordion Milly uses for its bilans. There is no
-  dashboard above the list and therefore no top menu: the brand leads to the only page
-  there would be to put in one.
+  dashboard above the list: the brand leads to it, and the top menu carries only what the
+  brand does not — the default economic conditions, the single general setting.
 - **Creation page by page** (`/simulations/new`, which opens `/simulations/new/property`):
   the property, the purchase, the credit *if there is one*, the letting, the annual charges.
   Nothing is written to the database before the last page — the answers accumulate in the
@@ -95,6 +95,16 @@ docker compose run --rm web bundle exec rspec
   borrowed on day one, not on the outstanding capital, and it repays none of it. It sits in
   its own column of the schedule, adds itself to what the bank actually debits each month,
   and is counted apart from the interest — what the credit costs is the two together.
+- **The economic conditions** (`EconomicConditions`): three annual rates that make a
+  simulation age — what the rents gain each year (1 % by default), what the property gains in
+  value (1 %), and the inflation that weighs on the charges (2 %). They live in two places.
+  `/conditions-economiques`, reachable from the top menu, holds a user's defaults; nothing is
+  written there until he changes something, and until then the page opens on what Prunay
+  assumes. Every simulation then carries its own copy of the three, taken from those defaults
+  the day it is created — correcting the defaults afterwards never rewrites a projection
+  already read. None of the creation pages asks for them: they are corrected, once the
+  simulation exists, from a tab of its own on the simulation page, which reopens on itself
+  after each change (`?tab=economic_conditions`).
 - **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
   year's rent, its charges, the annuity of its credit, its cash flow and the capital still
   immobilized. The annual rent counts only the months actually let, and the annuity — the
@@ -102,15 +112,22 @@ docker compose run --rm web bundle exec rspec
   the loan runs, what is left of it the year it is cleared, nothing after. What is immobilized on day one is what actually leaves
   the buyer's pocket — the whole project when it is paid outright, the down payment alone
   when a credit finances the rest, since the capital borrowed is repaid by the annuities the
-  projection already deducts.
+  projection already deducts. The rents and the charges are no longer the same on every line:
+  the first year carries the amounts as they were typed — it describes the twelve months that
+  follow the purchase — and each year after compounds them by its rate. A last column reads
+  what the property is worth at that date: the purchase price alone compounded, since neither
+  the notary fees nor the works are resold, and it has already gained a year on the first
+  line — a value at a date, not an amount collected over a period.
 
 ## Project Structure
 
 ```
 app/
 ├── controllers/        # ApplicationController (auth guard), Pages, Simulations,
-│                       # Simulations::Steps (the four-page creation), Users::Registrations
-├── models/             # User, Simulation, AmortizationSchedule
+│                       # Simulations::Steps (the four-page creation), EconomicConditions and
+│                       # Simulations::EconomicConditions, Users::Registrations
+├── models/             # User, Simulation, EconomicConditions, Loan, Projection,
+│                       # AmortizationSchedule
 ├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
 └── assets/             # CSS design system
@@ -129,7 +146,10 @@ spec/
 
 ## Data Model
 
-- **User** (firstname, lastname, email)
+- **User** (firstname, lastname, email) — has at most one **EconomicConditions**, the
+  defaults every simulation he creates inherits: rent_growth_rate, property_growth_rate,
+  inflation_rate. The row only exists once he has changed something; `EconomicConditions.for`
+  stands in for it until then.
 - **Simulation** — belongs to a user, and has no name of its own: it reads as
   "Appartement à Nantes", from its type and its city.
   - *the property:* property_type, address, city, energy_rating, surface, condominium
@@ -144,6 +164,9 @@ spec/
     - *letting it:* management_fees, rent_guarantee
     - *the furnished regime:* business_tax, accounting_fees
     - *the rest:* other_charges
+  - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate — the
+    same three columns as `EconomicConditions`, copied from the user's defaults at the
+    creation and corrected afterwards for this simulation alone
 
   The thirty-year projection is derived, never stored: see `Simulation#projection` and its
   `Year` struct, where the column a tax will add has its place waiting.

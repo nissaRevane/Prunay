@@ -22,5 +22,13 @@ Prunay::Application.routes.draw do
   get   "simulations/new/:step", to: "simulations/steps#show",   as: :new_simulation_step
   patch "simulations/new/:step", to: "simulations/steps#update"
 
-  resources :simulations, except: [:create]
+  # Les conditions économiques par défaut : le seul réglage général, et la seule page qui
+  # justifie une entrée de menu à côté de la liste.
+  resource :economic_conditions, only: [:edit, :update], path: "conditions-economiques"
+
+  # Celles d'une simulation vivent dans un onglet à elles : elles ne se demandent pas pendant
+  # la création, seulement une fois la simulation écrite.
+  resources :simulations, except: [:create] do
+    resource :economic_conditions, only: [:update], module: :simulations, path: "conditions-economiques"
+  end
 end

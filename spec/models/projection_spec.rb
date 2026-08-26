@@ -74,6 +74,52 @@ RSpec.describe Projection do
     end
   end
 
+  # Les conditions économiques composent la projection année après année : les loyers
+  # progressent, les charges suivent l'inflation, et le bien prend de la valeur.
+  describe "under evolving economic conditions" do
+    subject(:projection) { described_class.new(simulation) }
+
+    let(:simulation) do
+      build(:simulation, purchase_price: 200_000, monthly_rent: 1_000, occupancy_months: 12,
+                         property_tax: 1_000, rent_growth_rate: 2, inflation_rate: 3,
+                         property_growth_rate: 1)
+    end
+
+    # La première année porte le loyer saisi : elle décrit les douze mois qui suivent l'achat.
+    it "raises the rent from the second year on" do
+      expect(projection.years.first.annual_rent).to eq(12_000)
+      expect(projection.years.second.annual_rent).to eq(12_240)
+      expect(projection.years.third.annual_rent).to eq(BigDecimal("12484.80"))
+    end
+
+    it "lets the inflation weigh on the charges the same way" do
+      expect(projection.years.first.annual_charges).to eq(1_000)
+      expect(projection.years.second.annual_charges).to eq(1_030)
+      expect(projection.years.third.annual_charges).to eq(BigDecimal("1060.90"))
+    end
+
+    # Une valeur à une date, non un montant encaissé sur une période : au premier
+    # anniversaire, le bien a déjà pris son année.
+    it "values the property from its price alone, a year gained on the first line" do
+      expect(projection.years.first.property_value).to eq(202_000)
+      expect(projection.years.second.property_value).to eq(204_020)
+      expect(projection.final_property_value).to eq(projection.years.last.property_value)
+    end
+
+    it "adds up what the years actually collected and paid" do
+      expect(projection.total_rent).to eq(projection.years.sum(&:annual_rent))
+      expect(projection.total_charges).to eq(projection.years.sum(&:annual_charges))
+      expect(projection.total_rent).to be > 12_000 * described_class::HORIZON_YEARS
+    end
+  end
+
+  # Des taux à zéro rendent les années égales entre elles : c'est ce que le reste des exemples
+  # suppose, et ce que la fabrique pose.
+  it "keeps every line equal when nothing evolves" do
+    expect(projection.years.map(&:annual_rent).uniq.size).to eq(1)
+    expect(projection.years.map(&:property_value).uniq).to eq([200_000])
+  end
+
   it "keeps a 29 February purchase on a real date" do
     leap = described_class.new(build(:simulation, purchase_date: Date.new(2024, 2, 29)))
 

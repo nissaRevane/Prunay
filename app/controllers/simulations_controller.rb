@@ -5,7 +5,10 @@ class SimulationsController < ApplicationController
     @simulations = current_user.simulations.order(purchase_date: :desc, id: :desc)
   end
 
+  # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification faite dans l'un
+  # d'eux, et le premier s'ouvre à défaut.
   def show
+    @tab = params[:tab]
     @projection = @simulation.projection
     @schedule = @simulation.loan.schedule
   end

@@ -12,6 +12,7 @@ fr:
     models:
       user: Utilisateur
       simulation: Simulation
+      economic_conditions: Conditions économiques
     attributes:
       simulation:
         name: Nom de la simulation
@@ -50,6 +51,13 @@ fr:
         business_tax: "CFE (cotisation foncière des entreprises)"
         accounting_fees: Comptable
         other_charges: Autres frais
+        rent_growth_rate: "Évolution des loyers (% par an)"
+        property_growth_rate: "Évolution du prix du bien (% par an)"
+        inflation_rate: "Inflation des charges (% par an)"
+      economic_conditions:
+        rent_growth_rate: "Évolution des loyers (% par an)"
+        property_growth_rate: "Évolution du prix du bien (% par an)"
+        inflation_rate: "Inflation des charges (% par an)"
       user:
         firstname: Prénom
         lastname: Nom
@@ -114,6 +122,7 @@ fr:
       unfurnished: Nu
   views:
     nav:
+      economic_conditions: Conditions économiques
       sign_out: Déconnexion
       sign_in: Connexion
       sign_up: Inscription
@@ -125,6 +134,15 @@ fr:
         new_password: Nouveau mot de passe
         password_hint: "%{count} caractères minimum"
         update_password: Changer mon mot de passe
+    economic_conditions:
+      edit:
+        title: Conditions économiques
+        subtitle: "Les hypothèses dont hérite chaque nouvelle simulation."
+        save: Enregistrer les conditions
+      fields:
+        rent_growth_rate_hint: "Ce que le loyer gagne chaque année, indexation du bail comprise. La première année porte le loyer saisi ; la deuxième l'augmente d'autant."
+        property_growth_rate_hint: "Ce que le bien prend en valeur chaque année. Le prix d'achat seul progresse : ni les frais de notaire ni les travaux ne se revendent."
+        inflation_rate_hint: "Ce dont les charges annuelles s'alourdissent chaque année — taxe foncière, assurance, entretien et le reste."
     pages:
       home:
         title: Bienvenue sur Prunay
@@ -205,12 +223,15 @@ fr:
         tab_parameters: Les paramètres du bien
         tab_projection: "Projection sur %{years} ans"
         tab_amortization: "Tableau d'amortissement"
+        tab_economic_conditions: Conditions économiques
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
         rental_detail: La location
         annual_rent_total: "Loyers d'une année, vacance déduite"
         charges_detail: Les charges annuelles
+        economic_conditions_detail: Les conditions économiques
+        economic_conditions_hint: "Ce que cette simulation-là suppose du temps qui passe. Elle a hérité des conditions par défaut le jour de sa création ; les corriger ici ne change qu'elle, et la projection s'en trouve refaite."
         annual_charges_total: Total des charges annuelles
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
@@ -219,6 +240,7 @@ fr:
         answer_no: Non
         projection: "Projection sur %{years} ans"
         projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial tous les cash-flows encaissés depuis l'achat. Pas de fiscalité pour l'instant."
+        projection_conditions_hint: "Les loyers progressent de %{rent} par an, les charges suivent une inflation de %{inflation}, et le bien prend %{property} de valeur par an. Ces trois taux se modifient dans l'onglet « Conditions économiques »."
         projection_credit_hint: "L'achat est financé à crédit : l'investissement initial se limite à l'apport, et les annuités — assurance emprunteur comprise — se retranchent du cash-flow tant que le prêt court. L'année où il se solde n'en porte que le reste, et les suivantes plus rien."
         duration_value: "%{years} ans (%{months} mois)"
         amortization_hint: "Une ligne par échéance : %{capital} empruntés à %{rate}, remboursés en %{months} mensualités de %{payment}, auxquelles s'ajoute %{insurance} d'assurance emprunteur — soit %{total_payment} prélevés chaque mois. La première échéance tombe un mois après la signature."
@@ -237,11 +259,15 @@ fr:
         loan_payments_column: "Annuités de crédit"
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
+        property_value: Valeur du bien
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"
+        final_property_value: "Valeur du bien au bout de %{years} ans"
         back: Retour aux simulations
         delete: Supprimer
         confirm_delete: Êtes-vous sûr ?
   flash:
+    economic_conditions:
+      updated: Conditions économiques mises à jour.
     simulations:
       created: Simulation créée avec succès.
       updated: Simulation mise à jour avec succès.

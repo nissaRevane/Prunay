@@ -1,0 +1,21 @@
+<%# Les conditions économiques de CETTE simulation : héritées des conditions par défaut le
+    jour où elle a été créée, et corrigées ici pour elle seule. La projection les compose
+    année après année. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.economic_conditions_detail") %></h2>
+  </div>
+
+  <p class="section-hint"><%= t("views.simulations.show.economic_conditions_hint") %></p>
+
+  <%= render "shared/errors", resource: simulation %>
+
+  <%= form_with(model: simulation, url: simulation_economic_conditions_path(simulation), method: :patch,
+                class: "form") do |f| %>
+    <%= render "economic_conditions/fields", f: f %>
+
+    <div class="form-actions">
+      <%= f.submit t("views.economic_conditions.edit.save"), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

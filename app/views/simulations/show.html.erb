@@ -8,42 +8,29 @@
   </div>
 </div>
 
-<%# Les lectures d'une même simulation : ses paramètres, sa projection, et le tableau
-    d'amortissement de son crédit quand elle en porte un. Les panneaux sont tous rendus par le
-    serveur ; l'onglet choisit lequel se montre. %>
-<div data-controller="tabs" data-tabs-index-value="0">
+<%# Les lectures d'une même simulation : ses paramètres, sa projection, le tableau
+    d'amortissement de son crédit quand elle en porte un, et les conditions économiques qui
+    la font vieillir. Les panneaux sont tous rendus par le serveur ; l'onglet choisit lequel
+    se montre, et `tab` dit lequel s'ouvre au chargement — celui d'où l'on revient. %>
+<% tabs = simulation_tabs(@schedule) %>
+<% opened = tabs.index(@tab) || 0 %>
+
+<div data-controller="tabs" data-tabs-index-value="<%= opened %>">
   <div class="tabs" role="tablist">
-    <button type="button" class="tab" role="tab" id="tab-parameters"
-            aria-controls="panel-parameters" aria-selected="true"
-            data-tabs-target="tab" data-action="click->tabs#select">
-      <%= t("views.simulations.show.tab_parameters") %>
-    </button>
-    <button type="button" class="tab" role="tab" id="tab-projection"
-            aria-controls="panel-projection" aria-selected="false"
-            data-tabs-target="tab" data-action="click->tabs#select">
-      <%= t("views.simulations.show.tab_projection", years: Projection::HORIZON_YEARS) %>
-    </button>
-    <% if @schedule %>
-      <button type="button" class="tab" role="tab" id="tab-amortization"
-              aria-controls="panel-amortization" aria-selected="false"
+    <% tabs.each_with_index do |tab, index| %>
+      <button type="button" class="tab" role="tab" id="tab-<%= tab %>"
+              aria-controls="panel-<%= tab %>" aria-selected="<%= index == opened %>"
               data-tabs-target="tab" data-action="click->tabs#select">
-        <%= t("views.simulations.show.tab_amortization") %>
+        <%= t("views.simulations.show.tab_#{tab}", years: Projection::HORIZON_YEARS) %>
       </button>
     <% end %>
   </div>
 
-  <div class="tab-panel" role="tabpanel" id="panel-parameters" aria-labelledby="tab-parameters" data-tabs-target="panel">
-    <%= render "parameters", simulation: @simulation %>
-  </div>
-
-  <div class="tab-panel" role="tabpanel" id="panel-projection" aria-labelledby="tab-projection" data-tabs-target="panel" hidden>
-    <%= render "projection", simulation: @simulation, projection: @projection %>
-  </div>
-
-  <% if @schedule %>
-    <div class="tab-panel" role="tabpanel" id="panel-amortization" aria-labelledby="tab-amortization" data-tabs-target="panel" hidden>
-      <%= render "amortization", simulation: @simulation, schedule: @schedule %>
-    </div>
+  <% tabs.each_with_index do |tab, index| %>
+    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{tab}", aria: { labelledby: "tab-#{tab}" },
+                data: { tabs_target: "panel" }, hidden: index != opened do %>
+      <%= render "simulations/#{tab}", simulation: @simulation, projection: @projection, schedule: @schedule %>
+    <% end %>
   <% end %>
 </div>
 

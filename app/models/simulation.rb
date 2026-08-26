@@ -89,6 +89,13 @@ class Simulation < ApplicationRecord
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
+  # Les conditions économiques, héritées de l'utilisateur à la création : aucune page du
+  # parcours ne les demande, seul l'onglet de la simulation les corrige ensuite.
+  validates(*EconomicConditions::RATES, presence: true,
+            numericality: { greater_than_or_equal_to: EconomicConditions::MIN_RATE,
+                            less_than_or_equal_to: EconomicConditions::MAX_RATE },
+            on: [:create, :update])
+
   # Les pages que CETTE simulation traverse : le parcours et la barre de progression lisent #steps.
   def steps
     Step.all_for(self)
