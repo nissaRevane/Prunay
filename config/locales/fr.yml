@@ -227,10 +227,10 @@ fr:
         edit: Modifier
         project_cost: Coût du projet
         initial_outlay: Investissement initial
-        tab_parameters: Les paramètres du bien
-        tab_projection: "Projection sur %{years} ans"
-        tab_amortization: "Tableau d'amortissement"
-        tab_economic_conditions: Conditions économiques
+        tab_parameters: Paramètres
+        tab_projection: Projection
+        tab_amortization: Crédit
+        tab_economic_conditions: Contexte
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
