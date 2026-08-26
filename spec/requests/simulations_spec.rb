@@ -208,7 +208,8 @@ RSpec.describe "Simulations", type: :request do
       let(:on_credit) do
         create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
                                           purchase_price: 200_000, initial_works: 0,
-                                          loan_insurance: 19.32,
+                                          loan_insurance: 19.32, loan_guarantee_fees: 3_220,
+                                          loan_application_fees: 1_932,
                                           monthly_rent: 1_000, occupancy_months: 11)
       end
 
@@ -243,10 +244,10 @@ RSpec.describe "Simulations", type: :request do
         expect(cells.fourth).to eq(currency(11_000 - on_credit.loan.annual_payment).gsub(/\s+/, " "))
       end
 
-      # Ce qui est réellement immobilisé le premier jour, c'est l'apport : le capital
-      # emprunté se rembourse par les annuités, et le compter deux fois ferait payer le bien
-      # deux fois.
-      it "details the credit and immobilizes the down payment alone" do
+      # Ce qui est réellement immobilisé le premier jour, c'est l'apport et les frais que la
+      # signature coûte : le capital emprunté, lui, se rembourse par les annuités, et le
+      # compter deux fois ferait payer le bien deux fois.
+      it "details the credit and immobilizes the down payment and the fees of the signature" do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
@@ -260,10 +261,13 @@ RSpec.describe "Simulations", type: :request do
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.loan.monthly_payment).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_insurance) => currency(19.32).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:loan_guarantee_fees) => currency(3_220).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:total_monthly_payment) =>
             currency(on_credit.loan.total_monthly_payment).gsub(/\s+/, " ")
         )
-        expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(23_388).gsub(/\s+/, " "))
+        # 23 388 d'apport, 3 220 de cautionnement et 1 932 de frais de dossier.
+        expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(28_540).gsub(/\s+/, " "))
       end
     end
 

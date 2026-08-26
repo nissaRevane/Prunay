@@ -53,10 +53,14 @@ module Simulation::Step
   end
 
   def credit_defaults(simulation)
+    capital = simulation.borrowed_capital
+
     {
       "loan_rate" => Loan::DEFAULT_RATE,
       "loan_duration_years" => Loan::DEFAULT_DURATION_YEARS,
-      "loan_insurance" => Loan.default_insurance(simulation.borrowed_capital)
+      "loan_insurance" => Loan.default_insurance(capital),
+      "loan_guarantee_fees" => Loan.default_guarantee_fees(capital),
+      "loan_application_fees" => Loan.default_application_fees(capital)
     }
   end
 

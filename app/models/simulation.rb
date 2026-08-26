@@ -78,6 +78,11 @@ class Simulation < ApplicationRecord
             on: [:create, :update, :credit], if: :credit?
   validates :loan_insurance, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :credit], if: :credit?
+  # Les frais que la signature coûte : ils s'ajoutent à l'apport dans le capital immobilisé.
+  validates :loan_guarantee_fees, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :credit], if: :credit?
+  validates :loan_application_fees, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :credit], if: :credit?
 
   # La page de la location.
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
@@ -164,7 +169,8 @@ class Simulation < ApplicationRecord
   # Toujours présent : un achat comptant en porte un qui ne prête rien et n'a pas de tableau.
   def loan
     @loan ||= Loan.new(capital: borrowed_capital, annual_rate: loan_rate, duration_years: loan_duration_years,
-                       insurance: loan_insurance, signed_on: purchase_date)
+                       insurance: loan_insurance, guarantee_fees: loan_guarantee_fees,
+                       application_fees: loan_application_fees, signed_on: purchase_date)
   end
 
   def projection
@@ -186,9 +192,10 @@ class Simulation < ApplicationRecord
     annual_rent - annual_charges - loan.annual_payment
   end
 
-  # Tout le projet comptant, le seul apport à crédit : l'emprunt se rend par les annuités.
+  # Tout le projet comptant ; à crédit, l'apport et les frais du prêt — eux se paient à la
+  # signature, quand l'emprunt, lui, se rend par les annuités.
   def initial_outlay
-    credit? ? down_payment : total_investment
+    credit? ? down_payment + loan.upfront_fees : total_investment
   end
 
   private
@@ -208,5 +215,7 @@ class Simulation < ApplicationRecord
     self.loan_rate = 0
     self.loan_duration_years = 0
     self.loan_insurance = 0
+    self.loan_guarantee_fees = 0
+    self.loan_application_fees = 0
   end
 end

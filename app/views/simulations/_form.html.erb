@@ -113,6 +113,20 @@
                                  rate: number_to_percentage(100.0 / Loan::DEFAULT_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
                                  capital: number_to_currency(simulation.borrowed_capital)) %></p>
     <% end %>
+
+    <%= tag.div class: "form-row", hidden: !simulation.credit?, data: { credit_target: "field" } do %>
+      <div class="form-group form-group-half">
+        <%= f.label :loan_guarantee_fees %>
+        <%= f.number_field :loan_guarantee_fees, step: "0.01", min: "0", class: "form-control",
+            required: true, disabled: !simulation.credit? %>
+      </div>
+
+      <div class="form-group form-group-half">
+        <%= f.label :loan_application_fees %>
+        <%= f.number_field :loan_application_fees, step: "0.01", min: "0", class: "form-control",
+            required: true, disabled: !simulation.credit? %>
+      </div>
+    <% end %>
   </fieldset>
 
   <fieldset class="form-fieldset">

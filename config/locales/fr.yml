@@ -34,6 +34,8 @@ fr:
         loan_rate: "Taux annuel du crédit (%)"
         loan_duration_years: "Durée du crédit (ans)"
         loan_insurance: "Assurance emprunteur (par mois)"
+        loan_guarantee_fees: "Cautionnement (caution bancaire ou hypothèque)"
+        loan_application_fees: Frais de dossier
         monthly_payment: "Mensualité (hors assurance)"
         total_monthly_payment: "Mensualité totale, assurance comprise"
         annual_loan_payment: "Annuité (12 échéances, assurance comprise)"
@@ -205,6 +207,9 @@ fr:
           borrowed_capital_hint: "Le coût du projet (%{total}) moins votre apport (%{down_payment})."
           loan_rate_hint: "Le taux annuel hors assurance emprunteur."
           loan_duration_hint: "En années, %{years} au plus — au-delà, la projection s'arrêterait avant la dernière échéance."
+          loan_guarantee_fees_hint: "La garantie que la banque exige pour prêter — caution bancaire ou hypothèque —, payée une fois à la signature. Proposée à un %{divisor}e du capital emprunté (%{capital})."
+          loan_application_fees_hint: "Ce que la banque facture pour instruire le dossier, payé une fois à la signature. Proposés à un %{divisor}e du capital emprunté, sans descendre sous %{minimum}."
+          total_loan_cost_hint: "Le coût total du crédit ajoute aux intérêts l'assurance de toutes les échéances, le cautionnement et les frais de dossier. Ces deux derniers se paient à la signature : ils s'ajoutent à l'apport dans le capital immobilisé, non aux mensualités."
           loan_insurance_hint: "La prime prélevée chaque mois avec l'échéance, du premier prélèvement au solde. Proposée à %{rate} du capital emprunté (%{capital}) par mois, le taux d'un contrat de groupe — à corriger dès que l'offre de prêt en dit le vrai montant."
           monthly_payment_hint: "Mensualité à annuités constantes, hors assurance : M = C × i / (1 − (1 + i)^−n). L'assurance s'y ajoute pour faire l'échéance, et l'annuité — douze échéances — se retranche du cash-flow de chaque année de la projection, tant que le crédit court."
         rental:

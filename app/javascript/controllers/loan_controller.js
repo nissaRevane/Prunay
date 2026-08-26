@@ -11,9 +11,12 @@ const MONTHS_PER_YEAR = 12
 // modèle le passe en valeur.
 //
 // L'assurance ne change pas le remboursement : sa prime s'ajoute à chaque échéance, et pèse
-// donc sur la mensualité totale et sur le coût du crédit, jamais sur les intérêts.
+// donc sur la mensualité totale et sur le coût du crédit, jamais sur les intérêts. Le
+// cautionnement et les frais de dossier, eux, se paient une fois à la signature : ils ne
+// pèsent que sur le coût du crédit.
 export default class extends Controller {
-  static targets = ["rate", "duration", "insurance", "payment", "totalPayment", "interest", "cost"]
+  static targets = ["rate", "duration", "insurance", "guaranteeFees", "applicationFees",
+                    "payment", "totalPayment", "interest", "cost"]
   static values = { capital: Number }
 
   connect() {
@@ -32,10 +35,15 @@ export default class extends Controller {
     const payment = Math.round(exact * 100) / 100
     const insurance = Math.max(parseFloat(this.insuranceTarget.value) || 0, 0)
     const interest = payment * months - capital
+    const upfrontFees = this.#amount(this.guaranteeFeesTarget) + this.#amount(this.applicationFeesTarget)
 
     this.paymentTarget.textContent = EUROS.format(payment)
     this.totalPaymentTarget.textContent = EUROS.format(payment + insurance)
     this.interestTarget.textContent = EUROS.format(interest)
-    this.costTarget.textContent = EUROS.format(interest + insurance * months)
+    this.costTarget.textContent = EUROS.format(interest + insurance * months + upfrontFees)
+  }
+
+  #amount(field) {
+    return Math.max(parseFloat(field.value) || 0, 0)
   }
 }

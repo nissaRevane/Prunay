@@ -1,6 +1,6 @@
-# Un crédit à mensualités constantes : ce que la banque prête, à quelles conditions, et
-# l'assurance emprunteur qui s'ajoute à chaque échéance sans rien amortir. Le détail
-# échéance par échéance est dans AmortizationSchedule.
+# Un crédit à mensualités constantes : ce que la banque prête, à quelles conditions,
+# l'assurance emprunteur qui s'ajoute à chaque échéance sans rien amortir, et les frais
+# qu'il coûte à la signature. Le détail échéance par échéance est dans AmortizationSchedule.
 class Loan
   MONTHS_PER_YEAR = 12
 
@@ -14,18 +14,43 @@ class Loan
   # La prime proposée : un dix-millième du capital emprunté par mois, soit 0,12 % par an.
   DEFAULT_INSURANCE_DIVISOR = 10_000
 
-  attr_reader :capital, :annual_rate, :duration_years, :insurance, :signed_on
+  # Le cautionnement proposé : un soixantième du capital emprunté, l'ordre de grandeur d'une
+  # caution bancaire comme d'une hypothèque.
+  DEFAULT_GUARANTEE_FEES_DIVISOR = 60
+
+  # Les frais de dossier proposés : un centième du capital emprunté.
+  DEFAULT_APPLICATION_FEES_DIVISOR = 100
+
+  # Aucune banque n'ouvre un dossier pour moins : la proposition ne descend pas sous ce plancher.
+  MIN_APPLICATION_FEES = 500
+
+  attr_reader :capital, :annual_rate, :duration_years, :insurance, :guarantee_fees, :application_fees,
+              :signed_on
 
   def self.default_insurance(capital)
     (capital.to_d / DEFAULT_INSURANCE_DIVISOR).round(2)
   end
 
-  def initialize(capital:, annual_rate:, duration_years:, insurance:, signed_on:)
+  def self.default_guarantee_fees(capital)
+    (capital.to_d / DEFAULT_GUARANTEE_FEES_DIVISOR).round(2)
+  end
+
+  # Rien à emprunter, rien à instruire : le plancher ne s'applique qu'à un dossier qui existe.
+  def self.default_application_fees(capital)
+    return 0 unless capital.to_d.positive?
+
+    [(capital.to_d / DEFAULT_APPLICATION_FEES_DIVISOR).round(2), BigDecimal(MIN_APPLICATION_FEES)].max
+  end
+
+  def initialize(capital:, annual_rate:, duration_years:, insurance:, signed_on:,
+                 guarantee_fees: 0, application_fees: 0)
     # Décimaux d'office : un taux entier diviserait en entiers, et un prêt à 3 % ne coûterait rien.
     @capital = capital.to_d
     @annual_rate = annual_rate.to_d
     @duration_years = duration_years.to_i
     @insurance = insurance.to_d
+    @guarantee_fees = guarantee_fees.to_d
+    @application_fees = application_fees.to_d
     @signed_on = signed_on
   end
 
@@ -87,8 +112,16 @@ class Loan
     schedule&.total_insurance || 0
   end
 
-  # Le chiffre à comparer au capital emprunté : les intérêts sans l'assurance le sous-estiment.
+  # Cautionnement et frais de dossier : payés à la signature, une fois, et non étalés.
+  def upfront_fees
+    return 0 unless amortizable?
+
+    guarantee_fees + application_fees
+  end
+
+  # Le chiffre à comparer au capital emprunté : les intérêts seuls le sous-estiment, autant
+  # que l'assurance et les frais de signature.
   def total_cost
-    total_interest + total_insurance
+    total_interest + total_insurance + upfront_fees
   end
 end

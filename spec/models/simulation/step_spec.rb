@@ -41,16 +41,23 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("purchase", draft)["down_payment"]).to eq(0)
     end
 
-    # Vingt ans à 3,5 %, et la prime d'assurance à la référence : un dix-millième des
-    # 193 224 € empruntés fait 19,32 € par mois. Un brouillon qui n'emprunte encore rien n'a
-    # rien à assurer.
-    it "proposes twenty years at 3.5 % and a premium read on the capital borrowed" do
-      expect(described_class.defaults("credit", draft))
-        .to eq("loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0)
+    # Vingt ans à 3,5 %, et tout ce qui se lit sur le capital emprunté à la référence : un
+    # dix-millième des 193 224 € fait 19,32 € par mois d'assurance, un soixantième
+    # 3 220,40 € de cautionnement et un centième 1 932,24 € de frais de dossier. Un brouillon
+    # qui n'emprunte encore rien n'a ni prime ni dossier.
+    it "proposes twenty years at 3.5 % and the amounts read on the capital borrowed" do
+      expect(described_class.defaults("credit", draft)).to eq(
+        "loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0,
+        "loan_guarantee_fees" => 0, "loan_application_fees" => 0
+      )
 
       on_credit = draft(credit: true, purchase_price: 200_000, initial_works: 0, down_payment: 23_388)
 
-      expect(described_class.defaults("credit", on_credit)["loan_insurance"]).to eq(BigDecimal("19.32"))
+      expect(described_class.defaults("credit", on_credit)).to include(
+        "loan_insurance" => BigDecimal("19.32"),
+        "loan_guarantee_fees" => BigDecimal("3220.4"),
+        "loan_application_fees" => BigDecimal("1932.24")
+      )
     end
 
     it "leaves a month of vacancy a year" do

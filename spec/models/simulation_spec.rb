@@ -22,6 +22,8 @@ RSpec.describe Simulation, type: :model do
       it { is_expected.to validate_numericality_of(:loan_rate).is_greater_than_or_equal_to(0).is_less_than(100).on(:credit) }
       it { is_expected.to validate_numericality_of(:loan_duration_years).only_integer.is_greater_than(0).on(:credit) }
       it { is_expected.to validate_numericality_of(:loan_insurance).is_greater_than_or_equal_to(0).on(:credit) }
+      it { is_expected.to validate_numericality_of(:loan_guarantee_fees).is_greater_than_or_equal_to(0).on(:credit) }
+      it { is_expected.to validate_numericality_of(:loan_application_fees).is_greater_than_or_equal_to(0).on(:credit) }
 
       # Un apport qui couvrirait tout le projet ne laisserait rien à emprunter.
       it "refuses a down payment that leaves nothing to borrow" do
@@ -192,6 +194,14 @@ RSpec.describe Simulation, type: :model do
                                                  signed_on: simulation.purchase_date)
     end
 
+    # Le cautionnement et les frais de dossier vont au crédit comme le reste : c'est lui qui
+    # sait ensuite qu'ils se paient à la signature.
+    it "hands the loan the fees the signature costs" do
+      with_fees = build(:simulation, :with_credit, loan_guarantee_fees: 3_220, loan_application_fees: 1_932)
+
+      expect(with_fees.loan).to have_attributes(guarantee_fees: 3_220, application_fees: 1_932)
+    end
+
     it "borrows nothing when the purchase is paid outright" do
       paid_outright = build(:simulation, credit: false)
 
@@ -207,16 +217,28 @@ RSpec.describe Simulation, type: :model do
         .to eq(216_612)
     end
 
+    # Cautionnement et frais de dossier se paient le même jour que l'apport, et sortent de la
+    # même poche : 23 388 + 3 220 + 1 932.
+    it "immobilizes the fees the signature costs next to the down payment" do
+      with_fees = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
+                                                   down_payment: 23_388, loan_guarantee_fees: 3_220,
+                                                   loan_application_fees: 1_932)
+
+      expect(with_fees.initial_outlay).to eq(28_540)
+    end
+
     # Renoncer au crédit, c'est cesser d'en porter les conditions — et le crédit déjà lu ne
     # doit pas survivre à la case qui le déclarait.
     it "clears what a purchase paid outright no longer answers" do
-      saved = create(:simulation, :with_credit, loan_insurance: 19.32)
+      saved = create(:simulation, :with_credit, loan_insurance: 19.32, loan_guarantee_fees: 3_220,
+                                                loan_application_fees: 1_932)
       saved.loan
 
       saved.update(credit: false)
 
       expect(saved.reload).to have_attributes(down_payment: 0, loan_rate: 0, loan_duration_years: 0,
-                                              loan_insurance: 0)
+                                              loan_insurance: 0, loan_guarantee_fees: 0,
+                                              loan_application_fees: 0)
       expect(saved.loan.schedule).to be_nil
     end
   end

@@ -1,6 +1,6 @@
 <%# Le crédit tel que la fiche le résume : ce qui est emprunté, à quelles conditions, et ce
-    que cela coûte — intérêts et assurance emprunteur, que la banque prélève ensemble. Le
-    détail échéance par échéance a son propre onglet. %>
+    que cela coûte — les frais de la signature, puis les intérêts et l'assurance emprunteur
+    que la banque prélève ensemble. Le détail échéance par échéance a son propre onglet. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.credit_detail") %></h2>
@@ -32,6 +32,14 @@
       <dd class="detail-value"><%= number_to_currency(simulation.loan_insurance) %></dd>
     </div>
     <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_guarantee_fees) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan_guarantee_fees) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_application_fees) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan_application_fees) %></dd>
+    </div>
+    <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></dt>
       <dd class="detail-value"><%= number_to_currency(simulation.loan.total_monthly_payment) %></dd>
     </div>
@@ -57,8 +65,9 @@
     </div>
   </dl>
 
-  <%# Ce que l'acheteur sort réellement de sa poche : son apport. Le capital emprunté, lui,
-      ne s'immobilise pas — il se rembourse par les annuités que la projection retranche. %>
+  <%# Ce que l'acheteur sort réellement de sa poche à la signature : son apport, cautionnement
+      et frais de dossier compris. Le capital emprunté, lui, ne s'immobilise pas — il se
+      rembourse par les annuités que la projection retranche. %>
   <div class="section-total">
     <span><%= t("views.simulations.show.initial_outlay") %></span>
     <span><%= number_to_currency(simulation.initial_outlay) %></span>

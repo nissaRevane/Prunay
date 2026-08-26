@@ -40,6 +40,29 @@
                                capital: number_to_currency(f.object.borrowed_capital)) %></p>
   </div>
 
+  <%# Ce que le crédit coûte à la signature, une fois : le cautionnement qui le garantit et
+      les frais de dossier. Ils ne pèsent pas sur la mensualité, mais s'ajoutent à l'apport
+      dans le capital immobilisé. %>
+  <div class="form-row">
+    <div class="form-group form-group-half">
+      <%= f.label :loan_guarantee_fees %>
+      <%= f.number_field :loan_guarantee_fees, step: "0.01", min: "0", class: "form-control", required: true,
+          data: { loan_target: "guaranteeFees", action: "input->loan#refresh" } %>
+      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_guarantee_fees_hint",
+                                 divisor: Loan::DEFAULT_GUARANTEE_FEES_DIVISOR,
+                                 capital: number_to_currency(f.object.borrowed_capital)) %></p>
+    </div>
+
+    <div class="form-group form-group-half">
+      <%= f.label :loan_application_fees %>
+      <%= f.number_field :loan_application_fees, step: "0.01", min: "0", class: "form-control", required: true,
+          data: { loan_target: "applicationFees", action: "input->loan#refresh" } %>
+      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_application_fees_hint",
+                                 divisor: Loan::DEFAULT_APPLICATION_FEES_DIVISOR,
+                                 minimum: number_to_currency(Loan::MIN_APPLICATION_FEES, precision: 0)) %></p>
+    </div>
+  </div>
+
   <div class="form-row">
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:monthly_payment) %></span>
@@ -65,4 +88,5 @@
   </div>
 
   <p class="form-hint"><%= t("views.simulations.steps.credit.monthly_payment_hint") %></p>
+  <p class="form-hint"><%= t("views.simulations.steps.credit.total_loan_cost_hint") %></p>
 </div>
