@@ -105,19 +105,21 @@ docker compose run --rm web bundle exec rspec
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, which reopens on itself
   after each change (`?tab=economic_conditions`).
-- **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
-  year's rent, its charges, the annuity of its credit, its cash flow and the capital still
-  immobilized. The annual rent counts only the months actually let, and the annuity — the
-  insurance premium included — is read from the schedule year by year: twelve payments while
-  the loan runs, what is left of it the year it is cleared, nothing after. What is immobilized on day one is what actually leaves
-  the buyer's pocket — the whole project when it is paid outright, the down payment alone
-  when a credit finances the rest, since the capital borrowed is repaid by the annuities the
-  projection already deducts. The rents and the charges are no longer the same on every line:
-  the first year carries the amounts as they were typed — it describes the twelve months that
-  follow the purchase — and each year after compounds them by its rate. A last column reads
-  what the property is worth at that date: the purchase price alone compounded, since neither
-  the notary fees nor the works are resold, and it has already gained a year on the first
-  line — a value at a date, not an amount collected over a period.
+- **The projection:** thirty lines, one per anniversary of the purchase. The table carries
+  five columns and no commentary — the year, its month, its rent, its cash flow and the
+  capital still immobilized. The charges and the annuity weigh on the cash flow without a
+  column of their own: they are what the parameters tab is for, and a table one reads to
+  decide is not a table that explains itself. The annual rent counts only the months actually
+  let, and the annuity — the insurance premium included — is read from the schedule year by
+  year: twelve payments while the loan runs, what is left of it the year it is cleared,
+  nothing after. What is immobilized on day one is what actually leaves the buyer's pocket —
+  the whole project when it is paid outright, the down payment alone when a credit finances
+  the rest, since the capital borrowed is repaid by the annuities the projection already
+  deducts. Neither the rents nor the charges are the same on every line: the first year
+  carries the amounts as they were typed — it describes the twelve months that follow the
+  purchase — and each year after compounds them by its rate. Under the table, two totals: the
+  cash flow accumulated over the horizon, and what the property is then worth — the purchase
+  price alone compounded, since neither the notary fees nor the works are resold.
 
 ## Project Structure
 

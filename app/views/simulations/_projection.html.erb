@@ -1,15 +1,7 @@
-<%# L'onglet titre déjà la projection : la section n'en remet pas un en-tête, seulement le
-    rappel de ce que ses colonnes cumulent. %>
+<%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
+    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Les charges et les annuités
+    pèsent sur le cash-flow sans avoir de colonne — l'onglet des paramètres les détaille. %>
 <div class="section">
-  <p class="section-hint"><%= t("views.simulations.show.projection_hint") %></p>
-  <p class="section-hint"><%= t("views.simulations.show.projection_conditions_hint",
-                                rent: number_to_percentage(simulation.rent_growth_rate, precision: 2, strip_insignificant_zeros: true),
-                                inflation: number_to_percentage(simulation.inflation_rate, precision: 2, strip_insignificant_zeros: true),
-                                property: number_to_percentage(simulation.property_growth_rate, precision: 2, strip_insignificant_zeros: true)) %></p>
-  <% if simulation.credit? %>
-    <p class="section-hint"><%= t("views.simulations.show.projection_credit_hint") %></p>
-  <% end %>
-
   <div class="table-scroll">
     <table class="table">
       <thead>
@@ -17,33 +9,20 @@
           <th><%= t("views.simulations.show.year") %></th>
           <th><%= t("views.simulations.show.date") %></th>
           <th class="text-right"><%= t("views.simulations.show.annual_rent_column") %></th>
-          <th class="text-right"><%= t("views.simulations.show.annual_charges_column") %></th>
-          <% if simulation.credit? %>
-            <th class="text-right"><%= t("views.simulations.show.loan_payments_column") %></th>
-          <% end %>
           <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
           <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
-          <th class="text-right"><%= t("views.simulations.show.property_value") %></th>
         </tr>
       </thead>
       <tbody>
         <% projection.years.each do |year| %>
           <tr>
             <td><%= year.number %></td>
-            <td>
-              <span class="hide-on-mobile"><%= l(year.date, format: :long) %></span>
-              <span class="show-on-mobile"><%= l(year.date, format: :default) %></span>
-            </td>
+            <td><%= l(year.date, format: :month_year) %></td>
             <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
-            <td class="text-right text-danger"><%= number_to_currency(year.annual_charges) %></td>
-            <% if simulation.credit? %>
-              <td class="text-right text-danger"><%= number_to_currency(year.loan_payments) %></td>
-            <% end %>
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
             </td>
-            <td class="text-right"><%= number_to_currency(year.property_value) %></td>
           </tr>
         <% end %>
       </tbody>

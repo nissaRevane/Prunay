@@ -110,7 +110,10 @@ RSpec.describe "Simulations", type: :request do
       expect(rows.size).to eq(Projection::HORIZON_YEARS)
     end
 
-    it "renders the year, its date, its rent, its charges, its cash flow, the capital still immobilized and what the property is worth" do
+    # Le tableau ne porte que ce qu'on y cherche, et la date s'y lit au mois : une projection
+    # par anniversaires n'a que faire du jour. Les charges et les annuités pèsent sur le
+    # cash-flow sans colonne à elles — l'onglet des paramètres les détaille.
+    it "renders the year, its month, its rent, its cash flow and the capital still immobilized" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -118,12 +121,10 @@ RSpec.describe "Simulations", type: :request do
 
       expect(cells).to eq([
         "1",
-        "10 mars 2026 10/03/2026",
+        "mar.-2026",
         currency(11_000).gsub(/\s+/, " "),
-        currency(2_000).gsub(/\s+/, " "),
         currency(9_000).gsub(/\s+/, " "),
-        currency(227_612).gsub(/\s+/, " "),
-        currency(200_000).gsub(/\s+/, " ")
+        currency(227_612).gsub(/\s+/, " ")
       ])
     end
 
@@ -185,16 +186,13 @@ RSpec.describe "Simulations", type: :request do
       expect(labels).not_to include(Simulation.human_attribute_name(:accounting_fees))
     end
 
-    # Un achat comptant n'a pas de tableau d'amortissement, et sa projection n'a donc pas de
-    # colonne d'annuités : une colonne à zéro se lirait comme un crédit oublié.
-    it "carries neither an amortization tab nor an annuity column without a credit" do
+    # Un achat comptant n'a rien à amortir : l'onglet du tableau ne s'ouvre pas.
+    it "carries no amortization tab without a credit" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
       expect(doc.css(".tabs .tab").size).to eq(3)
-      expect(doc.css("#panel-projection thead th").map { |th| th.text.strip })
-        .not_to include(I18n.t("views.simulations.show.loan_payments_column"))
     end
 
     describe "of a purchase financed by a credit" do
@@ -221,18 +219,19 @@ RSpec.describe "Simulations", type: :request do
         expect(cells[5]).to eq(currency(19.32).gsub(/\s+/, " "))
       end
 
-      # L'annuité pèse sur le cash-flow de chaque année où le crédit court.
-      it "adds an annuity column to the projection and takes it out of the cash flow" do
+      # L'annuité n'a pas de colonne, mais elle pèse sur le cash-flow de chaque année où le
+      # crédit court : c'est là qu'elle se lit.
+      it "takes the annuity out of the cash flow without giving it a column" do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
         headers = doc.css("#panel-projection thead th").map { |th| th.text.strip }
         cells = doc.css("#panel-projection tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
-        expect(headers).to include(I18n.t("views.simulations.show.loan_payments_column"))
-        # Année, date, loyers, charges, annuités, cash-flow, capital immobilisé.
-        expect(cells[4]).to eq(currency(on_credit.loan.annual_payment).gsub(/\s+/, " "))
-        expect(cells[5]).to eq(currency(11_000 - on_credit.loan.annual_payment).gsub(/\s+/, " "))
+        # Année, date, loyers, cash-flow, capital immobilisé.
+        expect(headers.size).to eq(5)
+        expect(cells.third).to eq(currency(11_000).gsub(/\s+/, " "))
+        expect(cells.fourth).to eq(currency(11_000 - on_credit.loan.annual_payment).gsub(/\s+/, " "))
       end
 
       # Ce qui est réellement immobilisé le premier jour, c'est l'apport : le capital
