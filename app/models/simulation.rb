@@ -96,6 +96,13 @@ class Simulation < ApplicationRecord
 
   DEFAULT_LOAN_DURATION_YEARS = 20
 
+  # La prime d'assurance emprunteur proposée : un dix-millième du capital emprunté par mois,
+  # soit 0,12 % par an. Elle se lit sur le capital emprunté d'origine — celui du premier
+  # jour, non le capital restant dû : la prime ne s'allège donc pas d'échéance en échéance,
+  # elle est la même jusqu'au solde. La mensualité, elle, se saisit : c'est le montant que
+  # l'offre de prêt énonce.
+  DEFAULT_LOAN_INSURANCE_DIVISOR = 10_000
+
   # Le jour du mois où la banque prélève : le 5. Le remboursement ne commence donc pas à
   # l'anniversaire de la signature mais au premier 5 qui la suit — le mois de l'acte quand il
   # est signé du 1er au 5, le mois d'après sinon.
@@ -112,9 +119,10 @@ class Simulation < ApplicationRecord
 
   # Une année de la projection, telle que le tableau la lit.
   #
-  # +loan_payments+ est ce que le crédit prélève cette année-là : douze mensualités tant
-  # qu'il court, ce qu'il en reste l'année où il se solde, et zéro ensuite — un crédit de
-  # vingt ans ne pèse pas sur les dix dernières lignes d'une projection qui en compte trente.
+  # +loan_payments+ est ce que le crédit prélève cette année-là, assurance emprunteur
+  # comprise : douze échéances tant qu'il court, ce qu'il en reste l'année où il se solde, et
+  # zéro ensuite — un crédit de vingt ans ne pèse pas sur les dix dernières lignes d'une
+  # projection qui en compte trente.
   #
   # +immobilized_capital+ est cumulatif : c'est ce qui reste engagé après avoir déduit de
   # l'investissement initial tous les cash-flows encaissés depuis l'achat, et non le seul
@@ -142,7 +150,7 @@ class Simulation < ApplicationRecord
   before_validation :clear_inapplicable_charges
 
   # Ce qu'un achat comptant n'a pas à répondre retombe à zéro, comme pour les charges : une
-  # simulation qui renonce à son crédit ne doit pas garder un taux et une durée que le
+  # simulation qui renonce à son crédit ne doit garder ni taux, ni durée, ni assurance que le
   # formulaire ne montre plus, et que le tableau d'amortissement continuerait de lire.
   before_validation :clear_loan_without_credit
 
@@ -174,6 +182,8 @@ class Simulation < ApplicationRecord
             on: [:create, :update, :credit], if: :credit?
   validates :loan_duration_years, presence: true,
             numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: MAX_LOAN_DURATION_YEARS },
+            on: [:create, :update, :credit], if: :credit?
+  validates :loan_insurance, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :credit], if: :credit?
 
   # La page de la location.
@@ -225,7 +235,8 @@ class Simulation < ApplicationRecord
     when "credit"
       {
         "loan_rate" => DEFAULT_LOAN_RATE,
-        "loan_duration_years" => DEFAULT_LOAN_DURATION_YEARS
+        "loan_duration_years" => DEFAULT_LOAN_DURATION_YEARS,
+        "loan_insurance" => default_loan_insurance
       }
     when "rental"
       {
@@ -261,6 +272,13 @@ class Simulation < ApplicationRecord
 
     scaled = total_investment * DEFAULT_DOWN_PAYMENT_SHARE
     (scaled / ESTIMATE_ROUNDING).round * ESTIMATE_ROUNDING
+  end
+
+  # La prime d'assurance proposée sur la page du crédit : le capital emprunté divisé par la
+  # référence, au centime. Ce n'est pas un ordre de grandeur comme les charges — c'est une
+  # formule —, d'où l'arrondi au centime et non à la dizaine d'euros.
+  def default_loan_insurance
+    (borrowed_capital / DEFAULT_LOAN_INSURANCE_DIVISOR).round(2)
   end
 
   # Un montant proposé pour ce bien-ci : sa surface, et sa copropriété là où elle change la
@@ -357,15 +375,34 @@ class Simulation < ApplicationRecord
     amortization_schedule&.monthly_payment || 0
   end
 
-  # L'annuité : douze mensualités. C'est ce que le crédit prélève sur une année pleine — la
-  # dernière année, celle où il se solde, en porte moins (voir Year#loan_payments).
-  def annual_loan_payment
-    monthly_payment * MONTHS_PER_YEAR
+  # Ce que l'échéance prélève réellement : la mensualité du prêt et la prime d'assurance,
+  # que la banque appelle ensemble. C'est ce montant-là, et non la seule mensualité, qui
+  # pèse sur le cash-flow.
+  def total_monthly_payment
+    amortization_schedule&.total_monthly_payment || 0
   end
 
-  # Ce que le crédit coûte en tout : les intérêts de toutes ses échéances.
+  # L'annuité : douze échéances, assurance comprise. C'est ce que le crédit prélève sur une
+  # année pleine — la dernière année, celle où il se solde, en porte moins (voir
+  # Year#loan_payments).
+  def annual_loan_payment
+    total_monthly_payment * MONTHS_PER_YEAR
+  end
+
+  # Les intérêts de toutes les échéances : ce que le capital coûte, l'assurance à part.
   def total_loan_interest
     amortization_schedule&.total_interest || 0
+  end
+
+  # Les primes d'assurance de toutes les échéances : la même mensualité, jusqu'au solde.
+  def total_loan_insurance
+    amortization_schedule&.total_insurance || 0
+  end
+
+  # Ce que le crédit coûte en tout : ses intérêts et son assurance. C'est le chiffre à
+  # comparer au capital emprunté — l'un sans l'autre sous-estime le prix du financement.
+  def total_loan_cost
+    total_loan_interest + total_loan_insurance
   end
 
   # Les loyers d'une année. Le loyer est saisi au mois — c'est ainsi qu'un bail l'énonce —
@@ -455,5 +492,6 @@ class Simulation < ApplicationRecord
     self.down_payment = 0
     self.loan_rate = 0
     self.loan_duration_years = 0
+    self.loan_insurance = 0
   end
 end

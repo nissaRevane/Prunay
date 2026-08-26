@@ -21,6 +21,7 @@ RSpec.describe Simulation, type: :model do
       it { is_expected.to validate_numericality_of(:down_payment).is_greater_than_or_equal_to(0).on(:purchase) }
       it { is_expected.to validate_numericality_of(:loan_rate).is_greater_than_or_equal_to(0).is_less_than(100).on(:credit) }
       it { is_expected.to validate_numericality_of(:loan_duration_years).only_integer.is_greater_than(0).on(:credit) }
+      it { is_expected.to validate_numericality_of(:loan_insurance).is_greater_than_or_equal_to(0).on(:credit) }
 
       # Un apport qui couvrirait tout le projet ne laisserait rien à emprunter.
       it "refuses a down payment that leaves nothing to borrow" do
@@ -127,8 +128,16 @@ RSpec.describe Simulation, type: :model do
       expect(draft.defaults_for("purchase")["down_payment"]).to eq(0)
     end
 
-    it "proposes twenty years at 3.5 % for the credit" do
-      expect(draft.defaults_for("credit")).to eq("loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20)
+    # Vingt ans à 3,5 %, et la prime d'assurance à la référence : un dix-millième des
+    # 193 224 € empruntés fait 19,32 € par mois. Un brouillon qui n'emprunte encore rien n'a
+    # rien à assurer.
+    it "proposes twenty years at 3.5 % and a premium read on the capital borrowed" do
+      expect(draft.defaults_for("credit"))
+        .to eq("loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0)
+
+      on_credit = draft(credit: true, purchase_price: 200_000, initial_works: 0, down_payment: 23_388)
+
+      expect(on_credit.defaults_for("credit")["loan_insurance"]).to eq(BigDecimal("19.32"))
     end
 
     it "leaves a month of vacancy a year" do
@@ -276,6 +285,26 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.annual_loan_payment).to eq(BigDecimal("1071.62") * 12)
     end
 
+    # L'assurance ne rembourse rien : sa prime s'ajoute à la mensualité, et l'annuité que la
+    # projection retranche la porte douze fois.
+    it "adds the insurance premium to what the credit takes each month" do
+      insured = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
+                                                 down_payment: 23_388, loan_insurance: 19.32)
+
+      expect(insured.monthly_payment).to eq(BigDecimal("1071.62"))
+      expect(insured.total_monthly_payment).to eq(BigDecimal("1090.94"))
+      expect(insured.annual_loan_payment).to eq(BigDecimal("1090.94") * 12)
+    end
+
+    # Les intérêts et l'assurance se lisent séparément — l'un est le prix du capital, l'autre
+    # celui de la garantie —, et le coût du crédit les additionne.
+    it "counts the insurance in what the credit costs, next to its interest" do
+      insured = build(:simulation, :with_credit, loan_insurance: 19.32)
+
+      expect(insured.total_loan_insurance).to eq(BigDecimal("19.32") * 240)
+      expect(insured.total_loan_cost).to eq(insured.total_loan_interest + insured.total_loan_insurance)
+    end
+
     # Le remboursement commence le 5 : celui du mois de l'acte quand il est signé du 1er au
     # 5, celui du mois suivant sinon.
     it "starts repaying on the fifth that follows the signature" do
@@ -312,14 +341,16 @@ RSpec.describe Simulation, type: :model do
         .to eq(216_612)
     end
 
-    # Renoncer au crédit, c'est cesser d'en porter les conditions : un taux et une durée que
-    # le formulaire ne montre plus ne doivent pas continuer de produire un tableau.
+    # Renoncer au crédit, c'est cesser d'en porter les conditions : un taux, une durée et une
+    # assurance que le formulaire ne montre plus ne doivent pas continuer de produire un
+    # tableau.
     it "clears what a purchase paid outright no longer answers" do
-      saved = create(:simulation, :with_credit)
+      saved = create(:simulation, :with_credit, loan_insurance: 19.32)
 
       saved.update(credit: false)
 
-      expect(saved.reload).to have_attributes(down_payment: 0, loan_rate: 0, loan_duration_years: 0)
+      expect(saved.reload).to have_attributes(down_payment: 0, loan_rate: 0, loan_duration_years: 0,
+                                              loan_insurance: 0)
       expect(saved.amortization_schedule).to be_nil
     end
   end

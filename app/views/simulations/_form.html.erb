@@ -101,6 +101,15 @@
             class: "form-control", required: true, disabled: !simulation.credit? %>
       </div>
     <% end %>
+
+    <%= tag.div class: "form-group", hidden: !simulation.credit?, data: { credit_target: "field" } do %>
+      <%= f.label :loan_insurance %>
+      <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control",
+          required: true, disabled: !simulation.credit? %>
+      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_insurance_hint",
+                                 rate: number_to_percentage(100.0 / Simulation::DEFAULT_LOAN_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
+                                 capital: number_to_currency(simulation.borrowed_capital)) %></p>
+    <% end %>
   </fieldset>
 
   <fieldset class="form-fieldset">

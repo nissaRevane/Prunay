@@ -10,6 +10,11 @@
 # mensualité − intérêts, et le CRD diminue du capital remboursé. La dernière échéance solde
 # le résidu d'arrondi — quelques centimes que la mensualité arrondie laisse derrière elle —
 # plutôt que de le laisser traîner sous une ligne à zéro.
+#
+# L'assurance emprunteur s'ajoute par-dessus, sans toucher au remboursement : sa prime est la
+# même à chaque échéance, elle ne se calcule pas sur le capital restant dû et n'en rembourse
+# rien. D'où deux montants distincts sur chaque ligne — +payment+ est ce que la banque
+# prélève, assurance comprise, et +monthly_payment+ ce qui sert à amortir le capital.
 class AmortizationSchedule
   # La précision des puissances intermédiaires. Vingt chiffres significatifs dépassent de
   # loin le centime où tout finit par s'arrondir.
@@ -17,7 +22,8 @@ class AmortizationSchedule
 
   MONTHS_PER_YEAR = 12
 
-  Row = Struct.new(:number, :due_on, :payment, :interest, :principal, :remaining_capital, keyword_init: true)
+  Row = Struct.new(:number, :due_on, :payment, :interest, :principal, :insurance, :remaining_capital,
+                   keyword_init: true)
 
   def initialize(simulation)
     @simulation = simulation
@@ -34,22 +40,35 @@ class AmortizationSchedule
       end
   end
 
+  # Ce que l'échéance prélève en tout : la mensualité du prêt et la prime d'assurance, que la
+  # banque appelle ensemble.
+  def total_monthly_payment
+    monthly_payment + insurance
+  end
+
   def rows
     @rows ||= build_rows
   end
 
-  # Ce que le crédit coûte : tout ce qui a été payé, moins le capital rendu.
+  # Ce que le capital coûte : tout ce qui a été payé, moins le capital rendu et moins
+  # l'assurance, qui ne se prête pas.
   def total_interest
     rows.sum(&:interest)
   end
 
+  # Ce que l'assurance coûte sur toute la durée : la même prime, une fois par échéance.
+  def total_insurance
+    rows.sum(&:insurance)
+  end
+
+  # Tout ce qui a été prélevé, assurance comprise.
   def total_payments
     rows.sum(&:payment)
   end
 
-  # Ce que le crédit prélève sur chaque année de la projection, indexé par le numéro de
-  # l'année. Les échéances 1 à 12 tombent dans la première année, les suivantes douze par
-  # douze : une année pleine porte donc douze mensualités, la dernière ce qu'il en reste, et
+  # Ce que le crédit prélève sur chaque année de la projection, assurance comprise, indexé par
+  # le numéro de l'année. Les échéances 1 à 12 tombent dans la première année, les suivantes
+  # douze par douze : une année pleine porte donc douze échéances, la dernière ce qu'il en reste, et
   # les années d'après plus rien. Le crédit cesse ainsi de peser le jour où il est soldé,
   # sans que la projection ait à connaître les dates.
   def annual_payments
@@ -71,6 +90,12 @@ class AmortizationSchedule
     @monthly_rate ||= @simulation.loan_rate / 100 / MONTHS_PER_YEAR
   end
 
+  # La prime d'assurance d'une échéance : celle que la simulation porte, identique du premier
+  # prélèvement au dernier.
+  def insurance
+    @insurance ||= @simulation.loan_insurance
+  end
+
   def build_rows
     remaining = capital
 
@@ -84,9 +109,10 @@ class AmortizationSchedule
       Row.new(
         number: number,
         due_on: @simulation.loan_payment_due_on(number),
-        payment: (interest + principal).round(2),
+        payment: (interest + principal + insurance).round(2),
         interest: interest,
         principal: principal,
+        insurance: insurance,
         remaining_capital: remaining
       )
     end

@@ -29,7 +29,7 @@ RSpec.describe "Simulation steps", type: :request do
   PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
                credit: "0", down_payment: "0" }.freeze
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
-  CREDIT = { loan_rate: "3.5", loan_duration_years: "20" }.freeze
+  CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16" }.freeze
   RENTAL = { monthly_rent: "1000", occupancy_months: "11", rental_type: "unfurnished" }.freeze
   # Le bien de PROPERTY est en copropriété et RENTAL le loue nu : la page des charges lui
   # demande donc les charges de copro, mais ni CFE ni comptable.
@@ -116,7 +116,7 @@ RSpec.describe "Simulation steps", type: :request do
 
       expect(Simulation.last).to have_attributes(
         credit: true, down_payment: 25_000, loan_rate: 3.5, loan_duration_years: 20,
-        borrowed_capital: 211_612
+        loan_insurance: 21.16, borrowed_capital: 211_612
       )
     end
 
@@ -152,7 +152,7 @@ RSpec.describe "Simulation steps", type: :request do
       submit("charges", CHARGES)
 
       expect(Simulation.last).to have_attributes(credit: false, down_payment: 0, loan_rate: 0,
-                                                 loan_duration_years: 0)
+                                                 loan_duration_years: 0, loan_insurance: 0)
     end
 
     it "keeps what a previous page has already answered" do
@@ -249,14 +249,17 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
-    # Vingt ans à 3,5 % : le crédit que la page propose tant que rien n'y a été saisi.
-    it "proposes twenty years at 3.5 % on the credit page" do
+    # Vingt ans à 3,5 % : le crédit que la page propose tant que rien n'y a été saisi. La
+    # prime d'assurance, elle, se lit sur le capital emprunté : un dix-millième de
+    # 211 612 € fait 21,16 € par mois.
+    it "proposes twenty years at 3.5 % and a premium on the capital borrowed" do
       submit("purchase", ON_CREDIT)
 
       get new_simulation_step_path(step: "credit")
 
       expect(field_value("simulation_loan_rate")).to eq("3.5")
       expect(field_value("simulation_loan_duration_years")).to eq("20")
+      expect(field_value("simulation_loan_insurance")).to eq("21.16")
     end
 
     it "does not overwrite an amount already corrected by hand" do

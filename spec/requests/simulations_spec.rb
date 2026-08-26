@@ -200,6 +200,7 @@ RSpec.describe "Simulations", type: :request do
       let(:on_credit) do
         create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
                                           purchase_price: 200_000, initial_works: 0,
+                                          loan_insurance: 19.32,
                                           monthly_rent: 1_000, occupancy_months: 11)
       end
 
@@ -210,10 +211,13 @@ RSpec.describe "Simulations", type: :request do
         expect(doc.css(".tabs .tab").size).to eq(3)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan_duration_months)
 
+        # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant
+        # dû : la mensualité est ce que la banque prélève, prime comprise.
         cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
         expect(cells.first).to eq("1")
         expect(cells.second).to include("05 avril 2025")
-        expect(cells.third).to eq(currency(on_credit.monthly_payment).gsub(/\s+/, " "))
+        expect(cells.third).to eq(currency(on_credit.total_monthly_payment).gsub(/\s+/, " "))
+        expect(cells[5]).to eq(currency(19.32).gsub(/\s+/, " "))
       end
 
       # L'annuité pèse sur le cash-flow de chaque année où le crédit court.
@@ -245,7 +249,10 @@ RSpec.describe "Simulations", type: :request do
         expect(amounts).to include(
           Simulation.human_attribute_name(:borrowed_capital) => currency(193_224).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
-          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.monthly_payment).gsub(/\s+/, " ")
+          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.monthly_payment).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:loan_insurance) => currency(19.32).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:total_monthly_payment) =>
+            currency(on_credit.total_monthly_payment).gsub(/\s+/, " ")
         )
         expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(23_388).gsub(/\s+/, " "))
       end

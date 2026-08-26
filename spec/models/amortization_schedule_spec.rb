@@ -90,4 +90,41 @@ RSpec.describe AmortizationSchedule do
       expect(schedule.total_payments - schedule.total_interest).to eq(simulation.borrowed_capital)
     end
   end
+
+  # L'assurance emprunteur : 19,32 € par mois — un dix-millième des 193 224 € empruntés —,
+  # la même prime du premier prélèvement au dernier.
+  describe "the borrower's insurance" do
+    let(:insured) do
+      build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 15), loan_insurance: 19.32)
+    end
+
+    let(:insured_schedule) { described_class.new(insured) }
+
+    # La prime ne se lit pas sur le capital restant dû et n'en rembourse rien : elle s'ajoute
+    # à l'échéance sans toucher au tableau, qui reste celui du prêt seul.
+    it "adds the same premium to every payment without repaying anything" do
+      expect(insured_schedule.rows.first.insurance).to eq(BigDecimal("19.32"))
+      expect(insured_schedule.rows.last.insurance).to eq(BigDecimal("19.32"))
+      expect(insured_schedule.rows.first.payment).to eq(BigDecimal("1090.94"))
+      expect(insured_schedule.monthly_payment).to eq(schedule.monthly_payment)
+      expect(insured_schedule.total_monthly_payment).to eq(BigDecimal("1090.94"))
+      expect(insured_schedule.rows.map(&:remaining_capital)).to eq(schedule.rows.map(&:remaining_capital))
+    end
+
+    # C'est l'échéance entière qui pèse sur la projection : le crédit prélève l'assurance
+    # aussi longtemps qu'il court.
+    it "carries the premium into what each year of the projection pays" do
+      expect(insured_schedule.annual_payments[1]).to eq(BigDecimal("1090.94") * 12)
+      expect(insured_schedule.annual_payments.keys).to eq((1..20).to_a)
+    end
+
+    # L'assurance n'est pas un intérêt : elle se compte à part, et tout ce qui a été prélevé
+    # se répartit entre le capital rendu, les intérêts et les primes.
+    it "counts the premiums apart from the interest" do
+      expect(insured_schedule.total_insurance).to eq(BigDecimal("19.32") * 240)
+      expect(insured_schedule.total_interest).to eq(schedule.total_interest)
+      expect(insured_schedule.total_payments - insured_schedule.total_interest - insured_schedule.total_insurance)
+        .to eq(insured.borrowed_capital)
+    end
+  end
 end

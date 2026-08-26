@@ -46,7 +46,7 @@ class SimulationsController < ApplicationController
     params.require(:simulation).permit(
       :name, :property_type, :address, :city, :energy_rating, :surface, :condominium,
       :purchase_price, :initial_works, :purchase_date, :credit, :down_payment,
-      :loan_rate, :loan_duration_years,
+      :loan_rate, :loan_duration_years, :loan_insurance,
       :monthly_rent, :occupancy_months, :rental_type,
       *Simulation::ANNUAL_CHARGES
     )

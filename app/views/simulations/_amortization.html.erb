@@ -1,11 +1,14 @@
 <%# Le tableau d'amortissement : une ligne par échéance, du premier prélèvement au solde du
-    prêt. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
+    prêt. La mensualité y est ce que la banque prélève — intérêts, capital et prime
+    d'assurance. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
 <div class="section">
   <p class="section-hint"><%= t("views.simulations.show.amortization_hint",
                                capital: number_to_currency(simulation.borrowed_capital),
                                rate: number_to_percentage(simulation.loan_rate, precision: 2, strip_insignificant_zeros: true),
                                months: schedule.rows.size,
-                               payment: number_to_currency(simulation.monthly_payment)) %></p>
+                               payment: number_to_currency(simulation.monthly_payment),
+                               insurance: number_to_currency(simulation.loan_insurance),
+                               total_payment: number_to_currency(simulation.total_monthly_payment)) %></p>
 
   <div class="table-scroll table-scroll-tall">
     <table class="table table-compact">
@@ -16,6 +19,7 @@
           <th class="text-right"><%= t("views.simulations.show.payment") %></th>
           <th class="text-right"><%= t("views.simulations.show.interest") %></th>
           <th class="text-right"><%= t("views.simulations.show.principal") %></th>
+          <th class="text-right"><%= t("views.simulations.show.insurance") %></th>
           <th class="text-right"><%= t("views.simulations.show.remaining_capital") %></th>
         </tr>
       </thead>
@@ -30,6 +34,7 @@
             <td class="text-right"><%= number_to_currency(row.payment) %></td>
             <td class="text-right text-danger"><%= number_to_currency(row.interest) %></td>
             <td class="text-right"><%= number_to_currency(row.principal) %></td>
+            <td class="text-right text-danger"><%= number_to_currency(row.insurance) %></td>
             <td class="text-right"><%= number_to_currency(row.remaining_capital) %></td>
           </tr>
         <% end %>
@@ -37,8 +42,10 @@
     </table>
   </div>
 
+  <%# Ce que le financement coûte en tout : les intérêts du capital et les primes de
+      l'assurance, que la dernière ligne du tableau additionne. %>
   <div class="section-total">
     <span><%= t("views.simulations.show.total_loan_cost") %></span>
-    <span><%= number_to_currency(schedule.total_interest) %></span>
+    <span><%= number_to_currency(schedule.total_interest + schedule.total_insurance) %></span>
   </div>
 </div>

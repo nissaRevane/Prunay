@@ -5,11 +5,15 @@ const EUROS = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR
 const MONTHS_PER_YEAR = 12
 
 // La mensualité d'un prêt à annuités constantes : M = C × i / (1 − (1 + i)^−n). Le serveur la
-// calcule aussi, mais tant que l'utilisateur essaie des taux et des durées, seule la page peut
-// la lui montrer — c'est ce qu'il vient chercher sur cette page. Le capital emprunté, lui, ne
-// bouge plus : il a été fixé à la page précédente, et le modèle le passe en valeur.
+// calcule aussi, mais tant que l'utilisateur essaie des taux, des durées et des primes
+// d'assurance, seule la page peut la lui montrer — c'est ce qu'il vient chercher sur cette
+// page. Le capital emprunté, lui, ne bouge plus : il a été fixé à la page précédente, et le
+// modèle le passe en valeur.
+//
+// L'assurance ne change pas le remboursement : sa prime s'ajoute à chaque échéance, et pèse
+// donc sur la mensualité totale et sur le coût du crédit, jamais sur les intérêts.
 export default class extends Controller {
-  static targets = ["rate", "duration", "payment", "interest"]
+  static targets = ["rate", "duration", "insurance", "payment", "totalPayment", "interest", "cost"]
   static values = { capital: Number }
 
   connect() {
@@ -26,8 +30,12 @@ export default class extends Controller {
     const exact = rate === 0 ? capital / months : capital * rate / (1 - Math.pow(1 + rate, -months))
     // Au centime, comme la banque l'énonce et comme le modèle l'arrondit.
     const payment = Math.round(exact * 100) / 100
+    const insurance = Math.max(parseFloat(this.insuranceTarget.value) || 0, 0)
+    const interest = payment * months - capital
 
     this.paymentTarget.textContent = EUROS.format(payment)
-    this.interestTarget.textContent = EUROS.format(payment * months - capital)
+    this.totalPaymentTarget.textContent = EUROS.format(payment + insurance)
+    this.interestTarget.textContent = EUROS.format(interest)
+    this.costTarget.textContent = EUROS.format(interest + insurance * months)
   }
 }

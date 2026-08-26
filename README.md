@@ -77,21 +77,29 @@ docker compose run --rm web bundle exec rspec
   is actually asked for.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page — proposed at a tenth of the project cost, recomputed in the browser as the price is
-  typed — and the credit page asks only for a rate and a duration. Everything else is
-  derived: the capital borrowed is the project cost less the down payment, and the monthly
-  payment comes out of the constant-annuity formula `M = C × i / (1 − (1 + i)^−n)`, rounded
-  to the cent. The schedule that follows is Milly's — interest on the outstanding capital,
+  typed — and the credit page asks only for a rate, a duration and the borrower's insurance
+  premium. Everything else is derived: the capital borrowed is the project cost less the
+  down payment, and the monthly payment comes out of the constant-annuity formula
+  `M = C × i / (1 − (1 + i)^−n)`, rounded to the cent. The schedule that follows is Milly's — interest on the outstanding capital,
   principal for the rest, the last payment settling the rounding residue — but read the
   other way round: Milly copies a payment already negotiated, Prunay computes the payment
   that a rate and a duration imply. Repayment starts on the fifth that follows the signature
   (`Simulation::LOAN_PAYMENT_DAY`): the fifth of the month of the deed when it is signed
   between the 1st and the 5th, the fifth of the month after when it is signed later. The
   table is a tab of its own on the simulation page.
+- **The borrower's insurance** (`loan_insurance`): a bank does not lend without it, so the
+  credit page asks for the premium it charges every month, proposed at a ten-thousandth of
+  the capital borrowed (`Simulation::DEFAULT_LOAN_INSURANCE_DIVISOR` — 0.12 % a year) and
+  corrected as soon as the loan offer states the real figure. The
+  premium is the same from the first payment to the last: it is read on the capital
+  borrowed on day one, not on the outstanding capital, and it repays none of it. It sits in
+  its own column of the schedule, adds itself to what the bank actually debits each month,
+  and is counted apart from the interest — what the credit costs is the two together.
 - **The projection:** thirty lines, one per anniversary of the purchase, each carrying the
   year's rent, its charges, the annuity of its credit, its cash flow and the capital still
-  immobilized. The annual rent counts only the months actually let, and the annuity is read
-  from the schedule year by year: twelve payments while the loan runs, what is left of it the
-  year it is cleared, nothing after. What is immobilized on day one is what actually leaves
+  immobilized. The annual rent counts only the months actually let, and the annuity — the
+  insurance premium included — is read from the schedule year by year: twelve payments while
+  the loan runs, what is left of it the year it is cleared, nothing after. What is immobilized on day one is what actually leaves
   the buyer's pocket — the whole project when it is paid outright, the down payment alone
   when a credit finances the rest, since the capital borrowed is repaid by the annuities the
   projection already deducts.
@@ -126,9 +134,9 @@ spec/
   "Appartement à Nantes", from its type and its city.
   - *the property:* property_type, address, city, energy_rating, surface, condominium
   - *the purchase:* purchase_price, initial_works, purchase_date
-  - *the financing:* credit, down_payment, loan_rate, loan_duration_years — the capital
-    borrowed, the monthly payment and the amortization schedule are derived from them, never
-    stored (like the notary fees)
+  - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance —
+    the capital borrowed, the monthly payment and the amortization schedule are derived from
+    them, never stored (like the notary fees)
   - *the letting:* monthly_rent, occupancy_months, rental_type
   - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
     which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):

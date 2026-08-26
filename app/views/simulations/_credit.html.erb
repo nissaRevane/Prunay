@@ -1,5 +1,6 @@
 <%# Le crédit tel que la fiche le résume : ce qui est emprunté, à quelles conditions, et ce
-    que cela coûte. Le détail échéance par échéance a son propre onglet. %>
+    que cela coûte — intérêts et assurance emprunteur, que la banque prélève ensemble. Le
+    détail échéance par échéance a son propre onglet. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.credit_detail") %></h2>
@@ -27,12 +28,28 @@
       <dd class="detail-value"><%= number_to_currency(simulation.monthly_payment) %></dd>
     </div>
     <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_insurance) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan_insurance) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_monthly_payment) %></dd>
+    </div>
+    <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:annual_loan_payment) %></dt>
       <dd class="detail-value text-danger"><%= number_to_currency(simulation.annual_loan_payment) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></dt>
       <dd class="detail-value"><%= number_to_currency(simulation.total_loan_interest) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_insurance) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_insurance) %></dd>
+    </div>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_cost) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_cost) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_first_payment_on) %></dt>

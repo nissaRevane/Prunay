@@ -30,9 +30,13 @@ fr:
         borrowed_capital: Capital emprunté
         loan_rate: "Taux annuel du crédit (%)"
         loan_duration_years: "Durée du crédit (ans)"
-        monthly_payment: Mensualité
-        annual_loan_payment: "Annuité (12 mensualités)"
-        total_loan_interest: Coût total du crédit
+        loan_insurance: "Assurance emprunteur (par mois)"
+        monthly_payment: "Mensualité (hors assurance)"
+        total_monthly_payment: "Mensualité totale, assurance comprise"
+        annual_loan_payment: "Annuité (12 échéances, assurance comprise)"
+        total_loan_interest: Intérêts du crédit
+        total_loan_insurance: "Assurance emprunteur (total)"
+        total_loan_cost: Coût total du crédit
         loan_first_payment_on: Première échéance
         monthly_rent: Loyer mensuel
         occupancy_months: "Taux d'occupation (mois par an)"
@@ -177,11 +181,12 @@ fr:
           purchase_date_hint: "Proposée trois mois après aujourd'hui, le temps d'un compromis."
         credit:
           title: Le crédit
-          hint: "À quelles conditions la banque prête le reste. La mensualité ne se saisit pas : elle se déduit du capital emprunté, du taux et de la durée."
+          hint: "À quelles conditions la banque prête le reste. La mensualité ne se saisit pas : elle se déduit du capital emprunté, du taux et de la durée. L'assurance emprunteur, elle, se saisit : la banque ne prête pas sans elle."
           borrowed_capital_hint: "Le coût du projet (%{total}) moins votre apport (%{down_payment})."
           loan_rate_hint: "Le taux annuel hors assurance emprunteur."
           loan_duration_hint: "En années, %{years} au plus — au-delà, la projection s'arrêterait avant la dernière échéance."
-          monthly_payment_hint: "Mensualité à annuités constantes, hors assurance : M = C × i / (1 − (1 + i)^−n). Son annuité — douze mensualités — se retranche du cash-flow de chaque année de la projection, tant que le crédit court."
+          loan_insurance_hint: "La prime prélevée chaque mois avec l'échéance, du premier prélèvement au solde. Proposée à %{rate} du capital emprunté (%{capital}) par mois, le taux d'un contrat de groupe — à corriger dès que l'offre de prêt en dit le vrai montant."
+          monthly_payment_hint: "Mensualité à annuités constantes, hors assurance : M = C × i / (1 − (1 + i)^−n). L'assurance s'y ajoute pour faire l'échéance, et l'annuité — douze échéances — se retranche du cash-flow de chaque année de la projection, tant que le crédit court."
         rental:
           title: La location
           hint: "Ce que le bien rapporte une fois loué."
@@ -214,14 +219,15 @@ fr:
         answer_no: Non
         projection: "Projection sur %{years} ans"
         projection_hint: "Une ligne par anniversaire de l'achat. Le capital immobilisé est cumulatif : ce qui reste engagé une fois déduits de l'investissement initial tous les cash-flows encaissés depuis l'achat. Pas de fiscalité pour l'instant."
-        projection_credit_hint: "L'achat est financé à crédit : l'investissement initial se limite à l'apport, et les annuités se retranchent du cash-flow tant que le prêt court. L'année où il se solde n'en porte que le reste, et les suivantes plus rien."
+        projection_credit_hint: "L'achat est financé à crédit : l'investissement initial se limite à l'apport, et les annuités — assurance emprunteur comprise — se retranchent du cash-flow tant que le prêt court. L'année où il se solde n'en porte que le reste, et les suivantes plus rien."
         duration_value: "%{years} ans (%{months} mois)"
-        amortization_hint: "Une ligne par échéance : %{capital} empruntés à %{rate}, remboursés en %{months} mensualités de %{payment} hors assurance. La première échéance tombe un mois après la signature."
+        amortization_hint: "Une ligne par échéance : %{capital} empruntés à %{rate}, remboursés en %{months} mensualités de %{payment}, auxquelles s'ajoute %{insurance} d'assurance emprunteur — soit %{total_payment} prélevés chaque mois. La première échéance tombe un mois après la signature."
         payment_number: Échéance
         due_on: Date
         payment: Mensualité
         interest: Intérêts
         principal: Capital remboursé
+        insurance: Assurance
         remaining_capital: Capital restant dû
         total_loan_cost: Coût total du crédit
         year: Année

@@ -16,7 +16,7 @@ module Simulations
     STEP_ATTRIBUTES = {
       "property" => [:name, :property_type, :address, :city, :energy_rating, :surface, :condominium],
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
-      "credit" => [:loan_rate, :loan_duration_years],
+      "credit" => [:loan_rate, :loan_duration_years, :loan_insurance],
       "rental" => [:monthly_rent, :occupancy_months, :rental_type],
       "charges" => Simulation::ANNUAL_CHARGES
     }.freeze
