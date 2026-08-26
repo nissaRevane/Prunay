@@ -5,8 +5,8 @@
                   data: { controller: "charges credit",
                           credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f,
                           credit_base_value: Simulation::NOTARY_FEES_BASE,
-                          credit_share_value: Simulation::DEFAULT_DOWN_PAYMENT_SHARE.to_f,
-                          credit_rounding_value: Simulation::ESTIMATE_ROUNDING }) do |f| %>
+                          credit_share_value: Simulation::Estimate::DOWN_PAYMENT_SHARE.to_f,
+                          credit_rounding_value: Simulation::Estimate::ROUNDING }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <fieldset class="form-fieldset">
@@ -107,7 +107,7 @@
       <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control",
           required: true, disabled: !simulation.credit? %>
       <p class="form-hint"><%= t("views.simulations.steps.credit.loan_insurance_hint",
-                                 rate: number_to_percentage(100.0 / Simulation::DEFAULT_LOAN_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
+                                 rate: number_to_percentage(100.0 / Loan::DEFAULT_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
                                  capital: number_to_currency(simulation.borrowed_capital)) %></p>
     <% end %>
   </fieldset>

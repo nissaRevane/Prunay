@@ -21,7 +21,7 @@
     <button type="button" class="tab" role="tab" id="tab-projection"
             aria-controls="panel-projection" aria-selected="false"
             data-tabs-target="tab" data-action="click->tabs#select">
-      <%= t("views.simulations.show.tab_projection", years: Simulation::HORIZON_YEARS) %>
+      <%= t("views.simulations.show.tab_projection", years: Projection::HORIZON_YEARS) %>
     </button>
     <% if @schedule %>
       <button type="button" class="tab" role="tab" id="tab-amortization"

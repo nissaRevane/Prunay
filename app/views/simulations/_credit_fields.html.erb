@@ -16,5 +16,5 @@
   <%= f.number_field :down_payment, step: "0.01", min: "0", class: "form-control",
       required: true, disabled: !f.object.credit?,
       data: { credit_target: "downPayment", action: "input->credit#markManual" } %>
-  <p class="form-hint"><%= t("views.simulations.steps.purchase.down_payment_hint", share: number_to_percentage(Simulation::DEFAULT_DOWN_PAYMENT_SHARE * 100, precision: 0)) %></p>
+  <p class="form-hint"><%= t("views.simulations.steps.purchase.down_payment_hint", share: number_to_percentage(Simulation::Estimate::DOWN_PAYMENT_SHARE * 100, precision: 0)) %></p>
 <% end %>

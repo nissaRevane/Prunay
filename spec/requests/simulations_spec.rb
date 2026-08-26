@@ -107,7 +107,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       rows = doc.css(".table-scroll .table tbody tr")
 
-      expect(rows.size).to eq(Simulation::HORIZON_YEARS)
+      expect(rows.size).to eq(Projection::HORIZON_YEARS)
     end
 
     it "renders the year, its date, its rent, its charges, its cash flow and the capital still immobilized" do
@@ -209,14 +209,14 @@ RSpec.describe "Simulations", type: :request do
 
         doc = Nokogiri::HTML(response.body)
         expect(doc.css(".tabs .tab").size).to eq(3)
-        expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan_duration_months)
+        expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant
         # dû : la mensualité est ce que la banque prélève, prime comprise.
         cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
         expect(cells.first).to eq("1")
         expect(cells.second).to include("05 avril 2025")
-        expect(cells.third).to eq(currency(on_credit.total_monthly_payment).gsub(/\s+/, " "))
+        expect(cells.third).to eq(currency(on_credit.loan.total_monthly_payment).gsub(/\s+/, " "))
         expect(cells[5]).to eq(currency(19.32).gsub(/\s+/, " "))
       end
 
@@ -230,8 +230,8 @@ RSpec.describe "Simulations", type: :request do
 
         expect(headers).to include(I18n.t("views.simulations.show.loan_payments_column"))
         # Année, date, loyers, charges, annuités, cash-flow, capital immobilisé.
-        expect(cells[4]).to eq(currency(on_credit.annual_loan_payment).gsub(/\s+/, " "))
-        expect(cells[5]).to eq(currency(11_000 - on_credit.annual_loan_payment).gsub(/\s+/, " "))
+        expect(cells[4]).to eq(currency(on_credit.loan.annual_payment).gsub(/\s+/, " "))
+        expect(cells[5]).to eq(currency(11_000 - on_credit.loan.annual_payment).gsub(/\s+/, " "))
       end
 
       # Ce qui est réellement immobilisé le premier jour, c'est l'apport : le capital
@@ -249,10 +249,10 @@ RSpec.describe "Simulations", type: :request do
         expect(amounts).to include(
           Simulation.human_attribute_name(:borrowed_capital) => currency(193_224).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
-          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.monthly_payment).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.loan.monthly_payment).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_insurance) => currency(19.32).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:total_monthly_payment) =>
-            currency(on_credit.total_monthly_payment).gsub(/\s+/, " ")
+            currency(on_credit.loan.total_monthly_payment).gsub(/\s+/, " ")
         )
         expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(23_388).gsub(/\s+/, " "))
       end
@@ -307,7 +307,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.css(".form-fieldset legend").map { |legend| legend.text.strip }).to eq(
-        Simulation::STEPS.map { |step| I18n.t("views.simulations.steps.#{step}.title") }
+        Simulation::Step::NAMES.map { |step| I18n.t("views.simulations.steps.#{step}.title") }
       )
     end
   end

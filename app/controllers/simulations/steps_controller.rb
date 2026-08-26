@@ -3,7 +3,7 @@ module Simulations
   #
   # Rien n'est écrit en base avant la dernière : les réponses s'accumulent en session, et
   # chaque page ne valide que ses propres champs — d'où les contextes de validation nommés
-  # comme les étapes (voir +Simulation::STEPS+). Une simulation à moitié remplie n'existe
+  # comme les étapes (voir +Simulation::Step::NAMES+). Une simulation à moitié remplie n'existe
   # donc jamais en base, et l'utilisateur peut revenir en arrière sans rien casser.
   #
   # Les pages ne sont pas les mêmes pour tout le monde : celle du crédit ne s'ouvre qu'à qui

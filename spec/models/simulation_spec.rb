@@ -67,104 +67,6 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  describe ".estimate" do
-    # Racine carrée, et non proportion : un logement quatre fois plus grand se loue deux
-    # fois plus cher, pas quatre.
-    it "scales a reference amount by the square root of the surface" do
-      expect(described_class.estimate(:monthly_rent, 50)).to eq(650)
-      expect(described_class.estimate(:monthly_rent, 200)).to eq(1_300)
-    end
-
-    it "rounds to the nearest ten euros" do
-      expect(described_class.estimate(:property_tax, 30)).to eq(540)
-      expect(described_class.estimate(:insurance, 30)).to eq(120)
-      expect(described_class.estimate(:condominium_fees, 30)).to eq(770)
-      expect(described_class.estimate(:business_tax, 30)).to eq(150)
-      expect(described_class.estimate(:other_charges, 30)).to eq(80)
-    end
-
-    # L'entretien se lit à deux références : la copropriété porte déjà la façade, la toiture
-    # et les communs, et le propriétaire seul les porte toutes.
-    it "doubles the maintenance of a property no condominium looks after" do
-      expect(described_class.estimate(:maintenance, 50, condominium: true)).to eq(1_000)
-      expect(described_class.estimate(:maintenance, 50)).to eq(2_000)
-    end
-
-    # Un bilan de meublé se paie au forfait, et une gestion déléguée comme une garantie des
-    # loyers impayés ne se supposent pas : on les propose à zéro.
-    it "leaves the amounts that do not follow the surface where they are" do
-      expect(described_class.estimate(:accounting_fees, 200)).to eq(500)
-      expect(described_class.estimate(:management_fees, 200)).to eq(0)
-      expect(described_class.estimate(:rent_guarantee, 200)).to eq(0)
-    end
-
-    it "has nothing to propose without a surface" do
-      expect(described_class.estimate(:monthly_rent, nil)).to eq(0)
-      expect(described_class.estimate(:monthly_rent, 0)).to eq(0)
-    end
-  end
-
-  describe "#defaults_for" do
-    def draft(**answers)
-      described_class.new(user: build(:user), **answers)
-    end
-
-    it "proposes nothing on the first page: the surface is what it asks for" do
-      expect(draft(surface: 50).defaults_for("property")).to eq({})
-    end
-
-    it "dates the purchase three months out and assumes no works" do
-      defaults = draft.defaults_for("purchase")
-
-      expect(defaults["purchase_date"]).to eq(Date.current >> 3)
-      expect(defaults["initial_works"]).to eq(0)
-    end
-
-    # Un dixième du coût du projet — 216 612 € font 21 660 €, arrondis à la dizaine d'euros
-    # comme les autres montants proposés. La page de l'achat s'ouvre avant que le prix n'y
-    # soit tapé : elle ne peut alors rien proposer.
-    it "proposes a tenth of the project cost as a down payment" do
-      expect(draft(purchase_price: 200_000, initial_works: 0).defaults_for("purchase")["down_payment"]).to eq(21_660)
-      expect(draft.defaults_for("purchase")["down_payment"]).to eq(0)
-    end
-
-    # Vingt ans à 3,5 %, et la prime d'assurance à la référence : un dix-millième des
-    # 193 224 € empruntés fait 19,32 € par mois. Un brouillon qui n'emprunte encore rien n'a
-    # rien à assurer.
-    it "proposes twenty years at 3.5 % and a premium read on the capital borrowed" do
-      expect(draft.defaults_for("credit"))
-        .to eq("loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0)
-
-      on_credit = draft(credit: true, purchase_price: 200_000, initial_works: 0, down_payment: 23_388)
-
-      expect(on_credit.defaults_for("credit")["loan_insurance"]).to eq(BigDecimal("19.32"))
-    end
-
-    it "leaves a month of vacancy a year" do
-      expect(draft(surface: 50).defaults_for("rental")["occupancy_months"]).to eq(11)
-    end
-
-    # Un bien meublé hors copropriété : pas de charges de copro, un entretien doublé, et les
-    # deux charges que le meublé impose.
-    it "estimates every charge the property is asked for" do
-      defaults = draft(surface: 50, condominium: false, rental_type: "furnished").defaults_for("charges")
-
-      expect(defaults).to eq(
-        "property_tax" => 700, "insurance" => 150, "maintenance" => 2_000,
-        "management_fees" => 0, "rent_guarantee" => 0,
-        "business_tax" => 200, "accounting_fees" => 500,
-        "other_charges" => 100
-      )
-    end
-
-    it "asks a condominium for its fees, and halves the maintenance it no longer carries alone" do
-      defaults = draft(surface: 50, condominium: true, rental_type: "unfurnished").defaults_for("charges")
-
-      expect(defaults).to include("condominium_fees" => 1_000, "maintenance" => 1_000)
-      expect(defaults.keys).not_to include("business_tax", "accounting_fees")
-    end
-  end
-
   # Le nom peut se donner dès la première page, mais rien n'y oblige : à l'enregistrement,
   # une simulation sans nom prend celui de son bien.
   describe "the name" do
@@ -281,56 +183,20 @@ RSpec.describe Simulation, type: :model do
     # Le coût du projet moins l'apport : 216 612 − 23 388.
     it "borrows what the down payment does not cover" do
       expect(simulation.borrowed_capital).to eq(193_224)
-      expect(simulation.monthly_payment).to eq(BigDecimal("1071.62"))
-      expect(simulation.annual_loan_payment).to eq(BigDecimal("1071.62") * 12)
     end
 
-    # L'assurance ne rembourse rien : sa prime s'ajoute à la mensualité, et l'annuité que la
-    # projection retranche la porte douze fois.
-    it "adds the insurance premium to what the credit takes each month" do
-      insured = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
-                                                 down_payment: 23_388, loan_insurance: 19.32)
-
-      expect(insured.monthly_payment).to eq(BigDecimal("1071.62"))
-      expect(insured.total_monthly_payment).to eq(BigDecimal("1090.94"))
-      expect(insured.annual_loan_payment).to eq(BigDecimal("1090.94") * 12)
-    end
-
-    # Les intérêts et l'assurance se lisent séparément — l'un est le prix du capital, l'autre
-    # celui de la garantie —, et le coût du crédit les additionne.
-    it "counts the insurance in what the credit costs, next to its interest" do
-      insured = build(:simulation, :with_credit, loan_insurance: 19.32)
-
-      expect(insured.total_loan_insurance).to eq(BigDecimal("19.32") * 240)
-      expect(insured.total_loan_cost).to eq(insured.total_loan_interest + insured.total_loan_insurance)
-    end
-
-    # Le remboursement commence le 5 : celui du mois de l'acte quand il est signé du 1er au
-    # 5, celui du mois suivant sinon.
-    it "starts repaying on the fifth that follows the signature" do
-      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 10)).loan_first_payment_on)
-        .to eq(Date.new(2025, 4, 5))
-      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 31)).loan_first_payment_on)
-        .to eq(Date.new(2025, 4, 5))
-      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 2)).loan_first_payment_on)
-        .to eq(Date.new(2025, 3, 5))
-      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 3, 5)).loan_first_payment_on)
-        .to eq(Date.new(2025, 3, 5))
-    end
-
-    # Un acte signé en décembre après le 5 rembourse en janvier de l'année suivante : le mois
-    # d'après, c'est un an de plus quand le mois d'après est janvier.
-    it "rolls over the year when the purchase is signed late in December" do
-      expect(build(:simulation, :with_credit, purchase_date: Date.new(2025, 12, 20)).loan_first_payment_on)
-        .to eq(Date.new(2026, 1, 5))
+    # La simulation ne fait que déduire le crédit de ses colonnes : c'est Loan qui sait
+    # ensuite ce qu'il prélève et ce qu'il coûte.
+    it "hands the loan what the columns answered" do
+      expect(simulation.loan).to have_attributes(capital: 193_224, annual_rate: 3, duration_years: 20,
+                                                 signed_on: simulation.purchase_date)
     end
 
     it "borrows nothing when the purchase is paid outright" do
       paid_outright = build(:simulation, credit: false)
 
       expect(paid_outright.borrowed_capital).to eq(0)
-      expect(paid_outright.monthly_payment).to eq(0)
-      expect(paid_outright.amortization_schedule).to be_nil
+      expect(paid_outright.loan.schedule).to be_nil
     end
 
     # Le capital emprunté n'est pas immobilisé : il se rembourse par les annuités, que la
@@ -341,105 +207,34 @@ RSpec.describe Simulation, type: :model do
         .to eq(216_612)
     end
 
-    # Renoncer au crédit, c'est cesser d'en porter les conditions : un taux, une durée et une
-    # assurance que le formulaire ne montre plus ne doivent pas continuer de produire un
-    # tableau.
+    # Renoncer au crédit, c'est cesser d'en porter les conditions — et le crédit déjà lu ne
+    # doit pas survivre à la case qui le déclarait.
     it "clears what a purchase paid outright no longer answers" do
       saved = create(:simulation, :with_credit, loan_insurance: 19.32)
+      saved.loan
 
       saved.update(credit: false)
 
       expect(saved.reload).to have_attributes(down_payment: 0, loan_rate: 0, loan_duration_years: 0,
                                               loan_insurance: 0)
-      expect(saved.amortization_schedule).to be_nil
+      expect(saved.loan.schedule).to be_nil
+    end
+  end
+
+  describe "#annual_cash_flow" do
+    # Le cash-flow d'une année pleine, celui que la liste des simulations met en avant.
+    it "takes the annuity out of what the charges leave of the rent" do
+      simulation = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
+                                                    down_payment: 23_388, monthly_rent: 800,
+                                                    occupancy_months: 12, property_tax: 700)
+
+      expect(simulation.annual_cash_flow).to eq(9_600 - 700 - BigDecimal("1071.62") * 12)
     end
   end
 
   describe "#projection" do
-    subject(:projection) { simulation.projection }
-
-    let(:simulation) do
-      build(:simulation, purchase_date: Date.new(2025, 3, 10), purchase_price: 200_000, initial_works: 20_000,
-                         monthly_rent: 1_000, occupancy_months: 11,
-                         property_tax: 700, maintenance: 1_000, insurance: 150, other_charges: 150)
-    end
-
-    it "runs over the whole horizon, one line per year" do
-      expect(projection.size).to eq(described_class::HORIZON_YEARS)
-      expect(projection.map(&:number)).to eq((1..30).to_a)
-    end
-
-    # La première ligne est le premier anniversaire, pas le jour de l'achat : elle porte les
-    # loyers des douze mois écoulés, et une ligne à zéro le jour de la signature n'en dirait rien.
-    it "dates each line on an anniversary of the purchase" do
-      expect(projection.first.date).to eq(Date.new(2026, 3, 10))
-      expect(projection.second.date).to eq(Date.new(2027, 3, 10))
-      expect(projection.last.date).to eq(Date.new(2055, 3, 10))
-    end
-
-    it "collects the same rent and pays the same charges on every line" do
-      expect(projection.map(&:annual_rent).uniq).to eq([11_000])
-      expect(projection.map(&:annual_charges).uniq).to eq([2_000])
-    end
-
-    it "is the rent less the charges as long as there is no loan" do
-      expect(projection.map(&:cash_flow).uniq).to eq([9_000])
-    end
-
-    # Les frais de notaire et les travaux initiaux s'immobilisent avec le prix : ils sont
-    # engagés avant le premier loyer, et c'est de leur somme que les cash-flows se déduisent.
-    it "deducts the cash flows accumulated since the purchase from the price, the fees and the works" do
-      expect(projection.first.immobilized_capital).to eq(236_612 - 9_000)
-      expect(projection.second.immobilized_capital).to eq(236_612 - 18_000)
-      expect(projection.last.immobilized_capital).to eq(236_612 - 270_000)
-    end
-
-    it "marks a line as recovered once the capital has come back" do
-      recovered = projection.select(&:recovered?)
-
-      expect(recovered.first.number).to eq(27)
-      expect(projection.take(26).map(&:recovered?)).to all(be(false))
-    end
-
-    # Le crédit pèse sur chaque année tant qu'il court, et cesse de peser le jour où il est
-    # soldé : une projection de trente ans porte vingt annuités d'un prêt de vingt ans.
-    describe "of a purchase financed by a credit" do
-      subject(:projection) do
-        build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0, down_payment: 23_388,
-                                         monthly_rent: 800, occupancy_months: 12).projection
-      end
-
-      it "deducts the annuity from the cash flow for as long as the loan runs" do
-        expect(projection.first.loan_payments).to eq(BigDecimal("1071.62") * 12)
-        expect(projection.first.cash_flow).to eq(9_600 - BigDecimal("1071.62") * 12)
-      end
-
-      it "stops deducting anything once the loan is cleared" do
-        expect(projection[19].loan_payments).to be_positive
-        expect(projection[20].loan_payments).to eq(0)
-        expect(projection[20].cash_flow).to eq(9_600)
-      end
-
-      # L'apport seul est immobilisé le premier jour, et les annuités le creusent avant que
-      # les loyers ne le comblent.
-      it "starts from the down payment and not from the whole project" do
-        expect(projection.first.immobilized_capital).to eq(23_388 - projection.first.cash_flow)
-      end
-    end
-
-    it "keeps a 29 February purchase on a real date" do
-      leap = build(:simulation, purchase_date: Date.new(2024, 2, 29))
-
-      expect(leap.projection.first.date).to eq(Date.new(2025, 2, 28))
-    end
-  end
-
-  describe "#final_immobilized_capital" do
-    it "is what the last line of the projection shows" do
-      simulation = build(:simulation, purchase_price: 200_000, initial_works: 20_000, monthly_rent: 800,
-                                      occupancy_months: 11, property_tax: 700)
-
-      expect(simulation.final_immobilized_capital).to eq(simulation.projection.last.immobilized_capital)
+    it "hands the projection this simulation" do
+      expect(build(:simulation).projection).to be_a(Projection)
     end
   end
 end

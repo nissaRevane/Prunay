@@ -7,7 +7,7 @@ class SimulationsController < ApplicationController
 
   def show
     @projection = @simulation.projection
-    @schedule = @simulation.amortization_schedule
+    @schedule = @simulation.loan.schedule
   end
 
   # La création vit dans Simulations::StepsController, en quatre pages. `/simulations/new`
@@ -15,7 +15,7 @@ class SimulationsController < ApplicationController
   def new
     session.delete(Simulations::StepsController::DRAFT_KEY)
 
-    redirect_to new_simulation_step_path(step: Simulation::STEPS.first)
+    redirect_to new_simulation_step_path(step: Simulation::Step::NAMES.first)
   end
 
   # La modification, elle, tient sur une seule page : les quatre étapes n'ont de sens que

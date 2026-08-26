@@ -36,31 +36,31 @@
     <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control", required: true,
         data: { loan_target: "insurance", action: "input->loan#refresh" } %>
     <p class="form-hint"><%= t("views.simulations.steps.credit.loan_insurance_hint",
-                               rate: number_to_percentage(100.0 / Simulation::DEFAULT_LOAN_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
+                               rate: number_to_percentage(100.0 / Loan::DEFAULT_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
                                capital: number_to_currency(f.object.borrowed_capital)) %></p>
   </div>
 
   <div class="form-row">
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:monthly_payment) %></span>
-      <p class="form-static" data-loan-target="payment"><%= number_to_currency(f.object.monthly_payment) %></p>
+      <p class="form-static" data-loan-target="payment"><%= number_to_currency(f.object.loan.monthly_payment) %></p>
     </div>
 
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></span>
-      <p class="form-static" data-loan-target="totalPayment"><%= number_to_currency(f.object.total_monthly_payment) %></p>
+      <p class="form-static" data-loan-target="totalPayment"><%= number_to_currency(f.object.loan.total_monthly_payment) %></p>
     </div>
   </div>
 
   <div class="form-row">
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></span>
-      <p class="form-static" data-loan-target="interest"><%= number_to_currency(f.object.total_loan_interest) %></p>
+      <p class="form-static" data-loan-target="interest"><%= number_to_currency(f.object.loan.total_interest) %></p>
     </div>
 
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:total_loan_cost) %></span>
-      <p class="form-static" data-loan-target="cost"><%= number_to_currency(f.object.total_loan_cost) %></p>
+      <p class="form-static" data-loan-target="cost"><%= number_to_currency(f.object.loan.total_cost) %></p>
     </div>
   </div>
 

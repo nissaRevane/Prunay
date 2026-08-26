@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <% projection.each do |year| %>
+        <% projection.years.each do |year| %>
           <tr>
             <td><%= year.number %></td>
             <td>
@@ -45,7 +45,7 @@
   </div>
 
   <div class="section-total">
-    <span><%= t("views.simulations.show.total_cash_flow", years: Simulation::HORIZON_YEARS) %></span>
-    <span><%= number_to_currency(simulation.total_cash_flow) %></span>
+    <span><%= t("views.simulations.show.total_cash_flow", years: Projection::HORIZON_YEARS) %></span>
+    <span><%= number_to_currency(projection.total_cash_flow) %></span>
   </div>
 </div>

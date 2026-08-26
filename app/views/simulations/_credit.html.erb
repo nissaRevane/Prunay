@@ -21,11 +21,11 @@
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_duration_years) %></dt>
-      <dd class="detail-value"><%= t("views.simulations.show.duration_value", years: simulation.loan_duration_years, months: simulation.loan_duration_months) %></dd>
+      <dd class="detail-value"><%= t("views.simulations.show.duration_value", years: simulation.loan_duration_years, months: simulation.loan.duration_months) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:monthly_payment) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.monthly_payment) %></dd>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.monthly_payment) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_insurance) %></dt>
@@ -33,27 +33,27 @@
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.total_monthly_payment) %></dd>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_monthly_payment) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:annual_loan_payment) %></dt>
-      <dd class="detail-value text-danger"><%= number_to_currency(simulation.annual_loan_payment) %></dd>
+      <dd class="detail-value text-danger"><%= number_to_currency(simulation.loan.annual_payment) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_interest) %></dd>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_interest) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_insurance) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_insurance) %></dd>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_insurance) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_cost) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.total_loan_cost) %></dd>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_cost) %></dd>
     </div>
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_first_payment_on) %></dt>
-      <dd class="detail-value"><%= l(simulation.loan_first_payment_on, format: :long) %></dd>
+      <dd class="detail-value"><%= l(simulation.loan.first_payment_on, format: :long) %></dd>
     </div>
   </dl>
 

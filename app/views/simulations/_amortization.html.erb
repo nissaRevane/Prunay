@@ -6,9 +6,9 @@
                                capital: number_to_currency(simulation.borrowed_capital),
                                rate: number_to_percentage(simulation.loan_rate, precision: 2, strip_insignificant_zeros: true),
                                months: schedule.rows.size,
-                               payment: number_to_currency(simulation.monthly_payment),
+                               payment: number_to_currency(simulation.loan.monthly_payment),
                                insurance: number_to_currency(simulation.loan_insurance),
-                               total_payment: number_to_currency(simulation.total_monthly_payment)) %></p>
+                               total_payment: number_to_currency(simulation.loan.total_monthly_payment)) %></p>
 
   <div class="table-scroll table-scroll-tall">
     <table class="table table-compact">

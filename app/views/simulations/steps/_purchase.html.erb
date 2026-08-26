@@ -5,8 +5,8 @@
      data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>"
      data-credit-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
      data-credit-base-value="<%= Simulation::NOTARY_FEES_BASE %>"
-     data-credit-share-value="<%= Simulation::DEFAULT_DOWN_PAYMENT_SHARE.to_f %>"
-     data-credit-rounding-value="<%= Simulation::ESTIMATE_ROUNDING %>">
+     data-credit-share-value="<%= Simulation::Estimate::DOWN_PAYMENT_SHARE.to_f %>"
+     data-credit-rounding-value="<%= Simulation::Estimate::ROUNDING %>">
   <div class="form-group">
     <%= f.label :purchase_price %>
     <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true,

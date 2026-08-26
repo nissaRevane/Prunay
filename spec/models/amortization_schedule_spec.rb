@@ -4,7 +4,7 @@ RSpec.describe AmortizationSchedule do
   # 200 000 € de prix et 16 612 € de frais de notaire font 216 612 € de projet ; l'apport de
   # 23 388 € en laisse 193 224 € à emprunter, sur vingt ans à 3 %.
   let(:simulation) { build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 15)) }
-  let(:schedule) { described_class.new(simulation) }
+  let(:schedule) { described_class.new(simulation.loan) }
 
   describe "#monthly_payment" do
     # M = C × i / (1 − (1 + i)^−n), arrondie au centime comme une banque l'énonce.
@@ -17,7 +17,7 @@ RSpec.describe AmortizationSchedule do
       free = build(:simulation, :with_credit, purchase_price: 100_000, down_payment: 92_808,
                                               loan_rate: 0, loan_duration_years: 1)
 
-      expect(described_class.new(free).monthly_payment).to eq(BigDecimal("1365.33"))
+      expect(described_class.new(free.loan).monthly_payment).to eq(BigDecimal("1365.33"))
     end
   end
 
@@ -34,7 +34,7 @@ RSpec.describe AmortizationSchedule do
       expect(schedule.rows.second.due_on).to eq(Date.new(2025, 3, 5))
 
       month_end = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 31))
-      expect(described_class.new(month_end).rows.first.due_on).to eq(Date.new(2025, 2, 5))
+      expect(described_class.new(month_end.loan).rows.first.due_on).to eq(Date.new(2025, 2, 5))
     end
 
     # Un acte signé du 1er au 5 n'attend pas un mois de plus : le 5 de son propre mois n'est
@@ -43,8 +43,8 @@ RSpec.describe AmortizationSchedule do
       early = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 3))
       on_the_day = build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 5))
 
-      expect(described_class.new(early).rows.first.due_on).to eq(Date.new(2025, 1, 5))
-      expect(described_class.new(on_the_day).rows.first.due_on).to eq(Date.new(2025, 1, 5))
+      expect(described_class.new(early.loan).rows.first.due_on).to eq(Date.new(2025, 1, 5))
+      expect(described_class.new(on_the_day.loan).rows.first.due_on).to eq(Date.new(2025, 1, 5))
     end
 
     # Intérêts = CRD × taux mensuel, capital = mensualité − intérêts : le capital remboursé
@@ -98,7 +98,7 @@ RSpec.describe AmortizationSchedule do
       build(:simulation, :with_credit, purchase_date: Date.new(2025, 1, 15), loan_insurance: 19.32)
     end
 
-    let(:insured_schedule) { described_class.new(insured) }
+    let(:insured_schedule) { described_class.new(insured.loan) }
 
     # La prime ne se lit pas sur le capital restant dû et n'en rembourse rien : elle s'ajoute
     # à l'échéance sans toucher au tableau, qui reste celui du prêt seul.
