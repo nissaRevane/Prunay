@@ -64,25 +64,21 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("rental", draft(surface: 50))["occupancy_months"]).to eq(11)
     end
 
-    # Un bien meublé hors copropriété : pas de charges de copro, un entretien doublé, et les
-    # deux charges que le meublé impose.
+    # Un bien hors copropriété : pas de charges de copro, et un entretien doublé.
     it "estimates every charge the property is asked for" do
-      furnished = draft(surface: 50, condominium: false, rental_type: "furnished")
+      sole_owner = draft(surface: 50, condominium: false)
 
-      expect(described_class.defaults("charges", furnished)).to eq(
+      expect(described_class.defaults("charges", sole_owner)).to eq(
         "property_tax" => 700, "insurance" => 150, "maintenance" => 2_000,
         "management_fees" => 0, "rent_guarantee" => 0,
-        "business_tax" => 200, "accounting_fees" => 500,
         "other_charges" => 100
       )
     end
 
     it "asks a condominium for its fees, and halves the maintenance it no longer carries alone" do
-      defaults = described_class.defaults("charges", draft(surface: 50, condominium: true,
-                                                           rental_type: "unfurnished"))
+      defaults = described_class.defaults("charges", draft(surface: 50, condominium: true))
 
       expect(defaults).to include("condominium_fees" => 1_000, "maintenance" => 1_000)
-      expect(defaults.keys).not_to include("business_tax", "accounting_fees")
     end
   end
 end

@@ -143,12 +143,6 @@
         <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true %>
       </div>
     </div>
-
-    <div class="form-group">
-      <%= f.label :rental_type %>
-      <%= f.select :rental_type, rental_type_options, {}, class: "form-control", required: true,
-          data: { charges_target: "rentalType", action: "change->charges#refresh" } %>
-    </div>
   </fieldset>
 
   <fieldset class="form-fieldset">

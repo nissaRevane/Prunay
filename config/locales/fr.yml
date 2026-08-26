@@ -45,15 +45,12 @@ fr:
         loan_first_payment_on: Première échéance
         monthly_rent: Loyer mensuel
         occupancy_months: "Taux d'occupation (mois par an)"
-        rental_type: "Type d'exploitation"
         property_tax: Taxe foncière
         insurance: Assurance PNO
         maintenance: Entretien et petits travaux
         condominium_fees: Charges de copropriété
         management_fees: Gestion locative
         rent_guarantee: Garantie loyers impayés
-        business_tax: "CFE (cotisation foncière des entreprises)"
-        accounting_fees: Comptable
         other_charges: Autres frais
         rent_growth_rate: "Évolution des loyers (% par an)"
         property_growth_rate: "Évolution du prix du bien (% par an)"
@@ -121,9 +118,6 @@ fr:
       house: Maison
       parking: Parking
       building: Immeuble
-    rental_types:
-      furnished: Meublé
-      unfurnished: Nu
   views:
     nav:
       economic_conditions: Conditions économiques
@@ -176,9 +170,6 @@ fr:
           letting:
             title: "L'exploitation locative"
             hint: "Ce que l'on paie pour louer : rien par défaut, car ni une gestion déléguée ni une garantie des loyers impayés ne se supposent."
-          furnished:
-            title: Le régime meublé
-            hint: "Ce que le meublé impose : la cotisation foncière des entreprises, et le bilan qu'un comptable établit. Un bien loué nu ne les paie pas."
           other:
             title: Divers
             hint: "Tout ce que les groupes précédents ne nomment pas."

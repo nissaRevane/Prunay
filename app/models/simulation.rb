@@ -5,11 +5,7 @@ class Simulation < ApplicationRecord
   MONTHS_PER_YEAR = 12
 
   PROPERTY_TYPES = %w[apartment house parking building].freeze
-  RENTAL_TYPES = %w[furnished unfurnished].freeze
   ENERGY_RATINGS = %w[A B C D E F G].freeze
-
-  # Le meublé, nommé : trois charges ne se demandent qu'à lui.
-  FURNISHED = "furnished"
 
   # L'appartement, nommé : c'est le seul type de bien que l'on suppose en copropriété.
   APARTMENT = "apartment"
@@ -18,18 +14,13 @@ class Simulation < ApplicationRecord
   CHARGE_GROUPS = {
     ownership: %i[property_tax insurance maintenance condominium_fees],
     letting: %i[management_fees rent_guarantee],
-    furnished: %i[business_tax accounting_fees],
     other: %i[other_charges]
   }.freeze
 
   ANNUAL_CHARGES = CHARGE_GROUPS.values.flatten.freeze
 
-  # Une maison n'a pas de charges de copropriété, et un bien loué nu ne paie ni CFE ni comptable.
-  CHARGE_CONDITIONS = {
-    condominium_fees: :condominium?,
-    business_tax: :furnished?,
-    accounting_fees: :furnished?
-  }.freeze
+  # Une maison n'a pas de charges de copropriété : c'est la seule charge qu'une condition gouverne.
+  CHARGE_CONDITIONS = { condominium_fees: :condominium? }.freeze
 
   # Droits, émoluments et débours suivent le prix d'assez près pour qu'une droite en tienne lieu.
   NOTARY_FEES_RATE = BigDecimal("0.0742")
@@ -90,8 +81,6 @@ class Simulation < ApplicationRecord
   validates :occupancy_months, presence: true,
             numericality: { greater_than: 0, less_than_or_equal_to: MONTHS_PER_YEAR },
             on: [:create, :update, :rental]
-  validates :rental_type, presence: true, inclusion: { in: RENTAL_TYPES, allow_blank: true },
-            on: [:create, :update, :rental]
 
   # Toutes sont exigées : `clear_inapplicable_charges` a déjà ramené à zéro celles qu'on masque.
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
@@ -116,10 +105,6 @@ class Simulation < ApplicationRecord
   # Un montant proposé pour ce bien-ci : sa surface, et sa copropriété là où elle change la donne.
   def estimate(field)
     Estimate.for(field, surface, condominium: condominium?)
-  end
-
-  def furnished?
-    rental_type == FURNISHED
   end
 
   def apartment?

@@ -11,15 +11,12 @@ FactoryBot.define do
     initial_works { 0 }
     monthly_rent { 800 }
     occupancy_months { 12 }
-    rental_type { "furnished" }
     property_tax { 0 }
     insurance { 0 }
     maintenance { 0 }
     condominium_fees { 0 }
     management_fees { 0 }
     rent_guarantee { 0 }
-    business_tax { 0 }
-    accounting_fees { 0 }
     other_charges { 0 }
 
     # Une économie immobile, comme le reste du bien par défaut : un test qui parle d'évolution

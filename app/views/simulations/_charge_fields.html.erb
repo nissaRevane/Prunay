@@ -1,12 +1,12 @@
 <%# Les charges annuelles, groupe par groupe et deux montants par ligne, dans l'ordre que
     `Simulation::CHARGE_GROUPS` fixe : une charge de plus s'ajoute au modèle, pas ici.
 
-    Trois d'entre elles ne se demandent que sous condition. Le serveur rend l'état juste dès
-    le premier affichage : le champ écarté l'est par `hidden`, et sa saisie par `disabled` —
-    un champ requis et invisible bloquerait l'envoi du formulaire, et le modèle remet à zéro
-    ce qu'il ne reçoit pas. Sur le formulaire de modification, où la copropriété et le meublé
-    se répondent au-dessus, le contrôleur `charges` reprend la main à chaque changement ;
-    dans l'assistant les deux réponses sont déjà derrière nous, et rien ne bouge plus. %>
+    Les charges de copropriété ne se demandent que sous condition. Le serveur rend l'état
+    juste dès le premier affichage : le champ écarté l'est par `hidden`, et sa saisie par
+    `disabled` — un champ requis et invisible bloquerait l'envoi du formulaire, et le modèle
+    remet à zéro ce qu'il ne reçoit pas. Sur le formulaire de modification, où la copropriété
+    se répond au-dessus, le contrôleur `charges` reprend la main à chaque changement ; dans
+    l'assistant la réponse est déjà derrière nous, et rien ne bouge plus. %>
 <% autofocus = local_assigns.fetch(:autofocus, false) %>
 
 <% Simulation::CHARGE_GROUPS.each do |group, fields| %>

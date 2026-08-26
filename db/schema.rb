@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000010) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,7 +39,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000010) do
     t.boolean "condominium", default: false, null: false
     t.decimal "initial_works", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
-    t.string "rental_type", default: "furnished", null: false
     t.decimal "property_tax", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "maintenance", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "insurance", precision: 12, scale: 2, default: "0.0", null: false
@@ -48,8 +47,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000010) do
     t.decimal "condominium_fees", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "management_fees", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "rent_guarantee", precision: 12, scale: 2, default: "0.0", null: false
-    t.decimal "business_tax", precision: 12, scale: 2, default: "0.0", null: false
-    t.decimal "accounting_fees", precision: 12, scale: 2, default: "0.0", null: false
     t.boolean "credit", default: false, null: false
     t.decimal "down_payment", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "loan_rate", precision: 6, scale: 3, default: "0.0", null: false

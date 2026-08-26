@@ -189,7 +189,6 @@ RSpec.describe "Simulations", type: :request do
 
       expect(amounts).to include(
         Simulation.human_attribute_name(:monthly_rent) => currency(1_000).gsub(/\s+/, " "),
-        Simulation.human_attribute_name(:rental_type) => I18n.t("simulations.rental_types.furnished"),
         Simulation.human_attribute_name(:occupancy_months) => I18n.t("views.simulations.show.occupancy_value", months: 11)
       )
       # Onze mois loués, et non douze : la vacance se paie.
@@ -199,10 +198,9 @@ RSpec.describe "Simulations", type: :request do
     # Une ligne à zéro se lirait comme une charge oubliée : la fiche ne détaille que les
     # charges que le bien se voit demander.
     it "details only the charges the property is asked for" do
-      let_unfurnished = create(:simulation, user: user, condominium: false, rental_type: "unfurnished",
-                                           property_tax: 700)
+      sole_owner = create(:simulation, user: user, condominium: false, property_tax: 700)
 
-      get simulation_path(let_unfurnished)
+      get simulation_path(sole_owner)
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
@@ -210,8 +208,6 @@ RSpec.describe "Simulations", type: :request do
 
       expect(labels).to include(Simulation.human_attribute_name(:property_tax))
       expect(labels).not_to include(Simulation.human_attribute_name(:condominium_fees))
-      expect(labels).not_to include(Simulation.human_attribute_name(:business_tax))
-      expect(labels).not_to include(Simulation.human_attribute_name(:accounting_fees))
     end
 
     # Un achat comptant n'a rien à amortir : l'onglet du tableau ne s'ouvre pas.

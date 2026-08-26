@@ -79,10 +79,6 @@
       <dd class="detail-value text-success"><%= number_to_currency(simulation.monthly_rent) %></dd>
     </div>
     <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:rental_type) %></dt>
-      <dd class="detail-value"><%= t("simulations.rental_types.#{simulation.rental_type}") %></dd>
-    </div>
-    <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:occupancy_months) %></dt>
       <dd class="detail-value"><%= t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %></dd>
     </div>
@@ -100,8 +96,8 @@
   </div>
 
   <%# Les charges que ce bien-ci se voit demander, dans l'ordre des groupes du formulaire.
-      Une maison n'affiche donc pas de charges de copropriété, ni un bien loué nu de CFE :
-      une ligne à zéro se lirait comme une charge oubliée. %>
+      Une maison n'affiche donc pas de charges de copropriété : une ligne à zéro se lirait
+      comme une charge oubliée. %>
   <dl class="detail-grid">
     <% simulation.applicable_charges.each do |charge| %>
       <div class="detail-item">

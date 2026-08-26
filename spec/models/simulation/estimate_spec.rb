@@ -13,7 +13,6 @@ RSpec.describe Simulation::Estimate do
       expect(described_class.for(:property_tax, 30)).to eq(540)
       expect(described_class.for(:insurance, 30)).to eq(120)
       expect(described_class.for(:condominium_fees, 30)).to eq(770)
-      expect(described_class.for(:business_tax, 30)).to eq(150)
       expect(described_class.for(:other_charges, 30)).to eq(80)
     end
 
@@ -24,10 +23,9 @@ RSpec.describe Simulation::Estimate do
       expect(described_class.for(:maintenance, 50)).to eq(2_000)
     end
 
-    # Un bilan de meublé se paie au forfait, et une gestion déléguée comme une garantie des
-    # loyers impayés ne se supposent pas : on les propose à zéro.
+    # Ni une gestion déléguée ni une garantie des loyers impayés ne se supposent : on les
+    # propose à zéro.
     it "leaves the amounts that do not follow the surface where they are" do
-      expect(described_class.for(:accounting_fees, 200)).to eq(500)
       expect(described_class.for(:management_fees, 200)).to eq(0)
       expect(described_class.for(:rent_guarantee, 200)).to eq(0)
     end

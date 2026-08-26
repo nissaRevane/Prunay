@@ -35,9 +35,9 @@ RSpec.describe "Simulation steps", type: :request do
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
   CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16",
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
-  RENTAL = { monthly_rent: "1000", occupancy_months: "11", rental_type: "unfurnished" }.freeze
-  # Le bien de PROPERTY est en copropriété et RENTAL le loue nu : la page des charges lui
-  # demande donc les charges de copro, mais ni CFE ni comptable.
+  RENTAL = { monthly_rent: "1000", occupancy_months: "11" }.freeze
+  # Le bien de PROPERTY est en copropriété : la page des charges lui demande donc les
+  # charges de copro.
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
               management_fees: "0", rent_guarantee: "0", other_charges: "150" }.freeze
 
@@ -81,10 +81,9 @@ RSpec.describe "Simulation steps", type: :request do
         user: user, name: "Appartement à Nantes, 50 m²",
         property_type: "apartment", city: "Nantes", surface: 50, condominium: true,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
-        monthly_rent: 1_000, occupancy_months: 11, rental_type: "unfurnished",
+        monthly_rent: 1_000, occupancy_months: 11,
         property_tax: 700, insurance: 150, maintenance: 1_000, condominium_fees: 1_200,
-        management_fees: 0, rent_guarantee: 0, business_tax: 0, accounting_fees: 0,
-        other_charges: 150
+        management_fees: 0, rent_guarantee: 0, other_charges: 150
       )
     end
 
@@ -260,17 +259,15 @@ RSpec.describe "Simulation steps", type: :request do
     end
 
     # Ni une gestion déléguée ni une garantie des loyers impayés ne se supposent : la page
-    # les propose à zéro, et le bilan d'un meublé au forfait.
-    it "proposes nothing for what it cannot deduce, and a flat fee for the accountant" do
+    # les propose à zéro.
+    it "proposes nothing for what it cannot deduce" do
       submit("purchase", PURCHASE)
-      submit("rental", RENTAL.merge(rental_type: "furnished"))
+      submit("rental", RENTAL)
 
       get new_simulation_step_path(step: "charges")
 
       expect(field_value("simulation_management_fees")).to eq("0")
       expect(field_value("simulation_rent_guarantee")).to eq("0")
-      expect(field_value("simulation_accounting_fees")).to eq("500")
-      expect(field_value("simulation_business_tax")).to eq("400")
     end
 
     # Hors copropriété, la façade, la toiture et les communs n'incombent à personne d'autre
@@ -284,17 +281,6 @@ RSpec.describe "Simulation steps", type: :request do
 
       expect(field_value("simulation_maintenance")).to eq("4000")
       expect(asked_for?("simulation_condominium_fees")).to be(false)
-    end
-
-    it "spares a property let unfurnished the charges the furnished regime imposes" do
-      submit("purchase", PURCHASE)
-      submit("rental", RENTAL)
-
-      get new_simulation_step_path(step: "charges")
-
-      expect(asked_for?("simulation_business_tax")).to be(false)
-      expect(asked_for?("simulation_accounting_fees")).to be(false)
-      expect(asked_for?("simulation_condominium_fees")).to be(true)
     end
 
     # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix, et

@@ -67,8 +67,7 @@ module Simulation::Step
   def rental_defaults(simulation)
     {
       "monthly_rent" => simulation.estimate(:monthly_rent),
-      "occupancy_months" => OCCUPANCY_MONTHS,
-      "rental_type" => Simulation::RENTAL_TYPES.first
+      "occupancy_months" => OCCUPANCY_MONTHS
     }
   end
 

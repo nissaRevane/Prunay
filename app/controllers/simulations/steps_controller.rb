@@ -18,7 +18,7 @@ module Simulations
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees],
-      "rental" => [:monthly_rent, :occupancy_months, :rental_type],
+      "rental" => [:monthly_rent, :occupancy_months],
       "charges" => Simulation::ANNUAL_CHARGES
     }.freeze
 
@@ -86,7 +86,7 @@ module Simulations
     # au défaut.
     #
     # Les valeurs proposées se demandent à la simulation en construction, et non à la classe :
-    # elles se déduisent des réponses déjà données — la surface, la copropriété, le meublé —
+    # elles se déduisent des réponses déjà données — la surface, la copropriété —
     # et c'est cet objet-là qui les porte, déjà converties.
     def build_simulation(overrides = {})
       answers = draft.merge(overrides)

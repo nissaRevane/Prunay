@@ -41,7 +41,6 @@ RSpec.describe Simulation, type: :model do
 
     it { is_expected.to validate_numericality_of(:monthly_rent).is_greater_than_or_equal_to(0).on(:rental) }
     it { is_expected.to validate_numericality_of(:occupancy_months).is_greater_than(0).is_less_than_or_equal_to(12).on(:rental) }
-    it { is_expected.to validate_inclusion_of(:rental_type).in_array(described_class::RENTAL_TYPES).on(:rental) }
 
     it { is_expected.to validate_numericality_of(:property_tax).is_greater_than_or_equal_to(0).on(:charges) }
 
@@ -110,37 +109,30 @@ RSpec.describe Simulation, type: :model do
 
   describe "#annual_charges" do
     it "adds up the charges the property is asked for" do
-      simulation = build(:simulation, condominium: true, rental_type: "furnished",
+      simulation = build(:simulation, condominium: true,
                                       property_tax: 700, insurance: 150, maintenance: 1_000,
                                       condominium_fees: 1_200, management_fees: 600, rent_guarantee: 300,
-                                      business_tax: 200, accounting_fees: 500, other_charges: 100)
+                                      other_charges: 100)
 
-      expect(simulation.annual_charges).to eq(4_750)
+      expect(simulation.annual_charges).to eq(4_050)
     end
 
     # Une charge qu'aucune condition ne justifie ne pèse pas sur la projection : elle est
     # ramenée à zéro avant l'enregistrement, et le total ne la compte pas.
     it "ignores what the property is not asked for" do
-      simulation = create(:simulation, condominium: false, rental_type: "unfurnished",
-                                       property_tax: 700, condominium_fees: 1_200,
-                                       business_tax: 200, accounting_fees: 500)
+      simulation = create(:simulation, condominium: false, property_tax: 700, condominium_fees: 1_200)
 
       expect(simulation.annual_charges).to eq(700)
-      expect(simulation).to have_attributes(condominium_fees: 0, business_tax: 0, accounting_fees: 0)
+      expect(simulation).to have_attributes(condominium_fees: 0)
     end
   end
 
-  # Trois charges ne se demandent que sous condition, et ne survivent pas à sa disparition :
-  # les charges de copropriété à un bien en copropriété, la CFE et le comptable à un meublé.
+  # Les charges de copropriété ne se demandent qu'à un bien en copropriété, et ne survivent
+  # pas à sa disparition.
   describe "the charges a condition governs" do
     it "asks a condominium for its fees, and a property outside one for nothing of the sort" do
       expect(build(:simulation, condominium: true).applicable_charges).to include(:condominium_fees)
       expect(build(:simulation, condominium: false).applicable_charges).not_to include(:condominium_fees)
-    end
-
-    it "asks a furnished letting for its business tax and its accountant, and an unfurnished one for neither" do
-      expect(build(:simulation, rental_type: "furnished").applicable_charges).to include(:business_tax, :accounting_fees)
-      expect(build(:simulation, rental_type: "unfurnished").applicable_charges).not_to include(:business_tax, :accounting_fees)
     end
 
     # Sortir de copropriété, c'est cesser d'en payer les charges : un montant que le
