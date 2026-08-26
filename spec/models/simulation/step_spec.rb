@@ -17,8 +17,12 @@ RSpec.describe Simulation::Step do
   end
 
   describe ".defaults" do
-    it "proposes nothing on the first page: the surface is what it asks for" do
-      expect(described_class.defaults("property", draft(surface: 50))).to eq({})
+    # La page du bien ne propose que ce que son propre type lui dicte : le reste — la ville,
+    # la surface — est justement ce qu'elle demande.
+    it "supposes an apartment is in a condominium, and no other property" do
+      expect(described_class.defaults("property", draft(surface: 50))).to eq("condominium" => true)
+      expect(described_class.defaults("property", draft(property_type: "house")))
+        .to eq("condominium" => false)
     end
 
     it "dates the purchase three months out and assumes no works" do

@@ -11,6 +11,9 @@ class Simulation < ApplicationRecord
   # Le meublé, nommé : trois charges ne se demandent qu'à lui.
   FURNISHED = "furnished"
 
+  # L'appartement, nommé : c'est le seul type de bien que l'on suppose en copropriété.
+  APARTMENT = "apartment"
+
   # Les charges annuelles, groupées comme le formulaire les demande : l'ordre est le sien.
   CHARGE_GROUPS = {
     ownership: %i[property_tax insurance maintenance condominium_fees],
@@ -112,6 +115,10 @@ class Simulation < ApplicationRecord
 
   def furnished?
     rental_type == FURNISHED
+  end
+
+  def apartment?
+    property_type == APARTMENT
   end
 
   # Ce que le formulaire affiche, ce que la fiche détaille et ce que le total additionne.

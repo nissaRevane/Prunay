@@ -9,7 +9,8 @@
                           credit_rounding_value: Simulation::Estimate::ROUNDING }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
-  <fieldset class="form-fieldset">
+  <fieldset class="form-fieldset" data-controller="condominium"
+            data-condominium-type-value="<%= Simulation::APARTMENT %>">
     <legend><%= t("views.simulations.steps.property.title") %></legend>
 
     <div class="form-group">
@@ -20,7 +21,8 @@
 
     <div class="form-group">
       <%= f.label :property_type %>
-      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true %>
+      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true,
+          data: { condominium_target: "propertyType", action: "change->condominium#suggest" } %>
     </div>
 
     <div class="form-row">
@@ -48,7 +50,8 @@
     </div>
 
     <div class="form-group form-check">
-      <%= f.check_box :condominium, data: { charges_target: "condominium", action: "change->charges#refresh" } %>
+      <%= f.check_box :condominium, data: { charges_target: "condominium", condominium_target: "checkbox",
+                                            action: "change->charges#refresh" } %>
       <%= f.label :condominium %>
     </div>
   </fieldset>

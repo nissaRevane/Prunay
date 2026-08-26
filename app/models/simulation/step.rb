@@ -25,15 +25,23 @@ module Simulation::Step
     condition.nil? || simulation.public_send(condition)
   end
 
-  # Ils se déduisent des réponses déjà données ; la page du bien, qui les demande, n'en a pas.
+  # Ils se déduisent des réponses déjà données — y compris, sur la page du bien, d'une
+  # réponse que la page elle-même porte : son type.
   def defaults(name, simulation)
     case name.to_s
+    when "property" then property_defaults(simulation)
     when "purchase" then purchase_defaults(simulation)
     when "credit" then credit_defaults(simulation)
     when "rental" then rental_defaults(simulation)
     when "charges" then charge_defaults(simulation)
     else {}
     end
+  end
+
+  # Un appartement est presque toujours en copropriété, une maison presque jamais : la case
+  # se propose cochée à l'un, décochée à l'autre, et rien n'empêche de la contredire.
+  def property_defaults(simulation)
+    { "condominium" => simulation.apartment? }
   end
 
   def purchase_defaults(simulation)

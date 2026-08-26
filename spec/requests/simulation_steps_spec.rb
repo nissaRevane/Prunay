@@ -24,6 +24,10 @@ RSpec.describe "Simulation steps", type: :request do
     !field.nil? && field["disabled"].nil?
   end
 
+  def checked?(name)
+    !Nokogiri::HTML(response.body).at_css("##{name}")["checked"].nil?
+  end
+
   PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50", condominium: "1" }.freeze
   # Un achat comptant : sans crédit, la page du crédit ne s'ouvre pas.
   PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
@@ -198,6 +202,24 @@ RSpec.describe "Simulation steps", type: :request do
       walk
 
       expect(Simulation.last).to have_attributes(EconomicConditions::DEFAULTS)
+    end
+  end
+
+  # Un appartement est presque toujours en copropriété : la case se propose cochée, et rien
+  # n'empêche de la décocher. Changer de type ensuite la fait suivre, mais dans le navigateur.
+  describe "the condominium the property page supposes" do
+    it "pre-checks the box for the apartment it opens on" do
+      get new_simulation_step_path(step: "property")
+
+      expect(checked?("simulation_condominium")).to be(true)
+    end
+
+    it "leaves an answer already given rather than proposing it again" do
+      submit("property", PROPERTY.merge(condominium: "0"))
+
+      get new_simulation_step_path(step: "property")
+
+      expect(checked?("simulation_condominium")).to be(false)
     end
   end
 
