@@ -101,13 +101,22 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    it "renders one row per year of the horizon" do
+    # L'horizon plus la ligne de l'achat : elle ne porte ni loyer ni charge, seulement le
+    # capital immobilisé le premier jour.
+    it "renders one row per year of the horizon, the purchase date opening the table" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       rows = doc.css(".table-scroll .table tbody tr")
 
-      expect(rows.size).to eq(Projection::HORIZON_YEARS)
+      expect(rows.size).to eq(Projection::HORIZON_YEARS + 1)
+      expect(rows.first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }).to eq([
+        "0",
+        "mar.-2025",
+        currency(0).gsub(/\s+/, " "),
+        currency(0).gsub(/\s+/, " "),
+        currency(236_612).gsub(/\s+/, " ")
+      ])
     end
 
     # Le tableau ne porte que ce qu'on y cherche, et la date s'y lit au mois : une projection
@@ -117,7 +126,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      cells = doc.css(".table-scroll .table tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      cells = doc.css(".table-scroll .table tbody tr")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
       expect(cells).to eq([
         "1",
@@ -226,7 +235,7 @@ RSpec.describe "Simulations", type: :request do
 
         doc = Nokogiri::HTML(response.body)
         headers = doc.css("#panel-projection thead th").map { |th| th.text.strip }
-        cells = doc.css("#panel-projection tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+        cells = doc.css("#panel-projection tbody tr")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
         # Année, date, loyers, cash-flow, capital immobilisé.
         expect(headers.size).to eq(5)
