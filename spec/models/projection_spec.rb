@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Projection do
-  subject(:projection) { described_class.new(simulation) }
+  subject(:projection) { described_class.new(simulation, :micro_foncier) }
 
   let(:simulation) do
     build(:simulation, purchase_date: Date.new(2025, 3, 10), purchase_price: 200_000, initial_works: 20_000,
@@ -69,7 +69,8 @@ RSpec.describe Projection do
     recovering = described_class.new(build(:simulation, purchase_price: 200_000, initial_works: 20_000,
                                                         monthly_rent: 1_600, occupancy_months: 11,
                                                         property_tax: 700, maintenance: 1_000,
-                                                        insurance: 150, other_charges: 150))
+                                                        insurance: 150, other_charges: 150),
+                                     :micro_foncier)
 
     expect(recovering.years.select(&:recovered?).first.number).to eq(18)
     expect(recovering.years.take(18).map(&:recovered?)).to all(be(false))
@@ -78,7 +79,7 @@ RSpec.describe Projection do
   # Le crédit pèse sur chaque année tant qu'il court, et cesse de peser le jour où il est
   # soldé : une projection de trente ans porte vingt annuités d'un prêt de vingt ans.
   describe "of a purchase financed by a credit" do
-    subject(:projection) { described_class.new(simulation) }
+    subject(:projection) { described_class.new(simulation, :micro_foncier) }
 
     let(:simulation) do
       build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0, down_payment: 23_388,
@@ -117,10 +118,57 @@ RSpec.describe Projection do
     end
   end
 
+  # Le foncier réel déduit les charges réelles et les intérêts là où le micro-foncier applique
+  # son forfait : la projection ne fait que lui passer, année par année, ce qu'elle a composé.
+  describe "under the foncier réel regime" do
+    subject(:projection) { described_class.new(simulation, :foncier_reel) }
+
+    # 11 000 € de loyers hors charges moins 2 000 € de charges : 9 000 € imposables, dont 17,2 %
+    # pour le foyer que le barème n'atteint pas. C'est plus cher que les 1 324,40 € du
+    # micro-foncier — sans levier ni charges à déduire, le forfait vaut mieux que le réel.
+    it "taxes what the real charges leave of the rent, where the forfait ignored them" do
+      expect(projection.years[1].taxes).to eq(1_548)
+      expect(projection.years[1].cash_flow).to eq(7_452)
+    end
+
+    # Tout le régime est là : les charges de l'année et ses intérêts, ôtés du loyer hors charges.
+    it "taxes what the charges and the loan interest leave of the rent excluding charges" do
+      on_credit = build(:simulation, :with_credit, monthly_rent: 800, occupancy_months: 12,
+                                                   property_tax: 700)
+      year = described_class.new(on_credit, :foncier_reel).years[1]
+      taxable = on_credit.annual_rent_excluding_charges - year.annual_charges - year.loan_interest
+
+      expect(taxable).to be_positive
+      expect(year.taxes).to eq((taxable * Taxation::SOCIAL_CHARGES_RATE / 100).round(2))
+    end
+
+    # La provision pour charges rembourse une dépense : elle grossit le cash-flow, non l'assiette.
+    it "collects the provision for charges without taxing it" do
+      with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
+                                                              occupancy_months: 12), :foncier_reel)
+      year = with_provision.years[1]
+
+      # 10 800 € encaissés, mais 9 600 € d'assiette : le résultat avant impôt les compte tous deux.
+      expect(year.annual_rent).to eq(10_800)
+      expect(year.pre_tax_result).to eq(10_800)
+      expect(year.taxes).to eq(BigDecimal("1651.20"))
+    end
+
+    # Un déficit foncier ne se reporte pas : l'année qui n'a rien gagné ne doit rien.
+    it "asks nothing of a year its charges and its interest have swallowed" do
+      loss_making = described_class.new(build(:simulation, :with_credit, monthly_rent: 800,
+                                                                        occupancy_months: 12,
+                                                                        property_tax: 5_000), :foncier_reel)
+
+      expect(loss_making.years[1].pre_tax_result).to be_negative
+      expect(loss_making.years[1].taxes).to eq(0)
+    end
+  end
+
   # Les conditions économiques composent la projection année après année : les loyers
   # progressent, les charges suivent l'inflation, et le bien prend de la valeur.
   describe "under evolving economic conditions" do
-    subject(:projection) { described_class.new(simulation) }
+    subject(:projection) { described_class.new(simulation, :micro_foncier) }
 
     let(:simulation) do
       build(:simulation, purchase_price: 200_000, monthly_rent: 1_000, occupancy_months: 12,
@@ -175,14 +223,14 @@ RSpec.describe Projection do
   # dépense : elle grossit le cash-flow, jamais l'assiette de l'impôt.
   it "collects the provision for charges without taxing it" do
     with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                            occupancy_months: 12))
+                                                            occupancy_months: 12), :micro_foncier)
 
     expect(with_provision.years[1].annual_rent).to eq(10_800)
     expect(with_provision.years[1].taxes).to eq(BigDecimal("1155.84"))
   end
 
   it "keeps a 29 February purchase on a real date" do
-    leap = described_class.new(build(:simulation, purchase_date: Date.new(2024, 2, 29)))
+    leap = described_class.new(build(:simulation, purchase_date: Date.new(2024, 2, 29)), :micro_foncier)
 
     expect(leap.years.first.date).to eq(Date.new(2024, 2, 29))
     expect(leap.years[1].date).to eq(Date.new(2025, 2, 28))

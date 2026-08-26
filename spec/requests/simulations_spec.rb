@@ -107,7 +107,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      rows = doc.css("#panel-projection tbody tr.row-expandable")
+      rows = doc.css("#panel-micro_foncier tbody tr.row-expandable")
 
       expect(rows.size).to eq(Projection::HORIZON_YEARS + 1)
       expect(rows.first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }).to eq([
@@ -126,7 +126,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      cells = doc.css("#panel-projection tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
       # 11 000 € de loyers, 2 000 € de charges et 1 324,40 € de prélèvements sociaux.
       expect(cells).to eq([
@@ -144,7 +144,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      statement = doc.at_css("#panel-projection dialog#year-2-statement")
+      statement = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-2-statement")
       lines = statement.css(".statement-line").map do |line|
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
@@ -162,6 +162,103 @@ RSpec.describe "Simulations", type: :request do
       ])
       expect(statement.at_css(".statement-footer").text.gsub(/\s+/, " "))
         .to include(currency(200_000).gsub(/\s+/, " "))
+    end
+
+    # Le foncier réel a son onglet à côté du micro-foncier, et son tableau porte le même
+    # horizon : ce sont les deux lectures d'une seule et même projection.
+    it "opens a tab of its own on the foncier réel projection" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      rows = doc.css("#panel-foncier_reel tbody tr.row-expandable")
+
+      expect(doc.at_css("#tab-foncier_reel")).not_to be_nil
+      expect(rows.size).to eq(Projection::HORIZON_YEARS + 1)
+    end
+
+    it "taxes the real result under the foncier réel, the charges deducted" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      cells = doc.css("#panel-foncier_reel tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      statement = doc.at_css("#panel-foncier_reel dialog#foncier_reel-year-1-statement")
+      amounts = statement.css(".statement-line").to_h do |line|
+        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      # 11 000 € de loyers moins 2 000 € de charges réelles : 9 000 € d'assiette, et
+      # 1 548 € de prélèvements sociaux, là où le micro-foncier en compte 1 324,40 €.
+      expect(cells).to eq([
+        "1",
+        "mar.-2026",
+        currency(11_000).gsub(/\s+/, " "),
+        currency(7_452).gsub(/\s+/, " "),
+        currency(229_160).gsub(/\s+/, " ")
+      ])
+      expect(amounts).to include(
+        I18n.t("views.simulations.show.annual_taxes_column") => currency(-1_548).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(7_452).gsub(/\s+/, " ")
+      )
+    end
+
+    # Tout l'intérêt de la paire : la même année, les mêmes loyers et les mêmes charges, et
+    # le seul impôt pour les séparer — le résultat net et le cash-flow n'en découlent.
+    it "renders the same year under both regimes, the tax apart" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      statements = Taxation::NAMES.index_with do |regime|
+        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement").css(".statement-line").to_h do |line|
+          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+        end
+      end
+      taxed = ["annual_taxes_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
+
+      expect(statements[:micro_foncier].except(*taxed)).to eq(statements[:foncier_reel].except(*taxed))
+      expect(statements[:micro_foncier].values_at(*taxed))
+        .not_to eq(statements[:foncier_reel].values_at(*taxed))
+    end
+
+    # À 0 % de barème seuls les prélèvements sociaux pèsent : c'est à 30 %, et à crédit, que les
+    # deux régimes s'écartent le plus — les intérêts s'y déduisent vraiment.
+    it "separates the regimes furthest when a real bracket meets deducted interest" do
+      taxed = create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
+                                                purchase_price: 200_000, initial_works: 0,
+                                                monthly_rent: 1_000, occupancy_months: 11,
+                                                property_tax: 700, marginal_tax_rate: 30)
+
+      get simulation_path(taxed)
+
+      doc = Nokogiri::HTML(response.body)
+      amounts = Taxation::NAMES.index_with do |regime|
+        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement").css(".statement-line").to_h do |line|
+          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+        end
+      end
+
+      # Le forfait impose 7 700 € à 47,2 % ; le réel, les 4 601,21 € que 700 € de charges et
+      # 5 698,79 € d'intérêts laissent des 11 000 € de loyers.
+      expect(amounts[:micro_foncier]).to include(
+        I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("-3634.40")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.net_result") => currency(BigDecimal("966.81")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("-6193.84")).gsub(/\s+/, " ")
+      )
+      expect(amounts[:foncier_reel]).to include(
+        I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("-2171.77")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.net_result") => currency(BigDecimal("2429.44")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("-4731.21")).gsub(/\s+/, " ")
+      )
+    end
+
+    # `tab` rouvre l'onglet d'où l'on revient : son panneau est le seul que le serveur montre.
+    it "opens the panel that tab names and leaves the others hidden" do
+      get simulation_path(simulation, tab: "foncier_reel")
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.at_css("#panel-foncier_reel")["hidden"]).to be_nil
+      expect(doc.at_css("#panel-micro_foncier")["hidden"]).not_to be_nil
+      expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
     # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix et
@@ -225,7 +322,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      expect(doc.css(".tabs .tab").size).to eq(3)
+      expect(doc.css(".tabs .tab").size).to eq(4)
     end
 
     describe "of a purchase financed by a credit" do
@@ -241,7 +338,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css(".tabs .tab").size).to eq(4)
+        expect(doc.css(".tabs .tab").size).to eq(5)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant
@@ -259,8 +356,8 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        headers = doc.css("#panel-projection thead th").map { |th| th.text.strip }
-        cells = doc.css("#panel-projection tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+        headers = doc.css("#panel-micro_foncier thead th").map { |th| th.text.strip }
+        cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
         # Année, date, loyers, cash-flow, capital immobilisé.
         expect(headers.size).to eq(5)
@@ -275,11 +372,11 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        statement = doc.at_css("#panel-projection dialog#year-1-statement")
+        statement = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement")
         amounts = statement.css(".statement-line").to_h do |line|
           [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
-        year = on_credit.projection.years[1]
+        year = on_credit.projection(:micro_foncier).years[1]
 
         expect(year.loan_interest + year.capital_repayment).to eq(on_credit.loan.annual_payment)
         expect(amounts).to include(

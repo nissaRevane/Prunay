@@ -21,7 +21,7 @@
       <button type="button" class="tab" role="tab" id="tab-<%= tab %>"
               aria-controls="panel-<%= tab %>" aria-selected="<%= index == opened %>"
               data-tabs-target="tab" data-action="click->tabs#select">
-        <%= t("views.simulations.show.tab_#{tab}", years: Projection::HORIZON_YEARS) %>
+        <%= t("views.simulations.show.tab_#{tab}") %>
       </button>
     <% end %>
   </div>
@@ -29,7 +29,7 @@
   <% tabs.each_with_index do |tab, index| %>
     <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{tab}", aria: { labelledby: "tab-#{tab}" },
                 data: { tabs_target: "panel" }, hidden: index != opened do %>
-      <%= render "simulations/#{tab}", simulation: @simulation, projection: @projection, schedule: @schedule %>
+      <%= render "simulations/#{tab}", simulation: @simulation, projections: @projections, schedule: @schedule %>
     <% end %>
   <% end %>
 </div>

@@ -12,11 +12,11 @@ module SimulationsHelper
     Simulation::ENERGY_RATINGS
   end
 
-  # Les onglets de la fiche, dans l'ordre où ils se lisent : le tableau d'amortissement n'en
-  # est un que pour une simulation qui porte un crédit. Chaque nom est aussi celui du partiel
-  # qui le remplit et de la traduction qui l'intitule.
+  # Les onglets de la fiche, dans l'ordre où ils se lisent : une projection par régime fiscal,
+  # et le tableau d'amortissement pour la seule simulation qui porte un crédit. Chaque nom est
+  # aussi celui du partiel qui le remplit et de la traduction qui l'intitule.
   def simulation_tabs(schedule)
-    tabs = %w[parameters projection]
+    tabs = ["parameters"] + Taxation::NAMES.map(&:to_s)
     tabs << "amortization" if schedule
 
     tabs << ECONOMIC_CONDITIONS_TAB

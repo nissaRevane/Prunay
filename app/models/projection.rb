@@ -2,7 +2,7 @@
 # l'achat, précédée de l'année zéro : le jour de la signature, où rien n'a encore été encaissé
 # et où le capital vient tout juste d'être immobilisé. Les anniversaires qui suivent portent
 # chacun les loyers des douze mois écoulés, composés par les conditions économiques, et
-# l'impôt que ces loyers-là valent au foyer (voir Taxation).
+# l'impôt que ces loyers-là valent au foyer, dans le régime qu'on lui donne (voir Taxation).
 class Projection
   HORIZON_YEARS = 30
 
@@ -34,8 +34,11 @@ class Projection
     end
   end
 
-  def initialize(simulation)
+  attr_reader :regime
+
+  def initialize(simulation, regime)
     @simulation = simulation
+    @regime = regime
   end
 
   def years
@@ -82,19 +85,17 @@ class Projection
     cumulative_cash_flow = 0
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
-      # L'assiette suit le loyer hors charges de cette année-là, et non les loyers encaissés :
-      # la provision pour charges n'est pas un revenu, elle rembourse une dépense.
-      taxes = @simulation.taxation(compound(@simulation.annual_rent_excluding_charges,
-                                            @simulation.rent_growth_rate, number - 1)).total
+      charges = compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1)
+      loan_interest = interest.fetch(number, 0)
 
       year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
         annual_rent: compound(@simulation.annual_rent, @simulation.rent_growth_rate, number - 1),
-        annual_charges: compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1),
-        loan_interest: interest.fetch(number, 0),
+        annual_charges: charges,
+        loan_interest: loan_interest,
         capital_repayment: principal.fetch(number, 0),
-        taxes: taxes,
+        taxes: taxes_for(number, charges, loan_interest),
         property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       )
       cumulative_cash_flow += year.cash_flow
@@ -102,6 +103,14 @@ class Projection
 
       year
     end
+  end
+
+  # L'assiette part du loyer hors charges : la provision n'est pas un revenu, elle rembourse.
+  def taxes_for(number, charges, loan_interest)
+    @simulation.taxation(regime,
+                         rent_excluding_charges: compound(@simulation.annual_rent_excluding_charges,
+                                                          @simulation.rent_growth_rate, number - 1),
+                         charges: charges, loan_interest: loan_interest).total
   end
 
   # Le jour de l'achat : aucun loyer, aucune charge, aucune échéance — rien n'a encore couru.

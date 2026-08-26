@@ -1,0 +1,5 @@
+<%# Le micro-foncier n'impose que le loyer hors charges, l'abattement forfaitaire déduit. %>
+<p class="section-hint"><%= t("views.simulations.show.micro_foncier_hint",
+                             allowance: number_to_percentage(Taxation::MicroFoncier::ALLOWANCE_RATE, precision: 0)) %></p>
+
+<%= render "simulations/projection", projection: projections[:micro_foncier] %>

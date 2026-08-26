@@ -165,8 +165,13 @@ class Simulation < ApplicationRecord
                        application_fees: loan_application_fees, signed_on: purchase_date)
   end
 
-  def projection
-    Projection.new(self)
+  def projection(regime)
+    Projection.new(self, regime)
+  end
+
+  # La fiche montre les deux régimes côte à côte : c'est le modèle qui sait lesquels.
+  def projections
+    Taxation::NAMES.index_with { |regime| projection(regime) }
   end
 
   # Par les mois effectivement loués : un bien vide un mois par an ne fait pas douze loyers.
@@ -186,14 +191,15 @@ class Simulation < ApplicationRecord
     applicable_charges.sum { |field| public_send(field) }
   end
 
-  # L'impôt d'une année, au micro-foncier. La projection lui passe les loyers qu'elle a
-  # composés : ce sont les mêmes règles, sur une assiette qui a grandi.
-  def taxation(rent_excluding_charges = annual_rent_excluding_charges)
-    Taxation.new(rent_excluding_charges: rent_excluding_charges, marginal_tax_rate: marginal_tax_rate)
+  # L'impôt d'une année : à défaut, celle qui a été saisie ; la projection passe la sienne.
+  def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
+               charges: annual_charges, loan_interest: loan.annual_interest.fetch(1, 0))
+    Taxation.for(regime, rent_excluding_charges: rent_excluding_charges, charges: charges,
+                         loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate)
   end
 
-  def annual_taxes
-    taxation.total
+  def annual_taxes(regime = Taxation::DEFAULT_REGIME)
+    taxation(regime).total
   end
 
   # Une année pleine : la projection, elle, lit l'annuité par année et voit le crédit s'éteindre.

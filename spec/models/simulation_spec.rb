@@ -128,8 +128,8 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # Le micro-foncier est dans Taxation : la simulation ne fait que lui passer son assiette et
-  # la tranche de son foyer.
+  # Les régimes sont dans Taxation : la simulation ne fait que leur passer son assiette, ses
+  # charges, ses intérêts d'emprunt et la tranche de son foyer.
   describe "#annual_taxes" do
     it "taxes the rent excluding charges at the bracket of the household" do
       taxed = build(:simulation, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
@@ -145,6 +145,17 @@ RSpec.describe Simulation, type: :model do
     it "still owes the social charges when the bracket is nil" do
       expect(build(:simulation, monthly_rent: 1_000, occupancy_months: 12, marginal_tax_rate: 0).annual_taxes)
         .to eq(BigDecimal("1444.80"))
+    end
+
+    # Le forfait du micro-foncier ignore ce que l'année a réellement dépensé ; le foncier réel,
+    # lui, le déduit — les charges et les intérêts de la première annuité.
+    it "deducts the real charges and the loan interest where the forfait does not" do
+      on_credit = build(:simulation, :with_credit, monthly_rent: 1_000, occupancy_months: 12,
+                                                  property_tax: 700)
+
+      expect(on_credit.taxation(:foncier_reel).taxable_income)
+        .to eq(12_000 - 700 - on_credit.loan.annual_interest.fetch(1))
+      expect(on_credit.annual_taxes(:foncier_reel)).to be < on_credit.annual_taxes
     end
   end
 
@@ -292,7 +303,7 @@ RSpec.describe Simulation, type: :model do
 
   describe "#projection" do
     it "hands the projection this simulation" do
-      expect(build(:simulation).projection).to be_a(Projection)
+      expect(build(:simulation).projection(:micro_foncier)).to be_a(Projection)
     end
   end
 end

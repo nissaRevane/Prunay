@@ -21,7 +21,7 @@
               <%# Le bouton est là pour le clavier ; le clic sur la ligne entière remonte
                   jusqu'à elle et ouvre la même fiche. %>
               <button type="button" class="row-toggle" aria-haspopup="dialog"
-                      aria-controls="year-<%= year.number %>-statement"><%= year.number %></button>
+                      aria-controls="<%= projection.regime %>-year-<%= year.number %>-statement"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>
             <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
@@ -46,14 +46,15 @@
   </div>
 
   <%# Une fiche par année, rendue avec le tableau et ouverte par lui : les charges se lisent
-      en négatif, comme sur un compte de résultat, et chaque solde suit ce qui l'a produit. %>
+      en négatif, comme sur un compte de résultat, et chaque solde suit ce qui l'a produit. Le
+      régime préfixe les identifiants — les deux onglets sont sur la même page. %>
   <% projection.years.each do |year| %>
-    <dialog class="statement" id="year-<%= year.number %>-statement" data-projection-target="statement"
+    <dialog class="statement" id="<%= projection.regime %>-year-<%= year.number %>-statement" data-projection-target="statement"
             data-year="<%= year.number %>" data-action="click->projection#dismiss"
-            aria-labelledby="year-<%= year.number %>-statement-title">
+            aria-labelledby="<%= projection.regime %>-year-<%= year.number %>-statement-title">
       <div class="statement-header">
         <div>
-          <div class="statement-title" id="year-<%= year.number %>-statement-title">
+          <div class="statement-title" id="<%= projection.regime %>-year-<%= year.number %>-statement-title">
             <%= t("views.simulations.show.statement_title", year: year.number) %>
           </div>
           <div class="statement-date"><%= l(year.date, format: :long) %></div>

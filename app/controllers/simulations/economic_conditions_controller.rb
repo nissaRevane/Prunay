@@ -17,7 +17,7 @@ module Simulations
     # L'onglet se rouvre sur ses erreurs, les autres panneaux restant ceux de la fiche.
     def render_simulation
       @tab = SimulationsHelper::ECONOMIC_CONDITIONS_TAB
-      @projection = @simulation.projection
+      @projections = @simulation.projections
       @schedule = @simulation.loan.schedule
 
       render "simulations/show", status: :unprocessable_entity

@@ -28,6 +28,5 @@
   <%# Aucune option vide : la colonne porte toujours une tranche, ne serait-ce que celle à zéro. %>
   <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
   <p class="form-hint"><%= t("views.economic_conditions.fields.marginal_tax_rate_hint",
-                             allowance: number_to_percentage(Taxation::ALLOWANCE_RATE, precision: 0),
                              social_charges: number_to_percentage(Taxation::SOCIAL_CHARGES_RATE, precision: 2, strip_insignificant_zeros: true)) %></p>
 </div>

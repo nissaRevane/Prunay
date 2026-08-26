@@ -1,11 +1,7 @@
-# L'impôt d'une année de location, au micro-foncier — le seul régime que Prunay modélise
-# pour l'instant. L'assiette est le loyer hors charges encaissé, diminué d'un abattement
-# forfaitaire qui tient lieu de toute charge déductible ; s'y appliquent la tranche marginale
-# du foyer et les prélèvements sociaux, qui eux ne dépendent d'aucun barème.
-class Taxation
-  # Le forfait du micro-foncier : 30 % de l'assiette, en place des charges réelles.
-  ALLOWANCE_RATE = BigDecimal("30")
-
+# L'impôt d'une année de location. Ce que tous les régimes partagent — les prélèvements
+# sociaux, le barème du foyer — tient ici ; ce que chacun retient de l'année lui est propre
+# et se lit dans sa classe (voir Taxation::Regime).
+module Taxation
   # CSG, CRDS et prélèvement de solidarité réunis : le taux des revenus du patrimoine.
   SOCIAL_CHARGES_RATE = BigDecimal("17.2")
 
@@ -16,40 +12,15 @@ class Taxation
   # La tranche de la plupart des foyers qui investissent : ce que Prunay suppose à défaut.
   DEFAULT_MARGINAL_TAX_RATE = 30
 
-  attr_reader :rent_excluding_charges, :marginal_tax_rate
+  # Les régimes, dans l'ordre où la simulation les présente : chaque nom est sa classe, son onglet et sa traduction.
+  NAMES = %i[micro_foncier foncier_reel].freeze
 
-  def initialize(rent_excluding_charges:, marginal_tax_rate:)
-    # Décimaux d'office, comme dans Loan : un taux entier ferait une division entière.
-    @rent_excluding_charges = rent_excluding_charges.to_d
-    @marginal_tax_rate = marginal_tax_rate.to_d
-  end
+  # Le régime que la liste des simulations suppose quand elle n'affiche qu'un cash-flow.
+  DEFAULT_REGIME = NAMES.first
 
-  # Ce que l'abattement retire de l'assiette : les charges réelles, forfaitairement.
-  def allowance
-    share(rent_excluding_charges, ALLOWANCE_RATE)
-  end
+  def self.for(name, **attributes)
+    raise ArgumentError, "régime fiscal inconnu : #{name.inspect}" unless NAMES.include?(name.to_s.to_sym)
 
-  # Le revenu foncier imposable : l'assiette une fois l'abattement déduit.
-  def taxable_income
-    rent_excluding_charges - allowance
-  end
-
-  def income_tax
-    share(taxable_income, marginal_tax_rate)
-  end
-
-  def social_charges
-    share(taxable_income, SOCIAL_CHARGES_RATE)
-  end
-
-  # Ce que l'année coûte en tout : la projection le retranche de son cash-flow.
-  def total
-    income_tax + social_charges
-  end
-
-  private
-
-  def share(amount, rate)
-    (amount * rate / 100).round(2)
+    const_get(name.to_s.camelize).new(**attributes)
   end
 end

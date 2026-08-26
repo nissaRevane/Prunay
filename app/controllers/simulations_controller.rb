@@ -9,7 +9,7 @@ class SimulationsController < ApplicationController
   # d'eux, et le premier s'ouvre à défaut.
   def show
     @tab = params[:tab]
-    @projection = @simulation.projection
+    @projections = @simulation.projections
     @schedule = @simulation.loan.schedule
   end
 

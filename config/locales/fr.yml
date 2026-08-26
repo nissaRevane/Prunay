@@ -144,7 +144,7 @@ fr:
         rent_growth_rate_hint: "Ce que le loyer gagne chaque année, indexation du bail comprise. La première année porte le loyer saisi ; la deuxième l'augmente d'autant."
         property_growth_rate_hint: "Ce que le bien prend en valeur chaque année. Le prix d'achat seul progresse : ni les frais de notaire ni les travaux ne se revendent."
         inflation_rate_hint: "Ce dont les charges annuelles s'alourdissent chaque année — taxe foncière, assurance, entretien et le reste."
-        marginal_tax_rate_hint: "La tranche du barème où tombe le dernier euro de revenu du foyer. Au micro-foncier, elle frappe les loyers hors charges diminués de %{allowance} d'abattement, et %{social_charges} de prélèvements sociaux s'y ajoutent."
+        marginal_tax_rate_hint: "La tranche du barème où tombe le dernier euro de revenu du foyer. Elle frappe le revenu foncier imposable, quel que soit le régime retenu, et %{social_charges} de prélèvements sociaux s'y ajoutent."
     pages:
       home:
         title: Bienvenue sur Prunay
@@ -224,9 +224,12 @@ fr:
         project_cost: Coût du projet
         initial_outlay: Investissement initial
         tab_parameters: Paramètres
-        tab_projection: Projection
+        tab_micro_foncier: Micro-foncier
+        tab_foncier_reel: Foncier réel
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
+        micro_foncier_hint: "L'impôt ne frappe que les loyers hors charges, diminués de %{allowance} d'abattement forfaitaire : ni les charges réelles ni les intérêts d'emprunt ne s'y déduisent, le forfait en tient lieu."
+        foncier_reel_hint: "L'impôt ne frappe que les loyers hors charges, diminués des charges réelles et des intérêts d'emprunt, sans aucun abattement : la provision pour charges n'y entre pas. Une année déficitaire ne doit rien, et le déficit ne se reporte pas."
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
@@ -241,7 +244,6 @@ fr:
         not_provided: Non renseigné
         answer_yes: Oui
         answer_no: Non
-        projection: "Projection sur %{years} ans"
         duration_value: "%{years} ans (%{months} mois)"
         amortization_duration: Durée
         payment_count: "%{months} mensualités"
