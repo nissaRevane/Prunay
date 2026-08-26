@@ -384,14 +384,13 @@ a.nav-user-name:hover {
   overflow-x: auto;
 }
 
-/* Une ligne qui se déplie : tout son corps est cliquable, le bouton du premier bloc n'étant
-   là que pour le clavier et les lecteurs d'écran. */
+/* Une ligne qui ouvre sa fiche : tout son corps est cliquable, le bouton du premier bloc
+   n'étant là que pour le clavier et les lecteurs d'écran. */
 .row-expandable {
   cursor: pointer;
 }
 
-.row-expandable:hover,
-.row-expandable.is-open {
+.row-expandable:hover {
   background: var(--color-bg);
 }
 
@@ -412,24 +411,107 @@ a.nav-user-name:hover {
 .row-toggle::before {
   content: "\203A";
   color: var(--color-text-muted);
-  transition: transform 0.15s;
 }
 
-.row-expandable.is-open .row-toggle::before {
-  transform: rotate(90deg);
+/* Le compte de résultat d'une année, en pop-in : une colonne de libellés, une de montants. */
+.statement {
+  /* Le reset écrase le `margin: auto` dont le navigateur centre une modale : il faut le rendre. */
+  margin: auto;
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-.row-detail > td {
-  background: var(--color-bg);
+.statement::backdrop {
+  background: rgba(15, 23, 42, 0.45);
 }
 
-/* Le détail vit dans la ligne : la fiche y perd son cadre et son ombre. */
-.detail-grid-flat {
+.statement-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.statement-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.statement-date {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.statement-close {
   background: none;
   border: none;
-  box-shadow: none;
-  padding: 0;
-  margin-bottom: 0;
+  padding: 0 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.statement-lines {
+  padding: 0.75rem 1.25rem 1.25rem;
+}
+
+.statement-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.3125rem 0;
+}
+
+.statement-label {
+  color: var(--color-text-muted);
+}
+
+/* Un solde se détache de ce qui l'a produit : un filet au-dessus, et le libellé en plein. */
+.statement-line-subtotal,
+.statement-line-total {
+  margin-top: 0.375rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.statement-line-total {
+  border-top-width: 2px;
+  border-top-color: var(--color-text);
+}
+
+.statement-line-subtotal .statement-label,
+.statement-line-total .statement-label {
+  color: var(--color-text);
+}
+
+/* Des chiffres de même largeur : sans quoi une colonne de montants ne s'aligne pas. */
+.statement-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.statement-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
 /* Un tableau qui compte ses lignes par centaines — trois cents échéances d'un crédit sur

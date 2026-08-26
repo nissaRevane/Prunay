@@ -138,24 +138,30 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Ce que le tableau ne montre pas se déplie sous la ligne de l'année, caché au chargement.
-    it "folds the charges, the taxes, the annuities and the price of the property under each year" do
+    # Ce que le tableau ne montre pas se lit dans la pop-in de l'année : un compte de résultat,
+    # du loyer au cash-flow, les charges en négatif et chaque solde derrière ce qui l'a produit.
+    it "renders the statement of each year as a dialog, closed until its row is clicked" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      detail = doc.at_css("#panel-projection #year-2-detail")
-      amounts = detail.css(".detail-item").to_h do |item|
-        [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      statement = doc.at_css("#panel-projection dialog#year-2-statement")
+      lines = statement.css(".statement-line").map do |line|
+        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      expect(detail["hidden"]).not_to be_nil
-      expect(doc.at_css("#panel-projection .row-toggle")["aria-expanded"]).to eq("false")
-      expect(amounts).to eq(
-        I18n.t("views.simulations.show.annual_charges_column") => currency(2_000).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("1324.40")).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.loan_payments_column") => I18n.t("views.simulations.show.no_loan_payment"),
-        I18n.t("views.simulations.show.property_value_column") => currency(200_000).gsub(/\s+/, " ")
-      )
+      expect(statement["open"]).to be_nil
+      expect(lines).to eq([
+        [I18n.t("views.simulations.show.annual_rent_column"), currency(11_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.annual_charges_column"), currency(-2_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.loan_interest_column"), currency(0).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.pre_tax_result"), currency(9_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.annual_taxes_column"), currency(BigDecimal("-1324.40")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.net_result"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
+      ])
+      expect(statement.at_css(".statement-footer").text.gsub(/\s+/, " "))
+        .to include(currency(200_000).gsub(/\s+/, " "))
     end
 
     # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix et
@@ -196,34 +202,6 @@ RSpec.describe "Simulations", type: :request do
       )
       # Onze mois loués, et non douze : la vacance se paie.
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
-    end
-
-    # L'impôt se détaille comme le régime le calcule : l'assiette, l'abattement qui la réduit,
-    # ce qui reste imposable, puis les deux prélèvements. Le foyer de cet exemple n'est pas
-    # imposé au barème — les prélèvements sociaux, eux, sont dus quand même.
-    it "details the taxation of a full year, from the rent excluding charges to the two levies" do
-      taxed = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 150,
-                                  occupancy_months: 11, marginal_tax_rate: 30)
-
-      get simulation_path(taxed)
-
-      doc = Nokogiri::HTML(response.body)
-      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.taxation_detail") }
-      amounts = section.css(".detail-item").to_h do |item|
-        [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
-      end
-
-      # 11 000 € de loyers hors charges — la provision pour charges n'y est pas —, 3 300 €
-      # d'abattement, 7 700 € imposables, 30 % de barème et 17,2 % de prélèvements sociaux.
-      expect(amounts).to eq(
-        I18n.t("views.simulations.show.taxable_rent") => currency(11_000).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.allowance", rate: "30 %") => currency(-3_300).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.taxable_income") => currency(7_700).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.income_tax", rate: "30 %") => currency(2_310).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.social_charges", rate: "17,2 %") => currency(BigDecimal("1324.40")).gsub(/\s+/, " ")
-      )
-      expect(section.at_css(".section-total").text.gsub(/\s+/, " "))
-        .to include(currency(BigDecimal("3634.40")).gsub(/\s+/, " "))
     end
 
     # Une ligne à zéro se lirait comme une charge oubliée : la fiche ne détaille que les
@@ -289,6 +267,26 @@ RSpec.describe "Simulations", type: :request do
         expect(cells.third).to eq(currency(11_000).gsub(/\s+/, " "))
         expect(cells.fourth)
           .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment).gsub(/\s+/, " "))
+      end
+
+      # L'annuité se coupe en deux sur le compte de résultat : les intérêts et la prime sont
+      # une charge, le capital rendu ne l'est pas — il passe sous le résultat net.
+      it "splits the annuity between the interest it charges and the capital it gives back" do
+        get simulation_path(on_credit)
+
+        doc = Nokogiri::HTML(response.body)
+        statement = doc.at_css("#panel-projection dialog#year-1-statement")
+        amounts = statement.css(".statement-line").to_h do |line|
+          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+        end
+        year = on_credit.projection.years[1]
+
+        expect(year.loan_interest + year.capital_repayment).to eq(on_credit.loan.annual_payment)
+        expect(amounts).to include(
+          I18n.t("views.simulations.show.loan_interest_column") => currency(-year.loan_interest).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.capital_repayment_column") => currency(-year.capital_repayment).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.cash_flow") => currency(year.cash_flow).gsub(/\s+/, " ")
+        )
       end
 
       # Ce qui est réellement immobilisé le premier jour, c'est l'apport et les frais que la

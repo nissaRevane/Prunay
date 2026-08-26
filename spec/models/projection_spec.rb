@@ -91,6 +91,17 @@ RSpec.describe Projection do
         .to eq(9_600 - BigDecimal("1155.84") - BigDecimal("1071.62") * 12)
     end
 
+    # Les deux moitiés de l'annuité ne pèsent pas au même endroit : les intérêts et la prime
+    # entament le résultat avant impôt, le capital rendu ne se lit qu'au cash-flow.
+    it "charges the interest to the pre-tax result and the capital to the cash flow alone" do
+      year = projection.years[1]
+
+      expect(year.loan_interest + year.capital_repayment).to eq(year.loan_payments)
+      expect(year.pre_tax_result).to eq(9_600 - year.loan_interest)
+      expect(year.net_result).to eq(year.pre_tax_result - BigDecimal("1155.84"))
+      expect(year.cash_flow).to eq(year.net_result - year.capital_repayment)
+    end
+
     it "stops deducting anything once the loan is cleared" do
       expect(projection.years[20].loan_payments).to be_positive
       expect(projection.years[21].loan_payments).to eq(0)

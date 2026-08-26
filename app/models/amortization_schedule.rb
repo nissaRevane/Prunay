@@ -46,11 +46,23 @@ class AmortizationSchedule
 
   # Douze échéances par année pleine : le crédit cesse de peser sans que la projection sache les dates.
   def annual_payments
-    @annual_payments ||= rows.group_by { |row| ((row.number - 1) / Loan::MONTHS_PER_YEAR) + 1 }
-                             .transform_values { |yearly| yearly.sum(&:payment) }
+    @annual_payments ||= yearly_rows.transform_values { |yearly| yearly.sum(&:payment) }
+  end
+
+  # L'assurance se range avec les intérêts : elle se paie sans rien rendre du capital.
+  def annual_interest
+    @annual_interest ||= yearly_rows.transform_values { |yearly| yearly.sum { |row| row.interest + row.insurance } }
+  end
+
+  def annual_principal
+    @annual_principal ||= yearly_rows.transform_values { |yearly| yearly.sum(&:principal) }
   end
 
   private
+
+  def yearly_rows
+    @yearly_rows ||= rows.group_by { |row| ((row.number - 1) / Loan::MONTHS_PER_YEAR) + 1 }
+  end
 
   def capital
     @loan.capital

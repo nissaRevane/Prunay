@@ -1,15 +1,24 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Le détail d'une année de la projection : la ligne suivante, cachée, se déplie au clic.
+// Le compte de résultat d'une année de la projection : la ligne cliquée ouvre sa fiche,
+// rendue par le serveur, en pop-in modale.
 export default class extends Controller {
-  toggle(event) {
-    const row = event.currentTarget
-    const detail = row.nextElementSibling
-    const button = row.querySelector(".row-toggle")
-    const opened = detail.hidden
+  static targets = ["statement"]
 
-    detail.hidden = !opened
-    row.classList.toggle("is-open", opened)
-    button.setAttribute("aria-expanded", opened)
+  open(event) {
+    this.statementFor(event.params.year)?.showModal()
+  }
+
+  close(event) {
+    event.currentTarget.closest("dialog").close()
+  }
+
+  // Le clic n'atteint la modale elle-même que par son fond : ailleurs, la fiche l'a reçu.
+  dismiss(event) {
+    if (event.target === event.currentTarget) event.currentTarget.close()
+  }
+
+  statementFor(year) {
+    return this.statementTargets.find((statement) => statement.dataset.year === String(year))
   }
 }

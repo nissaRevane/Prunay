@@ -6,11 +6,29 @@
 class Projection
   HORIZON_YEARS = 30
 
-  # +loan_payments+ est ce que le crédit prélève cette année-là, +taxes+ ce que l'impôt et les
-  # prélèvements sociaux prennent des loyers de l'année ; +immobilized_capital+ est cumulatif,
-  # et +property_value+ est ce que le bien vaut à cette date-là.
-  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_payments, :taxes, :cash_flow,
-                    :immobilized_capital, :property_value, keyword_init: true) do
+  # Le compte de résultat d'une année : ce qu'elle encaisse, ce qu'elle dépense, et les deux
+  # soldes qui s'en déduisent. +immobilized_capital+ est cumulatif et se pose après coup, une
+  # fois le cash-flow de l'année connu.
+  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_interest, :capital_repayment,
+                    :taxes, :immobilized_capital, :property_value, keyword_init: true) do
+    # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
+    def pre_tax_result
+      annual_rent - annual_charges - loan_interest
+    end
+
+    def net_result
+      pre_tax_result - taxes
+    end
+
+    def cash_flow
+      net_result - capital_repayment
+    end
+
+    # Ce que le crédit prélève en tout : c'est l'annuité que la banque appelle.
+    def loan_payments
+      loan_interest + capital_repayment
+    end
+
     def recovered?
       immobilized_capital <= 0
     end
@@ -59,31 +77,30 @@ class Projection
   # anniversaire — c'est une valeur à une date, non un montant encaissé sur une période.
   def build_years
     outlay = @simulation.initial_outlay
-    payments = @simulation.loan.annual_payments
+    interest = @simulation.loan.annual_interest
+    principal = @simulation.loan.annual_principal
     cumulative_cash_flow = 0
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
-      rent = compound(@simulation.annual_rent, @simulation.rent_growth_rate, number - 1)
-      charges = compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1)
-      due = payments.fetch(number, 0)
       # L'assiette suit le loyer hors charges de cette année-là, et non les loyers encaissés :
       # la provision pour charges n'est pas un revenu, elle rembourse une dépense.
       taxes = @simulation.taxation(compound(@simulation.annual_rent_excluding_charges,
                                             @simulation.rent_growth_rate, number - 1)).total
-      cash_flow = rent - charges - taxes - due
-      cumulative_cash_flow += cash_flow
 
-      Year.new(
+      year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
-        annual_rent: rent,
-        annual_charges: charges,
-        loan_payments: due,
+        annual_rent: compound(@simulation.annual_rent, @simulation.rent_growth_rate, number - 1),
+        annual_charges: compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1),
+        loan_interest: interest.fetch(number, 0),
+        capital_repayment: principal.fetch(number, 0),
         taxes: taxes,
-        cash_flow: cash_flow,
-        immobilized_capital: outlay - cumulative_cash_flow,
         property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       )
+      cumulative_cash_flow += year.cash_flow
+      year.immobilized_capital = outlay - cumulative_cash_flow
+
+      year
     end
   end
 
@@ -96,9 +113,9 @@ class Projection
       date: @simulation.purchase_date,
       annual_rent: 0,
       annual_charges: 0,
-      loan_payments: 0,
+      loan_interest: 0,
+      capital_repayment: 0,
       taxes: 0,
-      cash_flow: 0,
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price
     )

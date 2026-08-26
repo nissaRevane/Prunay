@@ -104,6 +104,15 @@ class Loan
     schedule&.annual_payments || {}
   end
 
+  # Le compte de résultat sépare les deux : les intérêts et la prime sont une charge, le capital non.
+  def annual_interest
+    schedule&.annual_interest || {}
+  end
+
+  def annual_principal
+    schedule&.annual_principal || {}
+  end
+
   def total_interest
     schedule&.total_interest || 0
   end

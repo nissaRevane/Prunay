@@ -1,6 +1,6 @@
 <%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
-    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Le reste — charges, impôt,
-    annuités, valeur du bien — se déplie d'un clic sur la ligne de l'année. %>
+    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Le clic sur une ligne ouvre le
+    compte de résultat de l'année, du loyer au cash-flow. %>
 <div class="section" data-controller="projection">
   <div class="table-scroll">
     <table class="table">
@@ -15,42 +15,19 @@
       </thead>
       <tbody>
         <% projection.years.each do |year| %>
-          <tr class="row-expandable" data-action="click->projection#toggle">
+          <tr class="row-expandable" data-action="click->projection#open"
+              data-projection-year-param="<%= year.number %>">
             <td>
-              <%# Le bouton porte l'état pour qui navigue au clavier ; le clic sur la ligne
-                  entière remonte jusqu'à elle et fait le même travail. %>
-              <button type="button" class="row-toggle" aria-expanded="false"
-                      aria-controls="year-<%= year.number %>-detail"><%= year.number %></button>
+              <%# Le bouton est là pour le clavier ; le clic sur la ligne entière remonte
+                  jusqu'à elle et ouvre la même fiche. %>
+              <button type="button" class="row-toggle" aria-haspopup="dialog"
+                      aria-controls="year-<%= year.number %>-statement"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>
             <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
-            </td>
-          </tr>
-          <tr class="row-detail" id="year-<%= year.number %>-detail" hidden>
-            <td colspan="5">
-              <div class="detail-grid detail-grid-flat">
-                <div class="detail-item">
-                  <span class="detail-label"><%= t("views.simulations.show.annual_charges_column") %></span>
-                  <span class="detail-value"><%= number_to_currency(year.annual_charges) %></span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label"><%= t("views.simulations.show.annual_taxes_column") %></span>
-                  <span class="detail-value"><%= number_to_currency(year.taxes) %></span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label"><%= t("views.simulations.show.loan_payments_column") %></span>
-                  <span class="detail-value">
-                    <%= year.loan_payments.positive? ? number_to_currency(year.loan_payments) : t("views.simulations.show.no_loan_payment") %>
-                  </span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label"><%= t("views.simulations.show.property_value_column") %></span>
-                  <span class="detail-value"><%= number_to_currency(year.property_value) %></span>
-                </div>
-              </div>
             </td>
           </tr>
         <% end %>
@@ -67,4 +44,66 @@
     <span><%= t("views.simulations.show.final_property_value", years: Projection::HORIZON_YEARS) %></span>
     <span><%= number_to_currency(projection.final_property_value) %></span>
   </div>
+
+  <%# Une fiche par année, rendue avec le tableau et ouverte par lui : les charges se lisent
+      en négatif, comme sur un compte de résultat, et chaque solde suit ce qui l'a produit. %>
+  <% projection.years.each do |year| %>
+    <dialog class="statement" id="year-<%= year.number %>-statement" data-projection-target="statement"
+            data-year="<%= year.number %>" data-action="click->projection#dismiss"
+            aria-labelledby="year-<%= year.number %>-statement-title">
+      <div class="statement-header">
+        <div>
+          <div class="statement-title" id="year-<%= year.number %>-statement-title">
+            <%= t("views.simulations.show.statement_title", year: year.number) %>
+          </div>
+          <div class="statement-date"><%= l(year.date, format: :long) %></div>
+        </div>
+        <button type="button" class="statement-close" data-action="click->projection#close"
+                aria-label="<%= t("views.simulations.show.statement_close") %>">&times;</button>
+      </div>
+
+      <div class="statement-lines">
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.annual_rent_column") %></span>
+          <span class="statement-amount"><%= number_to_currency(year.annual_rent) %></span>
+        </div>
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.annual_charges_column") %></span>
+          <span class="statement-amount"><%= number_to_currency(-year.annual_charges) %></span>
+        </div>
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.loan_interest_column") %></span>
+          <span class="statement-amount"><%= number_to_currency(-year.loan_interest) %></span>
+        </div>
+        <div class="statement-line statement-line-subtotal">
+          <span class="statement-label"><%= t("views.simulations.show.pre_tax_result") %></span>
+          <span class="statement-amount"><%= number_to_currency(year.pre_tax_result) %></span>
+        </div>
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.annual_taxes_column") %></span>
+          <span class="statement-amount"><%= number_to_currency(-year.taxes) %></span>
+        </div>
+        <div class="statement-line statement-line-subtotal">
+          <span class="statement-label"><%= t("views.simulations.show.net_result") %></span>
+          <span class="statement-amount"><%= number_to_currency(year.net_result) %></span>
+        </div>
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.capital_repayment_column") %></span>
+          <span class="statement-amount"><%= number_to_currency(-year.capital_repayment) %></span>
+        </div>
+        <div class="statement-line statement-line-total">
+          <span class="statement-label"><%= t("views.simulations.show.cash_flow") %></span>
+          <span class="statement-amount <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>">
+            <%= number_to_currency(year.cash_flow) %>
+          </span>
+        </div>
+      </div>
+
+      <%# Ni un produit ni une charge : la valeur du bien à cette date-là se lit hors du compte. %>
+      <div class="statement-footer">
+        <span><%= t("views.simulations.show.property_value_column") %></span>
+        <span class="statement-amount"><%= number_to_currency(year.property_value) %></span>
+      </div>
+    </dialog>
+  <% end %>
 </div>
