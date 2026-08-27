@@ -228,8 +228,8 @@ fr:
         tab_foncier_reel: Foncier réel
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
-        micro_foncier_hint: "L'impôt ne frappe que les loyers hors charges, diminués de %{allowance} d'abattement forfaitaire : ni les charges réelles ni les intérêts d'emprunt ne s'y déduisent, le forfait en tient lieu."
-        foncier_reel_hint: "L'impôt ne frappe que les loyers hors charges, diminués des charges réelles et des intérêts d'emprunt, sans aucun abattement : la provision pour charges n'y entre pas. Une année déficitaire ne doit rien, et le déficit ne se reporte pas."
+        micro_foncier_hint: "L'impôt ne frappe que les loyers hors charges, diminués de %{allowance} d'abattement forfaitaire : ni les charges réelles ni les intérêts d'emprunt ne s'y déduisent, le forfait en tient lieu. La provision pour charges reste dehors, comme les dépenses qu'elle rembourse."
+        foncier_reel_hint: "L'impôt ne frappe que les loyers hors charges, diminués des charges réelles et des intérêts d'emprunt, sans aucun abattement : la provision pour charges n'entre ni dans les loyers, ni dans les charges qu'elle rembourse. Une année déficitaire ne doit rien, et le déficit ne se reporte pas."
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
@@ -262,10 +262,11 @@ fr:
         total_loan_cost: Coût total du crédit
         year: Année
         date: Date
-        annual_rent_column: "Loyers de l'année"
+        annual_rent_column: Loyers hors charges
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
         annual_charges_column: "Charges de l'année"
+        provision_deducted: "provision pour charges de %{amount} déduite"
         annual_taxes_column: "Impôt de l'année"
         loan_interest_column: "Intérêts d'emprunt et assurance"
         pre_tax_result: Résultat avant impôt

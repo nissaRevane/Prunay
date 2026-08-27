@@ -164,6 +164,26 @@ RSpec.describe "Simulations", type: :request do
         .to include(currency(200_000).gsub(/\s+/, " "))
     end
 
+    # La provision pour charges ne se déclare pas, et la dépense qu'elle rembourse pas
+    # davantage : le tableau ne montre que le loyer hors charges, et la fiche des charges
+    # allégées d'autant, une note disant de combien.
+    it "shows the rent excluding charges and says discreetly what the provision took off them" do
+      let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
+                                    occupancy_months: 12, condominium: true, condominium_fees: 1_500)
+
+      get simulation_path(let_out)
+
+      doc = Nokogiri::HTML(response.body)
+      rent = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td")[2]
+      charges = doc.css("#panel-micro_foncier dialog#micro_foncier-year-1-statement .statement-line")[1]
+
+      expect(rent.text.gsub(/\s+/, " ").strip).to eq(currency(12_000).gsub(/\s+/, " "))
+      expect(charges.at_css(".statement-note").text.gsub(/\s+/, " ").strip)
+        .to eq(I18n.t("views.simulations.show.provision_deducted", amount: currency(1_200)).gsub(/\s+/, " "))
+      expect(charges.at_css(".statement-amount").text.gsub(/\s+/, " ").strip)
+        .to eq(currency(-300).gsub(/\s+/, " "))
+    end
+
     # Le foncier réel a son onglet à côté du micro-foncier, et son tableau porte le même
     # horizon : ce sont les deux lectures d'une seule et même projection.
     it "opens a tab of its own on the foncier réel projection" do

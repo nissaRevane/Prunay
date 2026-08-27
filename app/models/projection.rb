@@ -6,14 +6,16 @@
 class Projection
   HORIZON_YEARS = 30
 
-  # Le compte de résultat d'une année : ce qu'elle encaisse, ce qu'elle dépense, et les deux
-  # soldes qui s'en déduisent. +immobilized_capital+ est cumulatif et se pose après coup, une
-  # fois le cash-flow de l'année connu.
-  Year = Struct.new(:number, :date, :annual_rent, :annual_charges, :loan_interest, :capital_repayment,
-                    :taxes, :immobilized_capital, :property_value, keyword_init: true) do
+  # Le compte de résultat d'une année, tenu comme il se déclare : le loyer hors charges d'un
+  # côté, de l'autre les charges dont la provision remboursée est ôtée — la provision n'est pas
+  # un revenu, et les dépenses qu'elle couvre ne se déduisent pas davantage. Le solde, lui, est
+  # celui des montants bruts : ce que l'on retire d'un côté, on ne le compte pas de l'autre.
+  Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
+                    :provision_for_charges, :loan_interest, :capital_repayment, :taxes,
+                    :immobilized_capital, :property_value, keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
     def pre_tax_result
-      annual_rent - annual_charges - loan_interest
+      rent_excluding_charges - charges_excluding_provision - loan_interest
     end
 
     def net_result
@@ -47,11 +49,11 @@ class Projection
 
   # Les loyers ne se multiplient plus : ils progressent d'une année sur l'autre.
   def total_rent
-    years.sum(&:annual_rent)
+    years.sum(&:rent_excluding_charges)
   end
 
   def total_charges
-    years.sum(&:annual_charges)
+    years.sum(&:charges_excluding_provision)
   end
 
   def total_taxes
@@ -77,7 +79,9 @@ class Projection
 
   # La première année pleine porte les montants tels qu'ils ont été saisis : ils décrivent les
   # douze mois qui suivent l'achat. Le prix du bien, lui, a déjà pris une année au premier
-  # anniversaire — c'est une valeur à une date, non un montant encaissé sur une période.
+  # anniversaire — c'est une valeur à une date, non un montant encaissé sur une période. La
+  # provision suit l'inflation et non les loyers : elle rembourse des dépenses, et se régularise
+  # sur elles.
   def build_years
     outlay = @simulation.initial_outlay
     interest = @simulation.loan.annual_interest
@@ -85,17 +89,20 @@ class Projection
     cumulative_cash_flow = 0
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
-      charges = compound(@simulation.annual_charges, @simulation.inflation_rate, number - 1)
+      rent = compound(@simulation.annual_rent_excluding_charges, @simulation.rent_growth_rate, number - 1)
+      charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
 
       year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
-        annual_rent: compound(@simulation.annual_rent, @simulation.rent_growth_rate, number - 1),
-        annual_charges: charges,
+        rent_excluding_charges: rent,
+        charges_excluding_provision: charges,
+        provision_for_charges: compound(@simulation.annual_provision_for_charges,
+                                        @simulation.inflation_rate, number - 1),
         loan_interest: loan_interest,
         capital_repayment: principal.fetch(number, 0),
-        taxes: taxes_for(number, charges, loan_interest),
+        taxes: taxes_for(rent, charges, loan_interest),
         property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       )
       cumulative_cash_flow += year.cash_flow
@@ -105,12 +112,10 @@ class Projection
     end
   end
 
-  # L'assiette part du loyer hors charges : la provision n'est pas un revenu, elle rembourse.
-  def taxes_for(number, charges, loan_interest)
-    @simulation.taxation(regime,
-                         rent_excluding_charges: compound(@simulation.annual_rent_excluding_charges,
-                                                          @simulation.rent_growth_rate, number - 1),
-                         charges: charges, loan_interest: loan_interest).total
+  # L'assiette ne se compose pas ici : l'année porte déjà les montants qui se déclarent.
+  def taxes_for(rent, charges, loan_interest)
+    @simulation.taxation(regime, rent_excluding_charges: rent, charges: charges,
+                                 loan_interest: loan_interest).total
   end
 
   # Le jour de l'achat : aucun loyer, aucune charge, aucune échéance — rien n'a encore couru.
@@ -120,8 +125,9 @@ class Projection
     Year.new(
       number: 0,
       date: @simulation.purchase_date,
-      annual_rent: 0,
-      annual_charges: 0,
+      rent_excluding_charges: 0,
+      charges_excluding_provision: 0,
+      provision_for_charges: 0,
       loan_interest: 0,
       capital_repayment: 0,
       taxes: 0,

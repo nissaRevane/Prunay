@@ -496,6 +496,15 @@ a.nav-user-name:hover {
   color: var(--color-text);
 }
 
+/* Une précision sous un libellé, non une ligne de plus : plus petite, et de la même encre
+   éteinte que ce qu'elle commente. */
+.statement-note {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
 /* Des chiffres de même largeur : sans quoi une colonne de montants ne s'aligne pas. */
 .statement-amount {
   font-variant-numeric: tabular-nums;

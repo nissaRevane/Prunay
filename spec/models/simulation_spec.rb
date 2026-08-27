@@ -287,6 +287,25 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  # Ce qui se déclare : la provision n'est pas un revenu, et la dépense qu'elle rembourse n'est
+  # pas déductible. Les deux sortent ensemble, sous l'un comme sous l'autre régime.
+  describe "#annual_charges_excluding_provision" do
+    it "takes the provision the tenant reimburses out of the charges" do
+      let_out = build(:simulation, monthly_charges: 100, occupancy_months: 12, condominium: true,
+                                   property_tax: 700, condominium_fees: 1_500)
+
+      expect(let_out.annual_provision_for_charges).to eq(1_200)
+      expect(let_out.annual_charges_excluding_provision).to eq(1_000)
+    end
+
+    it "is what the foncier réel deducts from the rent excluding charges" do
+      let_out = build(:simulation, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
+                                   condominium: true, condominium_fees: 1_500)
+
+      expect(let_out.taxation(:foncier_reel).taxable_income).to eq(12_000 - 300)
+    end
+  end
+
   describe "#annual_cash_flow" do
     # Le cash-flow d'une année pleine, celui que la liste des simulations met en avant :
     # l'impôt y pèse comme les charges et l'annuité — 12,04 % de 9 600 € de loyers.

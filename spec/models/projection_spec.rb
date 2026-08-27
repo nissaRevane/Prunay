@@ -21,8 +21,8 @@ RSpec.describe Projection do
 
     expect(origin.number).to eq(0)
     expect(origin.date).to eq(Date.new(2025, 3, 10))
-    expect(origin.annual_rent).to eq(0)
-    expect(origin.annual_charges).to eq(0)
+    expect(origin.rent_excluding_charges).to eq(0)
+    expect(origin.charges_excluding_provision).to eq(0)
     expect(origin.loan_payments).to eq(0)
     expect(origin.taxes).to eq(0)
     expect(origin.cash_flow).to eq(0)
@@ -39,8 +39,8 @@ RSpec.describe Projection do
   end
 
   it "collects the same rent and pays the same charges on every line" do
-    expect(projection.years.drop(1).map(&:annual_rent).uniq).to eq([11_000])
-    expect(projection.years.drop(1).map(&:annual_charges).uniq).to eq([2_000])
+    expect(projection.years.drop(1).map(&:rent_excluding_charges).uniq).to eq([11_000])
+    expect(projection.years.drop(1).map(&:charges_excluding_provision).uniq).to eq([2_000])
   end
 
   # Le foyer de la fabrique n'est pas imposé au barème, mais les prélèvements sociaux, eux,
@@ -136,22 +136,36 @@ RSpec.describe Projection do
       on_credit = build(:simulation, :with_credit, monthly_rent: 800, occupancy_months: 12,
                                                    property_tax: 700)
       year = described_class.new(on_credit, :foncier_reel).years[1]
-      taxable = on_credit.annual_rent_excluding_charges - year.annual_charges - year.loan_interest
+      taxable = on_credit.annual_rent_excluding_charges - year.charges_excluding_provision - year.loan_interest
 
       expect(taxable).to be_positive
       expect(year.taxes).to eq((taxable * Taxation::SOCIAL_CHARGES_RATE / 100).round(2))
     end
 
-    # La provision pour charges rembourse une dépense : elle grossit le cash-flow, non l'assiette.
-    it "collects the provision for charges without taxing it" do
+    # La provision rembourse une dépense : ni l'une ni l'autre ne se déclarent, et les charges
+    # déductibles s'en trouvent allégées d'autant.
+    it "deducts neither the provision for charges nor what it reimburses" do
       with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                              occupancy_months: 12), :foncier_reel)
+                                                              occupancy_months: 12, condominium: true,
+                                                              condominium_fees: 1_200), :foncier_reel)
       year = with_provision.years[1]
 
-      # 10 800 € encaissés, mais 9 600 € d'assiette : le résultat avant impôt les compte tous deux.
-      expect(year.annual_rent).to eq(10_800)
-      expect(year.pre_tax_result).to eq(10_800)
+      # La provision couvre exactement les charges de copropriété : il ne reste rien à déduire
+      # des 9 600 € de loyers hors charges, et le solde est celui des montants bruts.
+      expect(year.charges_excluding_provision).to eq(0)
+      expect(year.pre_tax_result).to eq(9_600)
       expect(year.taxes).to eq(BigDecimal("1651.20"))
+    end
+
+    # Une provision qu'aucune dépense ne justifie ne rembourse plus rien : elle allège les
+    # charges déclarées au-delà de zéro, et l'assiette s'en trouve grossie d'autant.
+    it "taxes a provision that no charge reimburses" do
+      unjustified = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
+                                                           occupancy_months: 12), :foncier_reel)
+      year = unjustified.years[1]
+
+      expect(year.charges_excluding_provision).to eq(-1_200)
+      expect(year.taxes).to eq(BigDecimal("1857.60"))
     end
 
     # Un déficit foncier ne se reporte pas : l'année qui n'a rien gagné ne doit rien.
@@ -178,9 +192,9 @@ RSpec.describe Projection do
 
     # La première année porte le loyer saisi : elle décrit les douze mois qui suivent l'achat.
     it "raises the rent from the second year on" do
-      expect(projection.years[1].annual_rent).to eq(12_000)
-      expect(projection.years[2].annual_rent).to eq(12_240)
-      expect(projection.years[3].annual_rent).to eq(BigDecimal("12484.80"))
+      expect(projection.years[1].rent_excluding_charges).to eq(12_000)
+      expect(projection.years[2].rent_excluding_charges).to eq(12_240)
+      expect(projection.years[3].rent_excluding_charges).to eq(BigDecimal("12484.80"))
     end
 
     # L'assiette progresse comme le loyer, et l'impôt avec elle : 12 000 € puis 12 240 € de
@@ -191,9 +205,9 @@ RSpec.describe Projection do
     end
 
     it "lets the inflation weigh on the charges the same way" do
-      expect(projection.years[1].annual_charges).to eq(1_000)
-      expect(projection.years[2].annual_charges).to eq(1_030)
-      expect(projection.years[3].annual_charges).to eq(BigDecimal("1060.90"))
+      expect(projection.years[1].charges_excluding_provision).to eq(1_000)
+      expect(projection.years[2].charges_excluding_provision).to eq(1_030)
+      expect(projection.years[3].charges_excluding_provision).to eq(BigDecimal("1060.90"))
     end
 
     # Une valeur à une date, non un montant encaissé sur une période : le jour de l'achat le
@@ -206,8 +220,8 @@ RSpec.describe Projection do
     end
 
     it "adds up what the years actually collected and paid" do
-      expect(projection.total_rent).to eq(projection.years.sum(&:annual_rent))
-      expect(projection.total_charges).to eq(projection.years.sum(&:annual_charges))
+      expect(projection.total_rent).to eq(projection.years.sum(&:rent_excluding_charges))
+      expect(projection.total_charges).to eq(projection.years.sum(&:charges_excluding_provision))
       expect(projection.total_rent).to be > 12_000 * described_class::HORIZON_YEARS
     end
   end
@@ -215,18 +229,24 @@ RSpec.describe Projection do
   # Des taux à zéro rendent les années égales entre elles : c'est ce que le reste des exemples
   # suppose, et ce que la fabrique pose.
   it "keeps every line equal when nothing evolves" do
-    expect(projection.years.drop(1).map(&:annual_rent).uniq.size).to eq(1)
+    expect(projection.years.drop(1).map(&:rent_excluding_charges).uniq.size).to eq(1)
     expect(projection.years.map(&:property_value).uniq).to eq([200_000])
   end
 
-  # La provision pour charges est encaissée avec le loyer, mais elle ne rembourse qu'une
-  # dépense : elle grossit le cash-flow, jamais l'assiette de l'impôt.
-  it "collects the provision for charges without taxing it" do
+  # La provision pour charges est encaissée avec le loyer, mais elle ne fait que rembourser une
+  # dépense : le loyer déclaré ne la compte pas, et les charges déclarées la retranchent. La
+  # règle vaut pour les deux régimes, quoique le forfait ignore les charges de toute façon.
+  it "declares neither the provision for charges nor what it reimburses" do
     with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                            occupancy_months: 12), :micro_foncier)
+                                                            occupancy_months: 12, condominium: true,
+                                                            condominium_fees: 1_500), :micro_foncier)
+    year = with_provision.years[1]
 
-    expect(with_provision.years[1].annual_rent).to eq(10_800)
-    expect(with_provision.years[1].taxes).to eq(BigDecimal("1155.84"))
+    expect(year).to have_attributes(rent_excluding_charges: 9_600, provision_for_charges: 1_200,
+                                    charges_excluding_provision: 300)
+    # 10 800 € encaissés moins 1 500 € de charges réelles : le solde reste celui du brut.
+    expect(year.pre_tax_result).to eq(9_300)
+    expect(year.taxes).to eq(BigDecimal("1155.84"))
   end
 
   it "keeps a 29 February purchase on a real date" do

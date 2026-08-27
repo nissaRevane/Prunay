@@ -1,6 +1,7 @@
 <%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
-    l'année encaisse, ce qu'elle laisse et ce qui reste engagé. Le clic sur une ligne ouvre le
-    compte de résultat de l'année, du loyer au cash-flow. %>
+    l'année déclare, ce qu'elle laisse et ce qui reste engagé. Le loyer y est hors charges — la
+    provision n'est pas un revenu. Le clic sur une ligne ouvre le compte de résultat de l'année,
+    du loyer au cash-flow. %>
 <div class="section" data-controller="projection">
   <div class="table-scroll">
     <table class="table">
@@ -24,7 +25,7 @@
                       aria-controls="<%= projection.regime %>-year-<%= year.number %>-statement"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>
-            <td class="text-right"><%= number_to_currency(year.annual_rent) %></td>
+            <td class="text-right"><%= number_to_currency(year.rent_excluding_charges) %></td>
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
@@ -66,11 +67,19 @@
       <div class="statement-lines">
         <div class="statement-line">
           <span class="statement-label"><%= t("views.simulations.show.annual_rent_column") %></span>
-          <span class="statement-amount"><%= number_to_currency(year.annual_rent) %></span>
+          <span class="statement-amount"><%= number_to_currency(year.rent_excluding_charges) %></span>
         </div>
         <div class="statement-line">
-          <span class="statement-label"><%= t("views.simulations.show.annual_charges_column") %></span>
-          <span class="statement-amount"><%= number_to_currency(-year.annual_charges) %></span>
+          <%# La provision remboursée est déjà ôtée des charges : la note dit pourquoi elles
+              sont plus légères que celles du formulaire, sans faire une ligne du compte. %>
+          <span class="statement-label">
+            <%= t("views.simulations.show.annual_charges_column") %>
+            <% if year.provision_for_charges.positive? %>
+              <span class="statement-note"><%= t("views.simulations.show.provision_deducted",
+                                                 amount: number_to_currency(year.provision_for_charges)) %></span>
+            <% end %>
+          </span>
+          <span class="statement-amount"><%= number_to_currency(-year.charges_excluding_provision) %></span>
         </div>
         <div class="statement-line">
           <span class="statement-label"><%= t("views.simulations.show.loan_interest_column") %></span>

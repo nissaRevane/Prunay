@@ -174,11 +174,10 @@ class Simulation < ApplicationRecord
     Taxation::NAMES.index_with { |regime| projection(regime) }
   end
 
-  # Par les mois effectivement loués : un bien vide un mois par an ne fait pas douze loyers.
-  # Ce qui est encaissé, provision pour charges comprise — c'est elle que le locataire
-  # rembourse par-dessus le loyer, et que la copropriété reprend ensuite.
+  # Ce qu'une année encaisse, provision pour charges comprise : par les mois effectivement
+  # loués, car un bien vide un mois par an ne fait pas douze loyers.
   def annual_rent
-    (monthly_rent + monthly_charges) * occupancy_months
+    annual_rent_excluding_charges + annual_provision_for_charges
   end
 
   # Le loyer seul, hors charges : la part imposable, et rien d'autre.
@@ -186,14 +185,27 @@ class Simulation < ApplicationRecord
     monthly_rent * occupancy_months
   end
 
+  # La provision encaissée sur une année : c'est elle que le locataire rembourse par-dessus le
+  # loyer, et que la copropriété reprend ensuite.
+  def annual_provision_for_charges
+    monthly_charges * occupancy_months
+  end
+
   # Les autres sont à zéro de toute façon, mais les exclure dit mieux ce que le total recouvre.
   def annual_charges
     applicable_charges.sum { |field| public_send(field) }
   end
 
+  # Les charges telles qu'elles se déclarent : la provision remboursée en est ôtée, puisque les
+  # dépenses qu'elle couvre ne se déclarent pas plus qu'elle — la règle vaut pour les deux
+  # régimes. Négatives, si aucune dépense ne la justifie : la provision est alors un profit.
+  def annual_charges_excluding_provision
+    annual_charges - annual_provision_for_charges
+  end
+
   # L'impôt d'une année : à défaut, celle qui a été saisie ; la projection passe la sienne.
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
-               charges: annual_charges, loan_interest: loan.annual_interest.fetch(1, 0))
+               charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0))
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate)
   end
