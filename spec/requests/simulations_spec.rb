@@ -145,7 +145,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       statement = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-2-statement")
-      lines = statement.css(".statement-line").map do |line|
+      lines = statement.css("#micro_foncier-year-2-result .statement-line").map do |line|
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
@@ -160,8 +160,34 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
       ])
-      # La valeur du bien n'est ni un produit ni une charge : elle ne figure plus dans la fiche.
-      expect(statement.text.gsub(/\s+/, " ")).not_to include(currency(200_000).gsub(/\s+/, " "))
+      # La valeur du bien n'est ni un produit ni une charge : elle ne figure pas au compte de
+      # résultat, quoique la vue revente de la même fiche en parte.
+      result = statement.at_css("#micro_foncier-year-2-result").text.gsub(/\s+/, " ")
+      expect(result).not_to include(currency(200_000).gsub(/\s+/, " "))
+    end
+
+    # L'autre lecture de la même fiche : ce qu'une revente à cette date-là laisserait. Le bien
+    # vaut toujours 200 000 € — la fabrique ne fait pas monter les prix —, il n'y a pas de banque
+    # à solder, et les 236 612 € engagés dépassent encore de 21 260,80 € ce que la revente rend,
+    # les deux années de cash-flow déduites.
+    it "simulates a sale from the same statement, behind a tab of its own" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      sale = doc.at_css("dialog#micro_foncier-year-2-statement #micro_foncier-year-2-sale")
+      lines = sale.css(".statement-line").map do |line|
+        [line.at_css(".statement-label").text.strip.lines.first.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(sale["hidden"]).not_to be_nil
+      expect(lines).to eq([
+        [I18n.t("views.simulations.show.sale_property_value"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.remaining_capital"), currency(0).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_proceeds"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.immobilized_capital"), currency(BigDecimal("-221260.80")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_profit"), currency(BigDecimal("-21260.80")).gsub(/\s+/, " ")]
+      ])
     end
 
     # La provision pour charges ne se déclare pas, et la dépense qu'elle rembourse pas
@@ -228,7 +254,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       statements = Taxation::NAMES.index_with do |regime|
-        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement").css(".statement-line").to_h do |line|
+        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement")
+           .css("##{regime}-year-1-result .statement-line").to_h do |line|
           [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
       end
@@ -251,7 +278,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       amounts = Taxation::NAMES.index_with do |regime|
-        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement").css(".statement-line").to_h do |line|
+        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement")
+           .css("##{regime}-year-1-result .statement-line").to_h do |line|
           [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
       end
@@ -342,7 +370,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      expect(doc.css(".tabs .tab").size).to eq(4)
+      expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(4)
     end
 
     describe "of a purchase financed by a credit" do
@@ -358,7 +386,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css(".tabs .tab").size).to eq(5)
+        expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(5)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant

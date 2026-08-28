@@ -448,6 +448,18 @@ a.nav-user-name:hover {
   cursor: pointer;
 }
 
+/* Les deux lectures d'une fiche se choisissent juste sous son titre : le filet des onglets
+   tient lieu de celui de l'en-tête, qui le cède plutôt que de doubler le trait. */
+.statement-header:has(+ .statement-tabs) {
+  border-bottom: none;
+  padding-bottom: 0.75rem;
+}
+
+.statement-tabs {
+  margin-bottom: 0;
+  padding: 0 1.25rem;
+}
+
 .statement-lines {
   padding: 0.75rem 1.25rem 1.25rem;
 }

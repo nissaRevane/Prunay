@@ -236,8 +236,15 @@ fr:
         pre_tax_result: Résultat avant impôt
         net_result: Résultat net
         capital_repayment_column: Remboursement du capital
-        statement_title: "Année %{year}"
+        statement_result_title: "Résultats — Année %{year}"
+        statement_result_tab: Résultats
+        statement_sale_title: "Revente — Année %{year}"
+        statement_sale_tab: Revente
         statement_close: Fermer
+        sale_property_value: Valeur du bien
+        sale_proceeds: Produit de la revente
+        sale_profit: "Bénéfice de l'opération"
+        sale_profit_note: hors impôt sur la plus-value et frais de revente
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"
         final_property_value: "Valeur du bien au bout de %{years} ans"
         back: Retour aux simulations

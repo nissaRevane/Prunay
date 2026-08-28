@@ -113,6 +113,11 @@ class Loan
     schedule&.annual_principal || {}
   end
 
+  # Ce que la revente d'une année aurait à rembourser par anticipation, indexé comme les annuités.
+  def annual_remaining_capital
+    schedule&.annual_remaining_capital || {}
+  end
+
   def total_interest
     schedule&.total_interest || 0
   end

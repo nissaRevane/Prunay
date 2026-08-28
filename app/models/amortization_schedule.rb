@@ -58,6 +58,11 @@ class AmortizationSchedule
     @annual_principal ||= yearly_rows.transform_values { |yearly| yearly.sum(&:principal) }
   end
 
+  # Ce qu'il resterait à solder à la banque à la fin de chaque année : le prix d'une revente.
+  def annual_remaining_capital
+    @annual_remaining_capital ||= yearly_rows.transform_values { |yearly| yearly.last.remaining_capital }
+  end
+
   private
 
   def yearly_rows

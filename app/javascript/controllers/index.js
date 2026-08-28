@@ -21,5 +21,8 @@ application.register("notary-fees", NotaryFeesController)
 import ProjectionController from "controllers/projection_controller"
 application.register("projection", ProjectionController)
 
+import StatementController from "controllers/statement_controller"
+application.register("statement", StatementController)
+
 import TabsController from "controllers/tabs_controller"
 application.register("tabs", TabsController)

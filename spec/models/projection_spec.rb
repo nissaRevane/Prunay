@@ -116,6 +116,31 @@ RSpec.describe Projection do
       expect(projection.years.first.immobilized_capital).to eq(23_388)
       expect(projection.years[1].immobilized_capital).to eq(23_388 - projection.years[1].cash_flow)
     end
+
+    # Le jour de la signature, rien n'est encore remboursé : la revente devrait solder tout le
+    # prêt. Le crédit éteint, elle n'a plus rien à rendre à la banque.
+    it "would have to clear the whole loan on the day it is signed, and nothing once it is over" do
+      expect(projection.years.first.remaining_loan_capital).to eq(simulation.borrowed_capital)
+      expect(projection.years[20].remaining_loan_capital).to eq(0)
+      expect(projection.years[21].remaining_loan_capital).to eq(0)
+    end
+
+    # Vingt-quatre échéances passées, la banque a été remboursée de la différence entre le
+    # capital emprunté et ce qu'il en reste : c'est ce que les deux premières annuités ont rendu.
+    it "owes what the annual principal has not yet repaid" do
+      repaid = projection.years[1].capital_repayment + projection.years[2].capital_repayment
+
+      expect(projection.years[2].remaining_loan_capital).to eq(simulation.borrowed_capital - repaid)
+    end
+
+    # Le prix ne bouge pas — la fabrique est neutre —, alors la revente ne rapporte que ce que le
+    # crédit a déjà remboursé, une fois récupéré ce qui reste immobilisé.
+    it "sells for the market price less what is still owed, and profits by what is not immobilized" do
+      year = projection.years[2]
+
+      expect(year.sale_proceeds).to eq(200_000 - year.remaining_loan_capital)
+      expect(year.sale_profit).to eq(year.sale_proceeds - year.immobilized_capital)
+    end
   end
 
   # Le foncier réel déduit les charges réelles et les intérêts là où le micro-foncier applique
@@ -254,6 +279,31 @@ RSpec.describe Projection do
 
     expect(leap.years.first.date).to eq(Date.new(2024, 2, 29))
     expect(leap.years[1].date).to eq(Date.new(2025, 2, 28))
+  end
+
+  # Comptant, il n'y a pas de banque à solder : la revente rapporte le prix du marché entier, et
+  # le bénéfice n'est que ce qui dépasse le capital encore immobilisé. Le jour de l'achat, les
+  # 236 612 € engagés dépassent de 36 612 € un bien qui n'en vaut que 200 000 : frais de notaire
+  # et travaux ne se revendent pas.
+  describe "a sale simulated from a year" do
+    it "owes nothing to a bank when the purchase was paid in cash" do
+      origin = projection.years.first
+
+      expect(origin.remaining_loan_capital).to eq(0)
+      expect(origin.sale_proceeds).to eq(200_000)
+      expect(origin.sale_profit).to eq(-36_612)
+    end
+
+    # Le prix du bien suit son marché, et la revente avec lui : 3 % l'an sur dix ans.
+    it "sells at the price the year gives the property" do
+      growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
+                                    :micro_foncier)
+      year = growing.years[10]
+
+      expect(year.property_value).to eq(BigDecimal("268_783.28"))
+      expect(year.sale_proceeds).to eq(BigDecimal("268_783.28"))
+      expect(year.sale_profit).to eq(BigDecimal("268_783.28") - year.immobilized_capital)
+    end
   end
 
   describe "#final_immobilized_capital" do

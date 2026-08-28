@@ -6,13 +6,18 @@
 class Projection
   HORIZON_YEARS = 30
 
+  # Les deux lectures d'une année dans sa fiche. Le nom sert quatre fois : l'onglet, le panneau,
+  # son identifiant et les clés de traduction.
+  VIEWS = %w[result sale].freeze
+
   # Le compte de résultat d'une année, tenu comme il se déclare : le loyer hors charges d'un
   # côté, de l'autre les charges dont la provision remboursée est ôtée — la provision n'est pas
   # un revenu, et les dépenses qu'elle couvre ne se déduisent pas davantage. Le solde, lui, est
   # celui des montants bruts : ce que l'on retire d'un côté, on ne le compte pas de l'autre.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :capital_repayment, :taxes,
-                    :immobilized_capital, :property_value, keyword_init: true) do
+                    :immobilized_capital, :property_value, :remaining_loan_capital,
+                    keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
     def pre_tax_result
       rent_excluding_charges - charges_excluding_provision - loan_interest
@@ -33,6 +38,17 @@ class Projection
 
     def recovered?
       immobilized_capital <= 0
+    end
+
+    # Ce qu'une revente cette année-là mettrait en main : le prix du marché, la banque soldée.
+    def sale_proceeds
+      property_value - remaining_loan_capital
+    end
+
+    # Ce que l'opération aurait rapporté : le produit de la revente moins ce qui reste engagé,
+    # les loyers déjà encaissés ayant d'eux-mêmes entamé ce dernier.
+    def sale_profit
+      sale_proceeds - immobilized_capital
     end
   end
 
@@ -86,6 +102,7 @@ class Projection
     outlay = @simulation.initial_outlay
     interest = @simulation.loan.annual_interest
     principal = @simulation.loan.annual_principal
+    remaining = @simulation.loan.annual_remaining_capital
     cumulative_cash_flow = 0
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
@@ -103,7 +120,8 @@ class Projection
         loan_interest: loan_interest,
         capital_repayment: principal.fetch(number, 0),
         taxes: taxes_for(rent, charges, loan_interest),
-        property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
+        property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number),
+        remaining_loan_capital: remaining.fetch(number, 0)
       )
       cumulative_cash_flow += year.cash_flow
       year.immobilized_capital = outlay - cumulative_cash_flow
@@ -132,7 +150,8 @@ class Projection
       capital_repayment: 0,
       taxes: 0,
       immobilized_capital: @simulation.initial_outlay,
-      property_value: @simulation.purchase_price
+      property_value: @simulation.purchase_price,
+      remaining_loan_capital: @simulation.loan.capital
     )
   end
 
