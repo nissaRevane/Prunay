@@ -1,9 +1,14 @@
-# L'impôt d'une année de location. Ce que tous les régimes partagent — les prélèvements
-# sociaux, le barème du foyer — tient ici ; ce que chacun retient de l'année lui est propre
-# et se lit dans sa classe (voir Taxation::Regime).
+# L'impôt d'une année de location. Ce que tous les régimes partagent — le barème du foyer, la
+# mécanique des prélèvements sociaux — tient ici ; l'assiette, l'abattement et le taux social
+# de chacun lui sont propres et se lisent dans sa classe (voir Taxation::Regime).
 module Taxation
-  # CSG, CRDS et prélèvement de solidarité réunis : le taux des revenus du patrimoine.
+  # CSG, CRDS et prélèvement de solidarité réunis : le taux des revenus fonciers et des
+  # plus-values immobilières, que la LFSS 2026 a expressément laissés à 9,2 % de CSG.
   SOCIAL_CHARGES_RATE = BigDecimal("17.2")
+
+  # Le taux des autres revenus du capital, le meublé compris : la même LFSS 2026 y porte la
+  # CSG à 10,6 %. Un loyer meublé est un BIC, non un revenu foncier — il n'est pas épargné.
+  FURNISHED_SOCIAL_CHARGES_RATE = BigDecimal("18.6")
 
   # Les tranches du barème : celle où tombe le dernier euro de revenu du foyer. Des entiers,
   # parce que le barème n'en connaît pas d'autres — d'où une liste et non un taux libre.
@@ -12,8 +17,9 @@ module Taxation
   # La tranche de la plupart des foyers qui investissent : ce que Prunay suppose à défaut.
   DEFAULT_MARGINAL_TAX_RATE = 30
 
-  # Les régimes, dans l'ordre où la simulation les présente : chaque nom est sa classe, son onglet et sa traduction.
-  NAMES = %i[micro_foncier foncier_reel].freeze
+  # Les régimes, dans l'ordre où la simulation les présente — les deux du nu, puis celui du
+  # meublé : chaque nom est sa classe, son onglet et sa traduction.
+  NAMES = %i[micro_foncier foncier_reel micro_bic].freeze
 
   # Le régime que la liste des simulations suppose quand elle n'affiche qu'un cash-flow.
   DEFAULT_REGIME = NAMES.first

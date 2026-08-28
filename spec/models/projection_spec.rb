@@ -204,6 +204,41 @@ RSpec.describe Projection do
     end
   end
 
+  # Le micro-BIC est le forfait du meublé : la moitié des recettes imposée là où le nu en
+  # laisse 70 %, mais la provision pour charges dans l'assiette et 18,6 % de prélèvements.
+  describe "under the micro-BIC regime" do
+    subject(:projection) { described_class.new(simulation, :micro_bic) }
+
+    # 11 000 € de recettes, la moitié imposable : 5 500 € à 18,6 %, soit 1 023 €. C'est moins
+    # que les 1 324,40 € du micro-foncier — l'abattement doublé paie le taux plus lourd.
+    it "taxes half of the receipts, where the micro-foncier left seventy per cent of the rent" do
+      expect(projection.years[1].taxes).to eq(1_023)
+      expect(projection.years[1].cash_flow).to eq(7_977)
+    end
+
+    # Toute la différence des deux mondes : le locataire verse 1 200 € de provision, le meublé
+    # les compte en recettes — 600 € d'assiette de plus, et 111,60 € d'impôt de plus.
+    it "taxes the provision for charges that the foncier leaves out of the assessment" do
+      with_provision = build(:simulation, monthly_rent: 800, monthly_charges: 100, occupancy_months: 12,
+                                          condominium: true, condominium_fees: 1_200)
+      rent_only = build(:simulation, monthly_rent: 800, occupancy_months: 12)
+
+      expect(described_class.new(with_provision, :micro_bic).years[1].taxes).to eq(BigDecimal("1004.40"))
+      expect(described_class.new(rent_only, :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
+    end
+
+    # La provision suit l'inflation, et l'assiette du meublé la suit avec elle : 1 236 € la
+    # deuxième année, dont la moitié s'ajoute aux 4 800 € que le loyer laisse imposables.
+    it "follows the provision through the inflation into the assessment" do
+      indexed = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
+                                                      occupancy_months: 12, inflation_rate: 3), :micro_bic)
+      year = indexed.years[2]
+
+      expect(year.provision_for_charges).to eq(1_236)
+      expect(year.taxes).to eq(BigDecimal("1007.75"))
+    end
+  end
+
   # Les conditions économiques composent la projection année après année : les loyers
   # progressent, les charges suivent l'inflation, et le bien prend de la valeur.
   describe "under evolving economic conditions" do
@@ -294,15 +329,44 @@ RSpec.describe Projection do
       expect(origin.sale_profit).to eq(-36_612)
     end
 
-    # Le prix du bien suit son marché, et la revente avec lui : 3 % l'an sur dix ans.
-    it "sells at the price the year gives the property" do
+    # Le prix du bien suit son marché, et la revente avec lui : 3 % l'an sur dix ans. La
+    # plus-value que ces dix ans ont faite est imposée, et la revente ne rend que le reste.
+    it "sells at the price the year gives the property, the capital gain taxed" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
                                     :micro_foncier)
       year = growing.years[10]
 
       expect(year.property_value).to eq(BigDecimal("268_783.28"))
-      expect(year.sale_proceeds).to eq(BigDecimal("268_783.28"))
-      expect(year.sale_profit).to eq(BigDecimal("268_783.28") - year.immobilized_capital)
+      expect(year.capital_gain_tax).to eq(BigDecimal("6447.63"))
+      expect(year.sale_proceeds).to eq(BigDecimal("262_335.65"))
+      expect(year.sale_profit).to eq(BigDecimal("262_335.65") - year.immobilized_capital)
+    end
+
+    # La valeur fiscale, ce sont 200 000 € payés et 16 612 € de frais de notaire, auxquels la
+    # sixième année ajoute 30 000 € de travaux forfaitaires : cinq ans de hausse à 3 % laissent
+    # une plus-value imposée, la sixième la fait disparaître.
+    it "wipes the gain out on the sixth year, when the flat works join the fiscal value" do
+      growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
+                                    :micro_foncier)
+
+      expect(growing.years[5].property_value).to eq(BigDecimal("231_854.81"))
+      expect(growing.years[5].capital_gain).to eq(BigDecimal("15242.81"))
+      expect(growing.years[5].capital_gain_tax).to eq(BigDecimal("5517.89"))
+      expect(growing.years[6].property_value).to eq(BigDecimal("238_810.46"))
+      expect(growing.years[6].capital_gain).to eq(0)
+      expect(growing.years[6].capital_gain_tax).to eq(0)
+    end
+
+    # Trente ans de détention : l'abattement a effacé la plus-value pour le barème comme pour
+    # les prélèvements sociaux, et la revente n'est plus imposée du tout.
+    it "taxes nothing of a gain the thirty years held have entirely abated" do
+      growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
+                                    :micro_foncier)
+      year = growing.years.last
+
+      expect(year.capital_gain).to be_positive
+      expect(year.capital_gain_tax).to eq(0)
+      expect(year.sale_proceeds).to eq(year.property_value)
     end
   end
 

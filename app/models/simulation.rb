@@ -169,7 +169,7 @@ class Simulation < ApplicationRecord
     Projection.new(self, regime)
   end
 
-  # La fiche montre les deux régimes côte à côte : c'est le modèle qui sait lesquels.
+  # La fiche montre les régimes côte à côte : c'est le modèle qui sait lesquels.
   def projections
     Taxation::NAMES.index_with { |regime| projection(regime) }
   end
@@ -203,15 +203,25 @@ class Simulation < ApplicationRecord
     annual_charges - annual_provision_for_charges
   end
 
-  # L'impôt d'une année : à défaut, celle qui a été saisie ; la projection passe la sienne.
+  # L'impôt d'une année : à défaut, celle qui a été saisie ; la projection passe la sienne. La
+  # provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
+               provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0))
-    Taxation.for(regime, rent_excluding_charges: rent_excluding_charges, charges: charges,
+    Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
+                         provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME)
     taxation(regime).total
+  end
+
+  # Ce qu'une revente coûterait au fisc cette année-là : la plus-value se compte sur la valeur
+  # fiscale du bien, frais de notaire compris, et s'efface avec la durée de détention.
+  def capital_gain_taxation(sale_price, held_years)
+    Taxation::CapitalGain.new(sale_price: sale_price, purchase_price: purchase_price,
+                              acquisition_fees: notary_fees, held_years: held_years)
   end
 
   # Une année pleine : la projection, elle, lit l'annuité par année et voit le crédit s'éteindre.

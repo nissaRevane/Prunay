@@ -167,9 +167,10 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # L'autre lecture de la même fiche : ce qu'une revente à cette date-là laisserait. Le bien
-    # vaut toujours 200 000 € — la fabrique ne fait pas monter les prix —, il n'y a pas de banque
-    # à solder, et les 236 612 € engagés dépassent encore de 21 260,80 € ce que la revente rend,
-    # les deux années de cash-flow déduites.
+    # vaut toujours 200 000 € — la fabrique ne fait pas monter les prix, et une revente sous la
+    # valeur fiscale ne doit aucun impôt —, il n'y a pas de banque à solder, et les 236 612 €
+    # engagés dépassent encore de 21 260,80 € ce que la revente rend, les deux années de
+    # cash-flow déduites.
     it "simulates a sale from the same statement, behind a tab of its own" do
       get simulation_path(simulation)
 
@@ -183,6 +184,7 @@ RSpec.describe "Simulations", type: :request do
       expect(sale["hidden"]).not_to be_nil
       expect(lines).to eq([
         [I18n.t("views.simulations.show.sale_property_value"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_capital_gain_tax"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.remaining_capital"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.sale_proceeds"), currency(200_000).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.immobilized_capital"), currency(BigDecimal("-221260.80")).gsub(/\s+/, " ")],
@@ -247,9 +249,35 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Tout l'intérêt de la paire : la même année, les mêmes loyers et les mêmes charges, et
-    # le seul impôt pour les séparer — le résultat net et le cash-flow n'en découlent.
-    it "renders the same year under both regimes, the tax apart" do
+    # Le micro-BIC a le sien à son tour : le forfait du meublé, moitié des recettes imposée et
+    # 18,6 % de prélèvements — 1 023 € là où le micro-foncier en compte 1 324,40 €.
+    it "opens a tab of its own on the micro-BIC projection, half the receipts taxed" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      cells = doc.css("#panel-micro_bic tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
+      amounts = doc.at_css("#panel-micro_bic dialog#micro_bic-year-1-statement")
+                   .css("#micro_bic-year-1-result .statement-line").to_h do |line|
+        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(doc.at_css("#tab-micro_bic")).not_to be_nil
+      expect(cells).to eq([
+        "1",
+        "mar.-2026",
+        currency(11_000).gsub(/\s+/, " "),
+        currency(7_977).gsub(/\s+/, " "),
+        currency(228_635).gsub(/\s+/, " ")
+      ])
+      expect(amounts).to include(
+        I18n.t("views.simulations.show.annual_taxes_column") => currency(-1_023).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(7_977).gsub(/\s+/, " ")
+      )
+    end
+
+    # Tout l'intérêt des onglets : la même année, les mêmes loyers et les mêmes charges, et le
+    # seul impôt pour les séparer — le résultat net et le cash-flow n'en découlent.
+    it "renders the same year under every regime, the tax apart" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -261,9 +289,8 @@ RSpec.describe "Simulations", type: :request do
       end
       taxed = ["annual_taxes_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
 
-      expect(statements[:micro_foncier].except(*taxed)).to eq(statements[:foncier_reel].except(*taxed))
-      expect(statements[:micro_foncier].values_at(*taxed))
-        .not_to eq(statements[:foncier_reel].values_at(*taxed))
+      expect(statements.values.map { |lines| lines.except(*taxed) }.uniq.size).to eq(1)
+      expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end
 
     # À 0 % de barème seuls les prélèvements sociaux pèsent : c'est à 30 %, et à crédit, que les
@@ -370,7 +397,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(4)
+      # Les paramètres, un onglet par régime fiscal, et le contexte.
+      expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(Taxation::NAMES.size + 2)
     end
 
     describe "of a purchase financed by a credit" do
@@ -386,7 +414,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(5)
+        expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(Taxation::NAMES.size + 3)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant

@@ -5,7 +5,8 @@ investment.
 
 > **Status:** first simulator. A simulation describes a property, its purchase, how it is
 > financed — outright or on credit — its letting, its annual charges and the tax the rents
-> cost, projected over thirty years. One tax regime only for now: the micro-foncier.
+> cost, projected over thirty years, under three tax regimes read side by side: the
+> micro-foncier, the foncier réel and the micro-BIC.
 
 ## Tech Stack
 
@@ -105,14 +106,42 @@ docker compose run --rm web bundle exec rspec
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, which reopens on itself
   after each change (`?tab=economic_conditions`).
-- **The taxation** (`Taxation`): the micro-foncier, and it alone. The assessment is the year's
-  rent excluding charges — the provision for charges the tenant repays is collected with the
-  rent but is not a revenue, it settles an expense — reduced by the flat 30 % allowance that
-  stands in for every deductible charge. What is left bears the marginal bracket of the
-  household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation, 30 %
-  by default) and 17.2 % of social charges, which no bracket governs: a household the scale
-  does not reach still owes them. The parameters tab details the calculation line by line, and
-  the tax weighs on the cash flow of every year of the projection.
+- **The taxation** (`Taxation`): three regimes, each a tab of the simulation page and a
+  projection of its own — the same property, the same rents, the same charges, and the tax
+  alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of
+  the household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation,
+  30 % by default) and the social charges, which no bracket governs — a household the scale
+  does not reach still owes them. Only the assessment, the allowance and the social rate are
+  each regime's own.
+  - **The micro-foncier** (`Taxation::MicroFoncier`), for a bare letting: the assessment is
+    the year's rent excluding charges — the provision for charges the tenant repays is
+    collected with the rent but is not a revenue, it settles an expense — reduced by the flat
+    30 % allowance that stands in for every deductible charge. 17.2 % of social charges.
+  - **The foncier réel** (`Taxation::FoncierReel`), the same letting declared for real: no
+    allowance, but the year's charges and the interest of the loan — the insurance premium
+    included — deducted from that same rent. A deficit is not carried forward: a year that
+    gained nothing owes nothing, and nothing passes to the next. 17.2 % of social charges.
+  - **The micro-BIC** (`Taxation::MicroBic`), for a furnished letting: a furnished rent is not
+    a property income but a commercial receipt, and it shows twice. The assessment counts the
+    provision for charges, which the two foncier regimes leave out, and the allowance is half
+    the receipts. The social charges are 18.6 % and not 17.2: the 2026 social security
+    financing act raised the CSG on capital income to 10.6 % and spared property income and
+    property capital gains alone. The 77 700 € ceiling of receipts above which the regime
+    closes is not checked, and a furnished letting is supposed to bring the same rent and cost
+    the same charges as a bare one — what the tabs compare is the tax, not the letting.
+
+  The parameters tab details the calculation line by line, and the tax weighs on the cash flow
+  of every year of the projection.
+  The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
+  individuals: the gain is what the price of that year gets above the fiscal value of the
+  property — the price paid, the notary fees, and from the sixth year the flat 15 % of works
+  the taxman assumes without an invoice, the real works being the other, exclusive option that
+  Prunay does not simulate. It bears 19 % of income tax and 17.2 % of social charges, each on
+  what its own allowance for the years held leaves it: nothing for five years, then 6 % a year
+  until the gain escapes the income tax after twenty-two, and 1.65 % then 9 % a year until it
+  escapes the social charges after thirty. The surtax on gains above 50 000 € is not
+  simulated. The sale view of a year's statement deducts that tax right after the price of the
+  property, before the bank is cleared.
 - **The projection:** thirty lines, one per anniversary of the purchase. The table carries
   five columns and no commentary — the year, its month, its rent, its cash flow and the
   capital still immobilized. The charges, the tax and the annuity weigh on the cash flow

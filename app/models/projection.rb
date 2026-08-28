@@ -16,8 +16,8 @@ class Projection
   # celui des montants bruts : ce que l'on retire d'un côté, on ne le compte pas de l'autre.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :capital_repayment, :taxes,
-                    :immobilized_capital, :property_value, :remaining_loan_capital,
-                    keyword_init: true) do
+                    :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
+                    :remaining_loan_capital, keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
     def pre_tax_result
       rent_excluding_charges - charges_excluding_provision - loan_interest
@@ -40,9 +40,10 @@ class Projection
       immobilized_capital <= 0
     end
 
-    # Ce qu'une revente cette année-là mettrait en main : le prix du marché, la banque soldée.
+    # Ce qu'une revente cette année-là mettrait en main : le prix du marché, la plus-value
+    # imposée et la banque soldée.
     def sale_proceeds
-      property_value - remaining_loan_capital
+      property_value - capital_gain_tax - remaining_loan_capital
     end
 
     # Ce que l'opération aurait rapporté : le produit de la revente moins ce qui reste engagé,
@@ -107,20 +108,24 @@ class Projection
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
       rent = compound(@simulation.annual_rent_excluding_charges, @simulation.rent_growth_rate, number - 1)
+      provision = compound(@simulation.annual_provision_for_charges, @simulation.inflation_rate, number - 1)
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
+      property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
+      gain = @simulation.capital_gain_taxation(property_value, number)
 
       year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
         rent_excluding_charges: rent,
         charges_excluding_provision: charges,
-        provision_for_charges: compound(@simulation.annual_provision_for_charges,
-                                        @simulation.inflation_rate, number - 1),
+        provision_for_charges: provision,
         loan_interest: loan_interest,
         capital_repayment: principal.fetch(number, 0),
-        taxes: taxes_for(rent, charges, loan_interest),
-        property_value: compound(@simulation.purchase_price, @simulation.property_growth_rate, number),
+        taxes: taxes_for(rent, provision, charges, loan_interest),
+        property_value: property_value,
+        capital_gain: gain.amount,
+        capital_gain_tax: gain.total,
         remaining_loan_capital: remaining.fetch(number, 0)
       )
       cumulative_cash_flow += year.cash_flow
@@ -130,10 +135,11 @@ class Projection
     end
   end
 
-  # L'assiette ne se compose pas ici : l'année porte déjà les montants qui se déclarent.
-  def taxes_for(rent, charges, loan_interest)
-    @simulation.taxation(regime, rent_excluding_charges: rent, charges: charges,
-                                 loan_interest: loan_interest).total
+  # L'assiette ne se compose pas ici : l'année porte déjà les montants qui se déclarent, et
+  # c'est le régime qui sait lesquels il retient — la provision, par exemple, en meublé seulement.
+  def taxes_for(rent, provision, charges, loan_interest)
+    @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
+                                 charges: charges, loan_interest: loan_interest).total
   end
 
   # Le jour de l'achat : aucun loyer, aucune charge, aucune échéance — rien n'a encore couru.
@@ -151,6 +157,8 @@ class Projection
       taxes: 0,
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price,
+      capital_gain: 0,
+      capital_gain_tax: 0,
       remaining_loan_capital: @simulation.loan.capital
     )
   end

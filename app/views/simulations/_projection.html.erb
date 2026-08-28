@@ -128,14 +128,26 @@
         </div>
       </div>
 
-      <%# Ce qu'une revente à cette date-là laisserait : le prix du marché, la banque soldée, et
-          le capital encore engagé récupéré. Les loyers déjà encaissés ont d'eux-mêmes allégé ce
-          dernier, et le bénéfice n'a donc pas à les recompter. %>
+      <%# Ce qu'une revente à cette date-là laisserait : le prix du marché, la plus-value imposée,
+          la banque soldée, et le capital encore engagé récupéré. Les loyers déjà encaissés ont
+          d'eux-mêmes allégé ce dernier, et le bénéfice n'a donc pas à les recompter. %>
       <div class="statement-lines" role="tabpanel" data-statement-target="view" data-view="sale"
            id="<%= projection.regime %>-year-<%= year.number %>-sale" hidden>
         <div class="statement-line">
           <span class="statement-label"><%= t("views.simulations.show.sale_property_value") %></span>
           <span class="statement-amount"><%= number_to_currency(year.property_value) %></span>
+        </div>
+        <div class="statement-line">
+          <%# La note dit la plus-value brute : l'impôt qu'elle vaut ne s'en déduit pas de tête,
+              l'abattement pour durée de détention en ayant déjà mangé une part. %>
+          <span class="statement-label">
+            <%= t("views.simulations.show.sale_capital_gain_tax") %>
+            <% if year.capital_gain.positive? %>
+              <span class="statement-note"><%= t("views.simulations.show.sale_capital_gain_note",
+                                                 amount: number_to_currency(year.capital_gain)) %></span>
+            <% end %>
+          </span>
+          <span class="statement-amount"><%= number_to_currency(-year.capital_gain_tax) %></span>
         </div>
         <div class="statement-line">
           <span class="statement-label"><%= t("views.simulations.show.remaining_capital") %></span>
