@@ -36,7 +36,6 @@
       <div class="form-group">
         <%= f.label :password, t("views.account.show.new_password") %>
         <%= f.password_field :password, autocomplete: "new-password", required: true, class: "form-control" %>
-        <p class="form-hint"><%= t("views.account.show.password_hint", count: @minimum_password_length) if @minimum_password_length %></p>
       </div>
 
       <div class="form-group">

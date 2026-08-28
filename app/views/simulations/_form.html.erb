@@ -16,7 +16,6 @@
     <div class="form-group">
       <%= f.label :name %>
       <%= f.text_field :name, class: "form-control" %>
-      <p class="form-hint"><%= t("views.simulations.steps.property.name_hint") %></p>
     </div>
 
     <div class="form-group">
@@ -109,9 +108,6 @@
       <%= f.label :loan_insurance %>
       <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control",
           required: true, disabled: !simulation.credit? %>
-      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_insurance_hint",
-                                 rate: number_to_percentage(100.0 / Loan::DEFAULT_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
-                                 capital: number_to_currency(simulation.borrowed_capital)) %></p>
     <% end %>
 
     <%= tag.div class: "form-row", hidden: !simulation.credit?, data: { credit_target: "field" } do %>

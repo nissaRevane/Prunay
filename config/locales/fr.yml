@@ -133,18 +133,12 @@ fr:
         identity: Identité
         security: Sécurité
         new_password: Nouveau mot de passe
-        password_hint: "%{count} caractères minimum"
         update_password: Changer mon mot de passe
     economic_conditions:
       edit:
         title: Conditions économiques
         subtitle: "Les hypothèses dont hérite chaque nouvelle simulation."
         save: Enregistrer les conditions
-      fields:
-        rent_growth_rate_hint: "Ce que le loyer gagne chaque année, indexation du bail comprise. La première année porte le loyer saisi ; la deuxième l'augmente d'autant."
-        property_growth_rate_hint: "Ce que le bien prend en valeur chaque année. Le prix d'achat seul progresse : ni les frais de notaire ni les travaux ne se revendent."
-        inflation_rate_hint: "Ce dont les charges annuelles s'alourdissent chaque année — taxe foncière, assurance, entretien et le reste."
-        marginal_tax_rate_hint: "La tranche du barème où tombe le dernier euro de revenu du foyer. Elle frappe le revenu foncier imposable, quel que soit le régime retenu, et %{social_charges} de prélèvements sociaux s'y ajoutent."
     pages:
       home:
         title: Bienvenue sur Prunay
@@ -163,20 +157,15 @@ fr:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
       # l'assistant comme au formulaire de modification : d'où leur place ici, hors des
-      # étapes. Chaque intertitre dit ce qui engendre la dépense, et son commentaire ce que
-      # le groupe recouvre — y compris les conditions qui font apparaître ou disparaître un
-      # montant.
+      # étapes.
       charges:
         groups:
           ownership:
             title: La détention du bien
-            hint: "Ce que le bien coûte, loué ou non. L'entretien est proposé au double quand aucune copropriété ne porte déjà la façade, la toiture et les communs."
           letting:
             title: "L'exploitation locative"
-            hint: "Ce que l'on paie pour louer : rien par défaut, car ni une gestion déléguée ni une garantie des loyers impayés ne se supposent."
           other:
             title: Divers
-            hint: "Tout ce que les groupes précédents ne nomment pas."
       steps:
         title: Nouvelle simulation
         next: Continuer
@@ -185,37 +174,15 @@ fr:
         create: Créer la simulation
         property:
           title: Le bien
-          hint: "Ce que l'on achète et où il se trouve. Seules la ville et la surface sont indispensables — la surface sert ensuite à estimer les montants des pages suivantes."
-          name_hint: "Facultatif : à défaut, la simulation prendra le nom de son bien — type, ville et surface."
-          address_hint: Facultatif.
           energy_rating_blank: Non renseigné
         purchase:
           title: "L'achat"
-          hint: "Ce que le bien immobilise le premier jour : le prix, les frais de notaire qu'il entraîne, et les travaux à engager avant la première location."
-          notary_fees_hint: "Calculés d'après le prix — 7,42 % majorés de 1 772 € — et non saisis. Ils s'ajoutent au prix dans le capital immobilisé."
-          initial_works_hint: "Les travaux engagés avant la première location. Ils s'ajoutent au prix dans le capital immobilisé."
-          down_payment_hint: "Ce que vous sortez de votre poche à la signature. Proposé à %{share} du coût du projet — prix, frais de notaire et travaux —, l'ordre de grandeur qu'une banque attend. Le reste est emprunté."
-          purchase_date_hint: "Proposée trois mois après aujourd'hui, le temps d'un compromis."
         credit:
           title: Le crédit
-          hint: "À quelles conditions la banque prête le reste. La mensualité ne se saisit pas : elle se déduit du capital emprunté, du taux et de la durée. L'assurance emprunteur, elle, se saisit : la banque ne prête pas sans elle."
-          borrowed_capital_hint: "Le coût du projet (%{total}) moins votre apport (%{down_payment})."
-          loan_rate_hint: "Le taux annuel hors assurance emprunteur."
-          loan_duration_hint: "En années, %{years} au plus — au-delà, la projection s'arrêterait avant la dernière échéance."
-          loan_guarantee_fees_hint: "La garantie que la banque exige pour prêter — caution bancaire ou hypothèque —, payée une fois à la signature. Proposée à un %{divisor}e du capital emprunté (%{capital})."
-          loan_application_fees_hint: "Ce que la banque facture pour instruire le dossier, payé une fois à la signature. Proposés à un %{divisor}e du capital emprunté, sans descendre sous %{minimum}."
-          total_loan_cost_hint: "Le coût total du crédit ajoute aux intérêts l'assurance de toutes les échéances, le cautionnement et les frais de dossier. Ces deux derniers se paient à la signature : ils s'ajoutent à l'apport dans le capital immobilisé, non aux mensualités."
-          loan_insurance_hint: "La prime prélevée chaque mois avec l'échéance, du premier prélèvement au solde. Proposée à %{rate} du capital emprunté (%{capital}) par mois, le taux d'un contrat de groupe — à corriger dès que l'offre de prêt en dit le vrai montant."
-          monthly_payment_hint: "Mensualité à annuités constantes, hors assurance : M = C × i / (1 − (1 + i)^−n). L'assurance s'y ajoute pour faire l'échéance, et l'annuité — douze échéances — se retranche du cash-flow de chaque année de la projection, tant que le crédit court."
         rental:
           title: La location
-          hint: "Ce que le bien rapporte une fois loué."
-          monthly_rent_hint: "Le loyer perçu chaque mois, hors charges. C'est lui, et lui seul, que l'impôt regarde. Le montant proposé est estimé d'après la surface."
-          monthly_charges_hint: "Ce que le locataire rembourse chaque mois en plus du loyer — charges de copropriété récupérables, eau, ordures ménagères. Encaissé comme le loyer, mais non imposable : ce n'est pas un revenu, cela rembourse une dépense. Rien par défaut, car aucune provision ne se suppose."
-          occupancy_months_hint: "Le nombre de mois loués dans l'année : onze laissent un mois de vacance locative."
         charges:
           title: Les charges annuelles
-          hint: "Ce que le bien coûte chaque année, groupe par groupe. Les montants proposés sont estimés d'après la surface, à corriger. Leur total se déduit des loyers chaque année de la projection."
       edit:
         title: Modifier la simulation
       show:
@@ -228,8 +195,6 @@ fr:
         tab_foncier_reel: Foncier réel
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
-        micro_foncier_hint: "L'impôt ne frappe que les loyers hors charges, diminués de %{allowance} d'abattement forfaitaire : ni les charges réelles ni les intérêts d'emprunt ne s'y déduisent, le forfait en tient lieu. La provision pour charges reste dehors, comme les dépenses qu'elle rembourse."
-        foncier_reel_hint: "L'impôt ne frappe que les loyers hors charges, diminués des charges réelles et des intérêts d'emprunt, sans aucun abattement : la provision pour charges n'entre ni dans les loyers, ni dans les charges qu'elle rembourse. Une année déficitaire ne doit rien, et le déficit ne se reporte pas."
         property: Le bien
         purchase_detail: "L'achat"
         credit_detail: Le crédit
@@ -237,7 +202,6 @@ fr:
         annual_rent_total: "Encaissé sur une année, charges comprises et vacance déduite"
         charges_detail: Les charges annuelles
         economic_conditions_detail: Les conditions économiques
-        economic_conditions_hint: "Ce que cette simulation-là suppose du temps qui passe. Elle a hérité des conditions par défaut le jour de sa création ; les corriger ici ne change qu'elle, et la projection s'en trouve refaite."
         annual_charges_total: Total des charges annuelles
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"

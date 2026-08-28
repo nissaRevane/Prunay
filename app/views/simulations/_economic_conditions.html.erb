@@ -6,8 +6,6 @@
     <h2><%= t("views.simulations.show.economic_conditions_detail") %></h2>
   </div>
 
-  <p class="section-hint"><%= t("views.simulations.show.economic_conditions_hint") %></p>
-
   <%= render "shared/errors", resource: simulation %>
 
   <%= form_with(model: simulation, url: simulation_economic_conditions_path(simulation), method: :patch,

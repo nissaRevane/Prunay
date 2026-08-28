@@ -7,9 +7,6 @@
   <div class="form-group">
     <span class="form-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></span>
     <p class="form-static"><%= number_to_currency(f.object.borrowed_capital) %></p>
-    <p class="form-hint"><%= t("views.simulations.steps.credit.borrowed_capital_hint",
-                               total: number_to_currency(f.object.total_investment),
-                               down_payment: number_to_currency(f.object.down_payment)) %></p>
   </div>
 
   <div class="form-row">
@@ -17,7 +14,6 @@
       <%= f.label :loan_rate %>
       <%= f.number_field :loan_rate, step: "0.01", min: "0", max: "99.99", class: "form-control", required: true, autofocus: true,
           data: { loan_target: "rate", action: "input->loan#refresh" } %>
-      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_rate_hint") %></p>
     </div>
 
     <div class="form-group form-group-half">
@@ -25,7 +21,6 @@
       <%= f.number_field :loan_duration_years, step: "1", min: "1", max: Simulation::MAX_LOAN_DURATION_YEARS,
           class: "form-control", required: true,
           data: { loan_target: "duration", action: "input->loan#refresh" } %>
-      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_duration_hint", years: Simulation::MAX_LOAN_DURATION_YEARS) %></p>
     </div>
   </div>
 
@@ -35,9 +30,6 @@
     <%= f.label :loan_insurance %>
     <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control", required: true,
         data: { loan_target: "insurance", action: "input->loan#refresh" } %>
-    <p class="form-hint"><%= t("views.simulations.steps.credit.loan_insurance_hint",
-                               rate: number_to_percentage(100.0 / Loan::DEFAULT_INSURANCE_DIVISOR, precision: 2, strip_insignificant_zeros: true),
-                               capital: number_to_currency(f.object.borrowed_capital)) %></p>
   </div>
 
   <%# Ce que le crédit coûte à la signature, une fois : le cautionnement qui le garantit et
@@ -48,18 +40,12 @@
       <%= f.label :loan_guarantee_fees %>
       <%= f.number_field :loan_guarantee_fees, step: "0.01", min: "0", class: "form-control", required: true,
           data: { loan_target: "guaranteeFees", action: "input->loan#refresh" } %>
-      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_guarantee_fees_hint",
-                                 divisor: Loan::DEFAULT_GUARANTEE_FEES_DIVISOR,
-                                 capital: number_to_currency(f.object.borrowed_capital)) %></p>
     </div>
 
     <div class="form-group form-group-half">
       <%= f.label :loan_application_fees %>
       <%= f.number_field :loan_application_fees, step: "0.01", min: "0", class: "form-control", required: true,
           data: { loan_target: "applicationFees", action: "input->loan#refresh" } %>
-      <p class="form-hint"><%= t("views.simulations.steps.credit.loan_application_fees_hint",
-                                 divisor: Loan::DEFAULT_APPLICATION_FEES_DIVISOR,
-                                 minimum: number_to_currency(Loan::MIN_APPLICATION_FEES, precision: 0)) %></p>
     </div>
   </div>
 
@@ -86,7 +72,4 @@
       <p class="form-static" data-loan-target="cost"><%= number_to_currency(f.object.loan.total_cost) %></p>
     </div>
   </div>
-
-  <p class="form-hint"><%= t("views.simulations.steps.credit.monthly_payment_hint") %></p>
-  <p class="form-hint"><%= t("views.simulations.steps.credit.total_loan_cost_hint") %></p>
 </div>

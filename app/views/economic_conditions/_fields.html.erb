@@ -5,21 +5,18 @@
   <%= f.label :rent_growth_rate %>
   <%= f.number_field :rent_growth_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
       max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
-  <p class="form-hint"><%= t("views.economic_conditions.fields.rent_growth_rate_hint") %></p>
 </div>
 
 <div class="form-group">
   <%= f.label :property_growth_rate %>
   <%= f.number_field :property_growth_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
       max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
-  <p class="form-hint"><%= t("views.economic_conditions.fields.property_growth_rate_hint") %></p>
 </div>
 
 <div class="form-group">
   <%= f.label :inflation_rate %>
   <%= f.number_field :inflation_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
       max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
-  <p class="form-hint"><%= t("views.economic_conditions.fields.inflation_rate_hint") %></p>
 </div>
 
 <%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
@@ -27,6 +24,4 @@
   <%= f.label :marginal_tax_rate %>
   <%# Aucune option vide : la colonne porte toujours une tranche, ne serait-ce que celle à zéro. %>
   <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
-  <p class="form-hint"><%= t("views.economic_conditions.fields.marginal_tax_rate_hint",
-                             social_charges: number_to_percentage(Taxation::SOCIAL_CHARGES_RATE, precision: 2, strip_insignificant_zeros: true)) %></p>
 </div>

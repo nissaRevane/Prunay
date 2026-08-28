@@ -200,11 +200,6 @@ a.nav-user-name:hover {
   margin-bottom: 0;
 }
 
-.form-hint {
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-}
-
 /* Un montant que la page calcule et que personne ne saisit : la forme d'un champ, le
    trait discontinu en plus, pour qu'on n'essaie pas d'y taper. */
 .form-static {
@@ -236,15 +231,10 @@ a.nav-user-name:hover {
   padding: 0 0.5rem;
 }
 
-.form-fieldset > .form-hint {
-  margin-bottom: 1rem;
-}
-
 /* Les charges annuelles, par groupe : la détention du bien, son exploitation, le régime
-   meublé et le reste. Un intertitre et une phrase par groupe — neuf montants d'affilée ne
-   diraient pas d'où ils viennent. Le champ qu'aucune condition ne justifie porte `hidden`,
-   et la règle qui suit le fait disparaître avec sa colonne : son voisin occupe alors toute
-   la ligne. */
+   meublé et le reste. Un intertitre par groupe — neuf montants d'affilée ne diraient pas
+   d'où ils viennent. Le champ qu'aucune condition ne justifie porte `hidden`, et la règle
+   qui suit le fait disparaître avec sa colonne : son voisin occupe alors toute la ligne. */
 .charge-group + .charge-group {
   margin-top: 1.5rem;
 }
@@ -255,9 +245,6 @@ a.nav-user-name:hover {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-}
-
-.charge-group-hint {
   margin-bottom: 0.75rem;
 }
 
@@ -629,12 +616,6 @@ a.icon-btn:hover {
   font-size: 1.25rem;
 }
 
-.section-hint {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
 .section-total {
   display: flex;
   justify-content: space-between;
@@ -862,12 +843,6 @@ a.icon-btn:hover {
 
 .wizard-panel-title {
   font-size: 1.125rem;
-  margin-bottom: 0.25rem;
-}
-
-.wizard-panel-hint {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
   margin-bottom: 1.25rem;
 }
 

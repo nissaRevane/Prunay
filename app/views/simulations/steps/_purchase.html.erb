@@ -19,7 +19,6 @@
     <%= f.label :initial_works %>
     <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true,
         data: { credit_target: "works", action: "input->credit#suggest" } %>
-    <p class="form-hint"><%= t("views.simulations.steps.purchase.initial_works_hint") %></p>
   </div>
 
   <%= render "simulations/credit_fields", f: f %>
@@ -28,5 +27,4 @@
 <div class="form-group">
   <%= f.label :purchase_date %>
   <%= f.date_field :purchase_date, class: "form-control", required: true %>
-  <p class="form-hint"><%= t("views.simulations.steps.purchase.purchase_date_hint") %></p>
 </div>
