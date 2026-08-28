@@ -236,7 +236,6 @@ fr:
         pre_tax_result: Résultat avant impôt
         net_result: Résultat net
         capital_repayment_column: Remboursement du capital
-        property_value_column: Valeur du bien
         statement_title: "Année %{year}"
         statement_close: Fermer
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"

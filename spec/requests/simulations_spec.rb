@@ -160,8 +160,8 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
       ])
-      expect(statement.at_css(".statement-footer").text.gsub(/\s+/, " "))
-        .to include(currency(200_000).gsub(/\s+/, " "))
+      # La valeur du bien n'est ni un produit ni une charge : elle ne figure plus dans la fiche.
+      expect(statement.text.gsub(/\s+/, " ")).not_to include(currency(200_000).gsub(/\s+/, " "))
     end
 
     # La provision pour charges ne se déclare pas, et la dépense qu'elle rembourse pas

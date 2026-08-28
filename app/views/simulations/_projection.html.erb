@@ -108,12 +108,6 @@
           </span>
         </div>
       </div>
-
-      <%# Ni un produit ni une charge : la valeur du bien à cette date-là se lit hors du compte. %>
-      <div class="statement-footer">
-        <span><%= t("views.simulations.show.property_value_column") %></span>
-        <span class="statement-amount"><%= number_to_currency(year.property_value) %></span>
-      </div>
     </dialog>
   <% end %>
 </div>
