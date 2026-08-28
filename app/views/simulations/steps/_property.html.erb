@@ -1,16 +1,8 @@
-<%# Le nom d'abord, et sans astérisque : celui qui sait comment il appelle ce bien le dit
-    ici, les autres laissent le champ vide et la simulation prendra le nom de son bien.
-
-    Le type et la copropriété se répondent : ils tiennent donc dans le même contrôleur. %>
+<%# Le type et la copropriété se répondent : ils tiennent donc dans le même contrôleur. %>
 <div data-controller="condominium" data-condominium-type-value="<%= Simulation::APARTMENT %>">
   <div class="form-group">
-    <%= f.label :name %>
-    <%= f.text_field :name, class: "form-control", autofocus: true %>
-  </div>
-
-  <div class="form-group">
     <%= f.label :property_type %>
-    <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true,
+    <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true,
         data: { condominium_target: "propertyType", action: "change->condominium#suggest" } %>
   </div>
 

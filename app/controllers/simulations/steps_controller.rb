@@ -14,7 +14,7 @@ module Simulations
     # Ce que chaque page a le droit de demander. La liste sert deux fois : à filtrer les
     # paramètres reçus, et à dire quels champs le brouillon garde.
     STEP_ATTRIBUTES = {
-      "property" => [:name, :property_type, :address, :city, :energy_rating, :surface, :condominium],
+      "property" => [:property_type, :address, :city, :energy_rating, :surface, :condominium],
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees],

@@ -17,7 +17,6 @@ fr:
       economic_conditions: Conditions économiques
     attributes:
       simulation:
-        name: Nom de la simulation
         property_type: Type de bien
         address: Adresse
         city: Ville
@@ -112,15 +111,19 @@ fr:
       update: Mettre à jour
       submit: Enregistrer
   # Le vocabulaire du domaine, hors des vues : le modèle s'en sert pour nommer une
-  # simulation que personne n'a nommée, et les formulaires pour étiqueter leurs listes
-  # déroulantes.
+  # simulation d'après son bien, et les formulaires pour étiqueter leurs listes déroulantes.
   simulations:
-    default_name: "%{type} à %{city}, %{surface} m²"
+    name: "%{type} %{city}-%{surface}"
     property_types:
       apartment: Appartement
       house: Maison
       parking: Parking
       building: Immeuble
+    property_type_icons:
+      apartment: "🏢"
+      house: "🏠"
+      parking: "🅿️"
+      building: "🏘️"
   views:
     nav:
       economic_conditions: Conditions économiques

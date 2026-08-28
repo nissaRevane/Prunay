@@ -14,11 +14,6 @@
     <legend><%= t("views.simulations.steps.property.title") %></legend>
 
     <div class="form-group">
-      <%= f.label :name %>
-      <%= f.text_field :name, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
       <%= f.label :property_type %>
       <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true,
           data: { condominium_target: "propertyType", action: "change->condominium#suggest" } %>

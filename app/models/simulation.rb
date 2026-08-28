@@ -27,13 +27,13 @@ class Simulation < ApplicationRecord
 
   NOTARY_FEES_BASE = 1_772
 
+  # Cinq lettres de ville : de quoi reconnaître le lieu sans déborder d'une ligne de liste.
+  NAME_CITY_LENGTH = 5
+
   # Un crédit plus long que la projection porterait une annuité au-delà de sa dernière ligne.
   MAX_LOAN_DURATION_YEARS = Projection::HORIZON_YEARS
 
   belongs_to :user
-
-  # `on:` et non un callback nu : valider une étape ne doit pas remplir un champ laissé vide.
-  before_validation :name_after_the_property, on: [:create, :update]
 
   # Un montant que le formulaire ne montre plus ne doit pas continuer de peser sur la projection.
   before_validation :clear_inapplicable_charges
@@ -129,13 +129,14 @@ class Simulation < ApplicationRecord
     condition.nil? || public_send(condition)
   end
 
-  # Le nom que le bien se donne lui-même : deux mots et trois chiffres pour le reconnaître.
-  def default_name
+  # Le bien se nomme lui-même, et lui seul : l'icône du type, les premières lettres de la
+  # ville et la surface au mètre près. Rien à saisir, rien à stocker.
+  def name
     I18n.t(
-      "simulations.default_name",
-      type: I18n.t("simulations.property_types.#{property_type}"),
-      city: city,
-      surface: ActiveSupport::NumberHelper.number_to_rounded(surface, precision: 2, strip_insignificant_zeros: true)
+      "simulations.name",
+      type: I18n.t("simulations.property_type_icons.#{property_type}"),
+      city: short_city,
+      surface: surface&.round
     )
   end
 
@@ -237,8 +238,8 @@ class Simulation < ApplicationRecord
 
   private
 
-  def name_after_the_property
-    self.name = default_name if name.blank?
+  def short_city
+    city.to_s.strip.first(NAME_CITY_LENGTH)
   end
 
   def clear_inapplicable_charges

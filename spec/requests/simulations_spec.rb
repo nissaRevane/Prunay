@@ -40,24 +40,16 @@ RSpec.describe "Simulations", type: :request do
       expect(items.first.at_css(".badge")&.text&.strip).to eq("2")
     end
 
-    # Une simulation que personne n'a nommée se reconnaît à son bien : type, ville, surface.
+    # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
     it "names each row after the property it describes" do
       create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Maison à Rennes, 62,5 m²")
+      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("🏠 Renne-63")
     end
 
-    it "carries the name given at the creation when there is one" do
-      create(:simulation, user: user, name: "Le studio du port")
-
-      get simulations_path
-
-      doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("Le studio du port")
-    end
 
     it "links the row cells to the simulation instead of a dedicated button" do
       simulation = create(:simulation, user: user)
@@ -499,12 +491,13 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "PATCH /simulations/:id" do
-    it "renames the simulation" do
-      simulation = create(:simulation, user: user, name: "Le studio du port")
+    # Le nom suit le bien : corriger la ville, c'est renommer la simulation.
+    it "renames the simulation by moving the property" do
+      simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
-      patch simulation_path(simulation), params: { simulation: { name: "Le deux-pièces du port" } }
+      patch simulation_path(simulation), params: { simulation: { city: "Nantes" } }
 
-      expect(simulation.reload.name).to eq("Le deux-pièces du port")
+      expect(simulation.reload.name).to eq("🏠 Nante-63")
     end
 
     # Le formulaire de modification rassemble les cinq pages : la case du crédit y est, et
