@@ -1,32 +1,27 @@
+<%# La liste compare les biens sur une seule année et un seul régime (Taxation::REVIEW_REGIME,
+    Projection::REVIEW_YEAR) : ce que l'année-là laisse en poche, et ce qu'une revente à sa
+    date aurait rapporté en tout. Le titre de la page dit lequel et laquelle. %>
 <table class="table">
   <thead>
     <tr>
       <th><%= t("views.simulations.index.name") %></th>
-      <th class="hide-on-mobile"><%= t("views.simulations.index.purchase_date") %></th>
-      <th class="hide-on-mobile"><%= t("views.simulations.index.total_investment") %></th>
-      <th><%= t("views.simulations.index.annual_cash_flow") %></th>
+      <th class="text-right"><%= t("views.simulations.index.cash_flow") %></th>
+      <th class="text-right"><%= t("views.simulations.index.sale_profit") %></th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     <% simulations.each do |simulation| %>
+      <% year = simulation.projection(Taxation::REVIEW_REGIME).year(Projection::REVIEW_YEAR) %>
       <tr>
         <td>
           <%= link_to simulation.name, simulation_path(simulation), class: "row-link" %>
         </td>
-        <td class="hide-on-mobile">
-          <%= link_to simulation_path(simulation), class: "row-link" do %>
-            <span class="hide-on-mobile"><%= l(simulation.purchase_date, format: :long) %></span>
-            <span class="show-on-mobile"><%= l(simulation.purchase_date, format: :default) %></span>
-          <% end %>
+        <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>">
+          <%= link_to number_to_currency(year.cash_flow), simulation_path(simulation), class: "row-link" %>
         </td>
-        <td class="hide-on-mobile">
-          <%= link_to number_to_currency(simulation.initial_outlay), simulation_path(simulation), class: "row-link" %>
-        </td>
-        <%# Le cash-flow annuel, loyers moins charges : c'est lui, et non plus le loyer seul,
-            qui dit ce que le bien rapporte vraiment chaque année. %>
-        <td class="<%= simulation.annual_cash_flow.negative? ? 'text-danger' : 'text-success' %>">
-          <%= link_to number_to_currency(simulation.annual_cash_flow), simulation_path(simulation), class: "row-link" %>
+        <td class="text-right <%= year.sale_profit.negative? ? 'text-danger' : 'text-success' %>">
+          <%= link_to number_to_currency(year.sale_profit), simulation_path(simulation), class: "row-link" %>
         </td>
         <td class="table-actions">
           <%= link_to "✏️", edit_simulation_path(simulation), class: "btn btn-sm btn-outline" %>

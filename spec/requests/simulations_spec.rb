@@ -73,11 +73,43 @@ RSpec.describe "Simulations", type: :request do
     end
 
     it "ignores the simulations of another user" do
-      other = create(:simulation, user: create(:user), purchase_price: 999_999)
+      create(:simulation, user: create(:user), purchase_price: 999_999)
 
       get simulations_path
 
-      expect(response.body).not_to include(currency(other.total_investment))
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css(".table tbody tr")).to be_empty
+      expect(doc.at_css(".empty-state")).to be_present
+    end
+
+    # La liste compare les biens sur une seule année et un seul régime : le cash-flow de la
+    # quinzième année au foncier réel, et le bénéfice qu'une revente à sa date laisserait.
+    # 9 600 € de loyers, 17,2 % de prélèvements sociaux et un foyer que le barème n'atteint
+    # pas : 7 948,80 € par an. Au bout de quinze ans, 216 612 € engagés en ont retrouvé
+    # 119 232, et la revente à 200 000 € — sans plus-value imposable, le forfait travaux
+    # portant la valeur fiscale à 246 612 € — solde les 97 380 € restants.
+    it "reads each projection at the review year of the review regime" do
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      cells = doc.css(".table tbody tr td").map { |cell| cell.text.gsub(/\s+/, " ").strip }
+
+      expect(cells[1]).to eq(currency(BigDecimal("7948.80")).gsub(/\s+/, " "))
+      expect(cells[2]).to eq(currency(102_620).gsub(/\s+/, " "))
+    end
+
+    # Le régime et l'année ne se devinent pas d'un montant : le titre de la page les dit.
+    it "says under which regime and at which year it reads them" do
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css(".page-header-hint").text.strip).to eq(
+        I18n.t("views.simulations.index.subtitle",
+               regime: I18n.t("views.simulations.show.tab_#{Taxation::REVIEW_REGIME}").downcase,
+               year: Projection::REVIEW_YEAR)
+      )
     end
   end
 

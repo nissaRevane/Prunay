@@ -152,10 +152,10 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
+        subtitle: "Au %{regime}, à la %{year}ᵉ année"
         name: Nom
-        purchase_date: "Date d'acquisition"
-        total_investment: Investissement initial
-        annual_cash_flow: Cash-flow annuel
+        cash_flow: Cash-flow
+        sale_profit: Bénéfice
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à

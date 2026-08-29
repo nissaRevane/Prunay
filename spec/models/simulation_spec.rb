@@ -293,7 +293,7 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#annual_cash_flow" do
-    # Le cash-flow d'une année pleine, celui que la liste des simulations met en avant :
+    # Le cash-flow d'une année pleine, sans le détail des années que la projection déroule :
     # l'impôt y pèse comme les charges et l'annuité — 12,04 % de 9 600 € de loyers.
     it "takes the taxes and the annuity out of what the charges leave of the rent" do
       simulation = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,

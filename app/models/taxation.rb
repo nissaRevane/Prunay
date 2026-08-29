@@ -21,8 +21,12 @@ module Taxation
   # meublé : chaque nom est sa classe, son onglet et sa traduction.
   NAMES = %i[micro_foncier foncier_reel micro_bic].freeze
 
-  # Le régime que la liste des simulations suppose quand elle n'affiche qu'un cash-flow.
+  # Le régime supposé quand on ne le nomme pas : le plus simple du nu.
   DEFAULT_REGIME = NAMES.first
+
+  # Celui sous lequel la liste des simulations les compare : le réel, seul à tenir compte des
+  # charges et des intérêts, donc seul à départager deux biens qui ne se financent pas pareil.
+  REVIEW_REGIME = :foncier_reel
 
   def self.for(name, **attributes)
     raise ArgumentError, "régime fiscal inconnu : #{name.inspect}" unless NAMES.include?(name.to_s.to_sym)

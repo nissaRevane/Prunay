@@ -30,6 +30,13 @@ RSpec.describe Projection do
     expect(origin.property_value).to eq(200_000)
   end
 
+  # La liste des simulations lit une année précise et non un rang dans le tableau : l'année
+  # zéro y occupe la première place.
+  it "gives back a year by its number" do
+    expect(projection.year(15).number).to eq(15)
+    expect(projection.year(0).date).to eq(Date.new(2025, 3, 10))
+  end
+
   # Les lignes suivantes sont les anniversaires : chacune porte les loyers des douze mois
   # écoulés, et non ceux du jour où elle tombe.
   it "dates each line that follows on an anniversary of the purchase" do

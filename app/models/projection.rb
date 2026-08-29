@@ -6,6 +6,10 @@
 class Projection
   HORIZON_YEARS = 30
 
+  # L'année où la liste des simulations les lit : un crédit de vingt ans y a déjà rendu la
+  # moitié de son capital, et le forfait travaux de la plus-value y joue depuis longtemps.
+  REVIEW_YEAR = 15
+
   # Les deux lectures d'une année dans sa fiche. Le nom sert quatre fois : l'onglet, le panneau,
   # son identifiant et les clés de traduction.
   VIEWS = %w[result sale].freeze
@@ -62,6 +66,10 @@ class Projection
 
   def years
     @years ||= build_years
+  end
+
+  def year(number)
+    years.find { |year| year.number == number }
   end
 
   # Les loyers ne se multiplient plus : ils progressent d'une année sur l'autre.
