@@ -28,9 +28,7 @@ module Taxation
     end
 
     # Ce que le bien vaut aux yeux du fisc : le prix d'achat n'est jamais seul.
-    def fiscal_value
-      purchase_price + acquisition_fees + assumed_works
-    end
+    def fiscal_value = purchase_price + acquisition_fees + assumed_works
 
     def assumed_works
       return 0 if held_years <= ASSUMED_WORKS_AFTER_YEARS
@@ -39,42 +37,24 @@ module Taxation
     end
 
     # Une moins-value ne se déduit de rien : elle ne doit simplement rien.
-    def amount
-      [sale_price - fiscal_value, 0].max
-    end
+    def amount = [sale_price - fiscal_value, 0].max
 
-    def income_tax_allowance_rate
-      allowance_rate(INCOME_TAX_ALLOWANCE)
-    end
+    def income_tax_allowance_rate = allowance_rate(INCOME_TAX_ALLOWANCE)
 
-    def social_charges_allowance_rate
-      allowance_rate(SOCIAL_CHARGES_ALLOWANCE)
-    end
+    def social_charges_allowance_rate = allowance_rate(SOCIAL_CHARGES_ALLOWANCE)
 
-    def income_tax
-      share(taxable_amount(income_tax_allowance_rate), INCOME_TAX_RATE)
-    end
+    def income_tax = share(taxable_amount(income_tax_allowance_rate), INCOME_TAX_RATE)
 
-    def social_charges
-      share(taxable_amount(social_charges_allowance_rate), SOCIAL_CHARGES_RATE)
-    end
+    def social_charges = share(taxable_amount(social_charges_allowance_rate), SOCIAL_CHARGES_RATE)
 
-    def total
-      income_tax + social_charges
-    end
+    def total = income_tax + social_charges
 
     private
 
-    def allowance_rate(schedule)
-      schedule.sum { |years, rate| rate * years.count { |year| year <= held_years } }
-    end
+    def allowance_rate(schedule) = schedule.sum { |years, rate| rate * years.count { |year| year <= held_years } }
 
-    def taxable_amount(allowance_rate)
-      amount * (100 - allowance_rate) / 100
-    end
+    def taxable_amount(allowance_rate) = amount * (100 - allowance_rate) / 100
 
-    def share(amount, rate)
-      (amount * rate / 100).round(2)
-    end
+    def share(amount, rate) = (amount * rate / 100).round(2)
   end
 end

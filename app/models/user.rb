@@ -10,7 +10,5 @@ class User < ApplicationRecord
   validates :firstname, presence: true
   validates :lastname, presence: true
 
-  def full_name
-    "#{firstname} #{lastname}"
-  end
+  def full_name = "#{firstname} #{lastname}"
 end

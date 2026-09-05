@@ -37,13 +37,9 @@ module Simulation::Estimate
     round(reference(field, condominium: condominium) * Math.sqrt(surface / REFERENCE_SURFACE))
   end
 
-  def down_payment(total_investment)
-    round(total_investment * DOWN_PAYMENT_SHARE)
-  end
+  def down_payment(total_investment) = round(total_investment * DOWN_PAYMENT_SHARE)
 
-  def round(amount)
-    (amount / ROUNDING).round * ROUNDING
-  end
+  def round(amount) = (amount / ROUNDING).round * ROUNDING
 
   def reference(field, condominium: false)
     return MAINTENANCE_AMOUNTS.fetch(condominium ? :condominium : :sole_owner) if field == :maintenance

@@ -95,25 +95,15 @@ class Simulation < ApplicationRecord
             on: [:create, :update]
 
   # Les pages que CETTE simulation traverse : le parcours et la barre de progression lisent #steps.
-  def steps
-    Step.all_for(self)
-  end
+  def steps = Step.all_for(self)
 
-  def defaults_for(step)
-    Step.defaults(step, self)
-  end
+  def defaults_for(step) = Step.defaults(step, self)
 
-  def estimate(field)
-    Estimate.for(field, surface, condominium: condominium?)
-  end
+  def estimate(field) = Estimate.for(field, surface, condominium: condominium?)
 
-  def apartment?
-    property_type == APARTMENT
-  end
+  def apartment? = property_type == APARTMENT
 
-  def applicable_charges
-    ANNUAL_CHARGES.select { |field| charge_applicable?(field) }
-  end
+  def applicable_charges = ANNUAL_CHARGES.select { |field| charge_applicable?(field) }
 
   def charge_applicable?(field)
     condition = CHARGE_CONDITIONS[field.to_sym]
@@ -139,9 +129,7 @@ class Simulation < ApplicationRecord
   end
 
   # Le montant à financer, comptant ou à crédit — non ce qu'on immobilise : voir #initial_outlay.
-  def total_investment
-    purchase_price + notary_fees + initial_works
-  end
+  def total_investment = purchase_price + notary_fees + initial_works
 
   def borrowed_capital
     return 0 unless credit?
@@ -156,37 +144,23 @@ class Simulation < ApplicationRecord
                        application_fees: loan_application_fees, signed_on: purchase_date)
   end
 
-  def projection(regime)
-    Projection.new(self, regime)
-  end
+  def projection(regime) = Projection.new(self, regime)
 
-  def projections
-    Taxation::NAMES.index_with { |regime| projection(regime) }
-  end
+  def projections = Taxation::NAMES.index_with { |regime| projection(regime) }
 
-  def annual_rent
-    annual_rent_excluding_charges + annual_provision_for_charges
-  end
+  def annual_rent = annual_rent_excluding_charges + annual_provision_for_charges
 
   # Le loyer seul, hors charges : la part imposable, et rien d'autre.
-  def annual_rent_excluding_charges
-    monthly_rent * occupancy_months
-  end
+  def annual_rent_excluding_charges = monthly_rent * occupancy_months
 
   # La provision que le locataire rembourse par-dessus le loyer, et que la copropriété reprend.
-  def annual_provision_for_charges
-    monthly_charges * occupancy_months
-  end
+  def annual_provision_for_charges = monthly_charges * occupancy_months
 
   # Les autres sont à zéro de toute façon, mais les exclure dit mieux ce que le total recouvre.
-  def annual_charges
-    applicable_charges.sum { |field| public_send(field) }
-  end
+  def annual_charges = applicable_charges.sum { |field| public_send(field) }
 
   # La provision remboursée est ôtée : les dépenses qu'elle couvre ne se déclarent pas plus qu'elle.
-  def annual_charges_excluding_provision
-    annual_charges - annual_provision_for_charges
-  end
+  def annual_charges_excluding_provision = annual_charges - annual_provision_for_charges
 
   # La provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
@@ -197,9 +171,7 @@ class Simulation < ApplicationRecord
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate)
   end
 
-  def annual_taxes(regime = Taxation::DEFAULT_REGIME)
-    taxation(regime).total
-  end
+  def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
 
   # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la détention.
   def capital_gain_taxation(sale_price, held_years)
@@ -208,24 +180,16 @@ class Simulation < ApplicationRecord
   end
 
   # Une année pleine : la projection, elle, lit l'annuité par année et voit le crédit s'éteindre.
-  def annual_cash_flow
-    annual_rent - annual_charges - annual_taxes - loan.annual_payment
-  end
+  def annual_cash_flow = annual_rent - annual_charges - annual_taxes - loan.annual_payment
 
   # À crédit seuls l'apport et les frais se paient à la signature : l'emprunt, lui, se rend par les annuités.
-  def initial_outlay
-    credit? ? down_payment + loan.upfront_fees : total_investment
-  end
+  def initial_outlay = credit? ? down_payment + loan.upfront_fees : total_investment
 
   private
 
-  def short_city
-    city.to_s.strip.first(NAME_CITY_LENGTH)
-  end
+  def short_city = city.to_s.strip.first(NAME_CITY_LENGTH)
 
-  def clear_inapplicable_charges
-    (ANNUAL_CHARGES - applicable_charges).each { |field| self[field] = 0 }
-  end
+  def clear_inapplicable_charges = (ANNUAL_CHARGES - applicable_charges).each { |field| self[field] = 0 }
 
   def clear_loan_without_credit
     return if credit?

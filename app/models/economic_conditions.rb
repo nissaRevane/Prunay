@@ -26,12 +26,8 @@ class EconomicConditions < ApplicationRecord
   validates :marginal_tax_rate, presence: true, inclusion: { in: Taxation::MARGINAL_TAX_RATES }
 
   # Celles de l'utilisateur, ou les valeurs par défaut tant qu'il n'y a pas touché.
-  def self.for(user)
-    user.economic_conditions || user.build_economic_conditions(DEFAULTS)
-  end
+  def self.for(user) = user.economic_conditions || user.build_economic_conditions(DEFAULTS)
 
   # Les colonnes portent les mêmes noms des deux côtés : une simulation s'en habille telle quelle.
-  def assumptions
-    ASSUMPTIONS.index_with { |name| public_send(name) }.stringify_keys
-  end
+  def assumptions = ASSUMPTIONS.index_with { |name| public_send(name) }.stringify_keys
 end

@@ -18,34 +18,20 @@ class Projection
                     :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
                     :remaining_loan_capital, keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
-    def pre_tax_result
-      rent_excluding_charges - charges_excluding_provision - loan_interest
-    end
+    def pre_tax_result = rent_excluding_charges - charges_excluding_provision - loan_interest
 
-    def net_result
-      pre_tax_result - taxes
-    end
+    def net_result = pre_tax_result - taxes
 
-    def cash_flow
-      net_result - capital_repayment
-    end
+    def cash_flow = net_result - capital_repayment
 
-    def loan_payments
-      loan_interest + capital_repayment
-    end
+    def loan_payments = loan_interest + capital_repayment
 
-    def recovered?
-      immobilized_capital <= 0
-    end
+    def recovered? = immobilized_capital <= 0
 
-    def sale_proceeds
-      property_value - capital_gain_tax - remaining_loan_capital
-    end
+    def sale_proceeds = property_value - capital_gain_tax - remaining_loan_capital
 
     # Les loyers déjà encaissés ont d'eux-mêmes entamé le capital qui reste engagé.
-    def sale_profit
-      sale_proceeds - immobilized_capital
-    end
+    def sale_profit = sale_proceeds - immobilized_capital
   end
 
   attr_reader :regime
@@ -59,34 +45,20 @@ class Projection
     @years ||= build_years
   end
 
-  def year(number)
-    years.find { |year| year.number == number }
-  end
+  def year(number) = years.find { |year| year.number == number }
 
-  def total_rent
-    years.sum(&:rent_excluding_charges)
-  end
+  def total_rent = years.sum(&:rent_excluding_charges)
 
-  def total_charges
-    years.sum(&:charges_excluding_provision)
-  end
+  def total_charges = years.sum(&:charges_excluding_provision)
 
-  def total_taxes
-    years.sum(&:taxes)
-  end
+  def total_taxes = years.sum(&:taxes)
 
-  def total_cash_flow
-    years.sum(&:cash_flow)
-  end
+  def total_cash_flow = years.sum(&:cash_flow)
 
   # Négatif, l'investissement est récupéré.
-  def final_immobilized_capital
-    years.last.immobilized_capital
-  end
+  def final_immobilized_capital = years.last.immobilized_capital
 
-  def final_property_value
-    years.last.property_value
-  end
+  def final_property_value = years.last.property_value
 
   private
 
@@ -153,7 +125,5 @@ class Projection
   end
 
   # `to_d` : un taux qu'un formulaire invalide vient de vider se lit comme une absence d'évolution.
-  def compound(amount, annual_rate, years)
-    (amount.to_d * (1 + annual_rate.to_d / 100)**years).round(2)
-  end
+  def compound(amount, annual_rate, years) = (amount.to_d * (1 + annual_rate.to_d / 100)**years).round(2)
 end

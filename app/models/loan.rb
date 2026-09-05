@@ -24,13 +24,9 @@ class Loan
   attr_reader :capital, :annual_rate, :duration_years, :insurance, :guarantee_fees, :application_fees,
               :signed_on
 
-  def self.default_insurance(capital)
-    (capital.to_d / DEFAULT_INSURANCE_DIVISOR).round(2)
-  end
+  def self.default_insurance(capital) = (capital.to_d / DEFAULT_INSURANCE_DIVISOR).round(2)
 
-  def self.default_guarantee_fees(capital)
-    (capital.to_d / DEFAULT_GUARANTEE_FEES_DIVISOR).round(2)
-  end
+  def self.default_guarantee_fees(capital) = (capital.to_d / DEFAULT_GUARANTEE_FEES_DIVISOR).round(2)
 
   # Rien à emprunter, rien à instruire : le plancher ne s'applique qu'à un dossier qui existe.
   def self.default_application_fees(capital)
@@ -51,17 +47,13 @@ class Loan
     @signed_on = signed_on
   end
 
-  def duration_months
-    duration_years * MONTHS_PER_YEAR
-  end
+  def duration_months = duration_years * MONTHS_PER_YEAR
 
   def monthly_rate
     @monthly_rate ||= annual_rate / 100 / MONTHS_PER_YEAR
   end
 
-  def amortizable?
-    signed_on.present? && capital.positive? && duration_months.positive?
-  end
+  def amortizable? = signed_on.present? && capital.positive? && duration_months.positive?
 
   def schedule
     return nil unless amortizable?
@@ -77,48 +69,28 @@ class Loan
   end
 
   # Comptée depuis la première et non depuis la précédente : toutes tombent le même jour du mois.
-  def payment_due_on(number)
-    first_payment_on >> (number - 1)
-  end
+  def payment_due_on(number) = first_payment_on >> (number - 1)
 
-  def monthly_payment
-    schedule&.monthly_payment || 0
-  end
+  def monthly_payment = schedule&.monthly_payment || 0
 
   # La banque appelle la mensualité et la prime ensemble.
-  def total_monthly_payment
-    schedule&.total_monthly_payment || 0
-  end
+  def total_monthly_payment = schedule&.total_monthly_payment || 0
 
-  def annual_payment
-    total_monthly_payment * MONTHS_PER_YEAR
-  end
+  def annual_payment = total_monthly_payment * MONTHS_PER_YEAR
 
-  def annual_payments
-    schedule&.annual_payments || {}
-  end
+  def annual_payments = schedule&.annual_payments || {}
 
   # Le compte de résultat sépare les deux : les intérêts et la prime sont une charge, le capital non.
-  def annual_interest
-    schedule&.annual_interest || {}
-  end
+  def annual_interest = schedule&.annual_interest || {}
 
-  def annual_principal
-    schedule&.annual_principal || {}
-  end
+  def annual_principal = schedule&.annual_principal || {}
 
   # Ce qu'une revente aurait à rembourser par anticipation, année par année.
-  def annual_remaining_capital
-    schedule&.annual_remaining_capital || {}
-  end
+  def annual_remaining_capital = schedule&.annual_remaining_capital || {}
 
-  def total_interest
-    schedule&.total_interest || 0
-  end
+  def total_interest = schedule&.total_interest || 0
 
-  def total_insurance
-    schedule&.total_insurance || 0
-  end
+  def total_insurance = schedule&.total_insurance || 0
 
   # Cautionnement et frais de dossier : payés à la signature, une fois, et non étalés.
   def upfront_fees
@@ -128,7 +100,5 @@ class Loan
   end
 
   # Les intérêts seuls sous-estiment le crédit : l'assurance et les frais de signature comptent.
-  def total_cost
-    total_interest + total_insurance + upfront_fees
-  end
+  def total_cost = total_interest + total_insurance + upfront_fees
 end

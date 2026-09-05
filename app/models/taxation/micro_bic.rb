@@ -7,20 +7,12 @@ module Taxation
     ALLOWANCE_RATE = BigDecimal("50")
 
     # La provision pour charges entre dans les recettes, là où le foncier l'écarte de l'assiette.
-    def receipts
-      rent_excluding_charges + provision_for_charges
-    end
+    def receipts = rent_excluding_charges + provision_for_charges
 
-    def allowance
-      share(receipts, ALLOWANCE_RATE)
-    end
+    def allowance = share(receipts, ALLOWANCE_RATE)
 
-    def taxable_income
-      receipts - allowance
-    end
+    def taxable_income = receipts - allowance
 
-    def social_charges_rate
-      FURNISHED_SOCIAL_CHARGES_RATE
-    end
+    def social_charges_rate = FURNISHED_SOCIAL_CHARGES_RATE
   end
 end

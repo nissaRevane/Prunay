@@ -15,9 +15,7 @@ module Simulation::Step
 
   module_function
 
-  def all_for(simulation)
-    NAMES.select { |name| applicable?(name, simulation) }
-  end
+  def all_for(simulation) = NAMES.select { |name| applicable?(name, simulation) }
 
   def applicable?(name, simulation)
     condition = CONDITIONS[name.to_s]
@@ -38,9 +36,7 @@ module Simulation::Step
   end
 
   # Un appartement est presque toujours en copropriété, une maison presque jamais.
-  def property_defaults(simulation)
-    { "condominium" => simulation.apartment? }
-  end
+  def property_defaults(simulation) = { "condominium" => simulation.apartment? }
 
   def purchase_defaults(simulation)
     {

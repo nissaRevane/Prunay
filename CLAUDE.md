@@ -46,6 +46,11 @@ d'une classe pour dire ce qu'elle représente et ce qui vit ailleurs, une seule 
 ailleurs, rien du tout dès que le code se lit seul. Style du reste du fichier : une phrase,
 pas une étiquette.
 
+### Les méthodes d'une expression
+Une méthode qui tient en une expression s'écrit en `def nom = expression`, tant que la ligne
+reste sous 120 caractères. Restent en `def`/`end` : les mémoïsations (`@x ||= ...`), les
+affectations, et tout ce qui déborde.
+
 ### L'argent et les taux
 `BigDecimal` partout. `.to_d` sur toute entrée dans un constructeur — un taux entier ferait
 une division entière et un prêt à 3 % ne coûterait rien. `.round(2)` sur les montants rendus.

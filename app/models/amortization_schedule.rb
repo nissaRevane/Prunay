@@ -22,25 +22,17 @@ class AmortizationSchedule
       end
   end
 
-  def total_monthly_payment
-    monthly_payment + insurance
-  end
+  def total_monthly_payment = monthly_payment + insurance
 
   def rows
     @rows ||= build_rows
   end
 
-  def total_interest
-    rows.sum(&:interest)
-  end
+  def total_interest = rows.sum(&:interest)
 
-  def total_insurance
-    rows.sum(&:insurance)
-  end
+  def total_insurance = rows.sum(&:insurance)
 
-  def total_payments
-    rows.sum(&:payment)
-  end
+  def total_payments = rows.sum(&:payment)
 
   def annual_payments
     @annual_payments ||= yearly_rows.transform_values { |yearly| yearly.sum(&:payment) }
@@ -66,22 +58,14 @@ class AmortizationSchedule
     @yearly_rows ||= rows.group_by { |row| ((row.number - 1) / Loan::MONTHS_PER_YEAR) + 1 }
   end
 
-  def capital
-    @loan.capital
-  end
+  def capital = @loan.capital
 
-  def months
-    @loan.duration_months
-  end
+  def months = @loan.duration_months
 
-  def monthly_rate
-    @loan.monthly_rate
-  end
+  def monthly_rate = @loan.monthly_rate
 
   # La même prime à chaque échéance : elle ne se lit pas sur le capital restant dû et n'en rend rien.
-  def insurance
-    @loan.insurance
-  end
+  def insurance = @loan.insurance
 
   def build_rows
     remaining = capital
@@ -106,7 +90,5 @@ class AmortizationSchedule
   end
 
   # L'arrondi de la mensualité au centime ne doit pas déplacer la fin du tableau d'une ligne.
-  def last_payment?(number, principal, remaining)
-    number == months || principal >= remaining
-  end
+  def last_payment?(number, principal, remaining) = number == months || principal >= remaining
 end

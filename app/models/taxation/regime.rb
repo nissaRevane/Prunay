@@ -15,31 +15,19 @@ module Taxation
       @loan_interest = loan_interest.to_d
     end
 
-    def taxable_income
-      raise NotImplementedError
-    end
+    def taxable_income = raise NotImplementedError
 
     # Le taux du nu, que le meublé remplace par le sien : voir Taxation.
-    def social_charges_rate
-      SOCIAL_CHARGES_RATE
-    end
+    def social_charges_rate = SOCIAL_CHARGES_RATE
 
-    def income_tax
-      share(taxable_income, marginal_tax_rate)
-    end
+    def income_tax = share(taxable_income, marginal_tax_rate)
 
-    def social_charges
-      share(taxable_income, social_charges_rate)
-    end
+    def social_charges = share(taxable_income, social_charges_rate)
 
-    def total
-      income_tax + social_charges
-    end
+    def total = income_tax + social_charges
 
     private
 
-    def share(amount, rate)
-      (amount * rate / 100).round(2)
-    end
+    def share(amount, rate) = (amount * rate / 100).round(2)
   end
 end

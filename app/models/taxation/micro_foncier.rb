@@ -6,12 +6,8 @@ module Taxation
     # Le forfait du micro-foncier : 30 % de l'assiette, en place des charges réelles.
     ALLOWANCE_RATE = BigDecimal("30")
 
-    def allowance
-      share(rent_excluding_charges, ALLOWANCE_RATE)
-    end
+    def allowance = share(rent_excluding_charges, ALLOWANCE_RATE)
 
-    def taxable_income
-      rent_excluding_charges - allowance
-    end
+    def taxable_income = rent_excluding_charges - allowance
   end
 end
