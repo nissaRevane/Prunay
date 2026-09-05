@@ -1,7 +1,5 @@
 require "spec_helper"
-# Force the test environment: the containers run with RAILS_ENV=development, and
-# `||=` would leave it there -- which skips Bundler's :test group (shoulda-matchers
-# et al. never get required) and points the suite at the development database.
+# Force the test environment: the containers run with RAILS_ENV=development, and `||=` would leave it there.
 ENV["RAILS_ENV"] = "test"
 require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?

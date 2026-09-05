@@ -24,17 +24,14 @@
     </div>
   </div>
 
-  <%# L'assurance emprunteur : la banque ne prête pas sans elle. La prime est proposée d'après
-      le capital emprunté, à corriger dès que l'offre de prêt en dit le vrai montant. %>
+  <%# La prime est proposée d'après le capital emprunté, à corriger dès que l'offre de prêt la dit. %>
   <div class="form-group">
     <%= f.label :loan_insurance %>
     <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control", required: true,
         data: { loan_target: "insurance", action: "input->loan#refresh" } %>
   </div>
 
-  <%# Ce que le crédit coûte à la signature, une fois : le cautionnement qui le garantit et
-      les frais de dossier. Ils ne pèsent pas sur la mensualité, mais s'ajoutent à l'apport
-      dans le capital immobilisé. %>
+  <%# Cautionnement et frais de dossier ne pèsent pas sur la mensualité : ils s'ajoutent à l'apport. %>
   <div class="form-row">
     <div class="form-group form-group-half">
       <%= f.label :loan_guarantee_fees %>

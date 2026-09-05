@@ -8,10 +8,7 @@
   </div>
 </div>
 
-<%# Les lectures d'une même simulation : ses paramètres, sa projection, le tableau
-    d'amortissement de son crédit quand elle en porte un, et les conditions économiques qui
-    la font vieillir. Les panneaux sont tous rendus par le serveur ; l'onglet choisit lequel
-    se montre, et `tab` dit lequel s'ouvre au chargement — celui d'où l'on revient. %>
+<%# Tous les panneaux sont rendus par le serveur ; `tab` dit lequel s'ouvre au chargement. %>
 <% tabs = simulation_tabs(@schedule) %>
 <% opened = tabs.index(@tab) || 0 %>
 

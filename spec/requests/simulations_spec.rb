@@ -15,8 +15,7 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    # La liste EST l'accueil d'un utilisateur connecté : il n'y a pas de tableau de bord
-    # au-dessus d'elle (voir la contrainte `authenticated :user` des routes).
+    # La liste EST l'accueil d'un utilisateur connecté : pas de tableau de bord au-dessus d'elle.
     it "is what the root serves to a signed-in user" do
       get root_path
 
@@ -82,12 +81,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".empty-state")).to be_present
     end
 
-    # La liste compare les biens sur une seule année et un seul régime : le cash-flow de la
-    # quinzième année au foncier réel, et le bénéfice qu'une revente à sa date laisserait.
-    # 9 600 € de loyers, 17,2 % de prélèvements sociaux et un foyer que le barème n'atteint
-    # pas : 7 948,80 € par an. Au bout de quinze ans, 216 612 € engagés en ont retrouvé
-    # 119 232, et la revente à 200 000 € — sans plus-value imposable, le forfait travaux
-    # portant la valeur fiscale à 246 612 € — solde les 97 380 € restants.
+    # 7 948,80 € par an : après quinze ans, 119 232 € retrouvés sur 216 612 € engagés, et 97 380 € à solder.
     it "reads each projection at the review year of the review regime" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -125,8 +119,7 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    # L'horizon plus la ligne de l'achat : elle ne porte ni loyer ni charge, seulement le
-    # capital immobilisé le premier jour.
+    # L'horizon plus la ligne de l'achat, qui ne porte que le capital immobilisé le premier jour.
     it "renders one row per year of the horizon, the purchase date opening the table" do
       get simulation_path(simulation)
 
@@ -143,9 +136,7 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Le tableau ne porte que ce qu'on y cherche, et la date s'y lit au mois : une projection
-    # par anniversaires n'a que faire du jour. Les charges, l'impôt et les annuités pèsent sur
-    # le cash-flow sans colonne à elles — l'onglet des paramètres les détaille.
+    # Charges, impôt et annuités pèsent sur le cash-flow sans colonne à elles.
     it "renders the year, its month, its rent, its cash flow and the capital still immobilized" do
       get simulation_path(simulation)
 
@@ -162,8 +153,7 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Ce que le tableau ne montre pas se lit dans la pop-in de l'année : un compte de résultat,
-    # du loyer au cash-flow, les charges en négatif et chaque solde derrière ce qui l'a produit.
+    # La pop-in de l'année porte le compte de résultat, du loyer au cash-flow.
     it "renders the statement of each year as a dialog, closed until its row is clicked" do
       get simulation_path(simulation)
 
@@ -184,17 +174,12 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
       ])
-      # La valeur du bien n'est ni un produit ni une charge : elle ne figure pas au compte de
-      # résultat, quoique la vue revente de la même fiche en parte.
+      # La valeur du bien n'est ni un produit ni une charge : elle ne figure pas au compte de résultat.
       result = statement.at_css("#micro_foncier-year-2-result").text.gsub(/\s+/, " ")
       expect(result).not_to include(currency(200_000).gsub(/\s+/, " "))
     end
 
-    # L'autre lecture de la même fiche : ce qu'une revente à cette date-là laisserait. Le bien
-    # vaut toujours 200 000 € — la fabrique ne fait pas monter les prix, et une revente sous la
-    # valeur fiscale ne doit aucun impôt —, il n'y a pas de banque à solder, et les 236 612 €
-    # engagés dépassent encore de 21 260,80 € ce que la revente rend, les deux années de
-    # cash-flow déduites.
+    # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt et laisse 21 260,80 € engagés.
     it "simulates a sale from the same statement, behind a tab of its own" do
       get simulation_path(simulation)
 
@@ -216,9 +201,7 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # La provision pour charges ne se déclare pas, et la dépense qu'elle rembourse pas
-    # davantage : le tableau ne montre que le loyer hors charges, et la fiche des charges
-    # allégées d'autant, une note disant de combien.
+    # Le tableau ne montre que le loyer hors charges, et la fiche des charges allégées d'autant.
     it "shows the rent excluding charges and says discreetly what the provision took off them" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
                                     occupancy_months: 12, condominium: true, condominium_fees: 1_500)
@@ -236,8 +219,7 @@ RSpec.describe "Simulations", type: :request do
         .to eq(currency(-300).gsub(/\s+/, " "))
     end
 
-    # Le foncier réel a son onglet à côté du micro-foncier, et son tableau porte le même
-    # horizon : ce sont les deux lectures d'une seule et même projection.
+    # Deux lectures d'une seule et même projection : même horizon, régime à part.
     it "opens a tab of its own on the foncier réel projection" do
       get simulation_path(simulation)
 
@@ -258,8 +240,7 @@ RSpec.describe "Simulations", type: :request do
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      # 11 000 € de loyers moins 2 000 € de charges réelles : 9 000 € d'assiette, et
-      # 1 548 € de prélèvements sociaux, là où le micro-foncier en compte 1 324,40 €.
+      # 9 000 € d'assiette et 1 548 € de prélèvements, là où le micro-foncier en compte 1 324,40 €.
       expect(cells).to eq([
         "1",
         "mar.-2026",
@@ -273,8 +254,7 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Le micro-BIC a le sien à son tour : le forfait du meublé, moitié des recettes imposée et
-    # 18,6 % de prélèvements — 1 023 € là où le micro-foncier en compte 1 324,40 €.
+    # Moitié des recettes imposée à 18,6 % : 1 023 € là où le micro-foncier en compte 1 324,40 €.
     it "opens a tab of its own on the micro-BIC projection, half the receipts taxed" do
       get simulation_path(simulation)
 
@@ -299,8 +279,7 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Tout l'intérêt des onglets : la même année, les mêmes loyers et les mêmes charges, et le
-    # seul impôt pour les séparer — le résultat net et le cash-flow n'en découlent.
+    # La même année et les mêmes loyers : seul l'impôt sépare les régimes.
     it "renders the same year under every regime, the tax apart" do
       get simulation_path(simulation)
 
@@ -317,8 +296,7 @@ RSpec.describe "Simulations", type: :request do
       expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end
 
-    # À 0 % de barème seuls les prélèvements sociaux pèsent : c'est à 30 %, et à crédit, que les
-    # deux régimes s'écartent le plus — les intérêts s'y déduisent vraiment.
+    # C'est à 30 % de barème et à crédit que les régimes s'écartent le plus : les intérêts s'y déduisent.
     it "separates the regimes furthest when a real bracket meets deducted interest" do
       taxed = create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
                                                 purchase_price: 200_000, initial_works: 0,
@@ -335,8 +313,7 @@ RSpec.describe "Simulations", type: :request do
         end
       end
 
-      # Le forfait impose 7 700 € à 47,2 % ; le réel, les 4 601,21 € que 700 € de charges et
-      # 5 698,79 € d'intérêts laissent des 11 000 € de loyers.
+      # Le forfait impose 7 700 € ; le réel, les 4 601,21 € que charges et intérêts laissent des loyers.
       expect(amounts[:micro_foncier]).to include(
         I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("-3634.40")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.net_result") => currency(BigDecimal("966.81")).gsub(/\s+/, " "),
@@ -360,8 +337,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
-    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix et
-    # les additionne au capital immobilisé le premier jour.
+    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix.
     it "details the purchase, notary fees included, and totals what it immobilizes" do
       get simulation_path(simulation)
 
@@ -380,8 +356,7 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
     end
 
-    # Le loyer est ce que la simulation a de plus concret : il se lit sur la fiche, au mois
-    # comme un bail l'énonce, et non seulement dans la colonne annuelle de la projection.
+    # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.
     it "details the letting, its rent first" do
       get simulation_path(simulation)
 
@@ -400,8 +375,7 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
-    # Une ligne à zéro se lirait comme une charge oubliée : la fiche ne détaille que les
-    # charges que le bien se voit demander.
+    # Une ligne à zéro se lirait comme une charge oubliée : seules les charges demandées s'affichent.
     it "details only the charges the property is asked for" do
       sole_owner = create(:simulation, user: user, condominium: false, property_tax: 700)
 
@@ -441,8 +415,7 @@ RSpec.describe "Simulations", type: :request do
         expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(Taxation::NAMES.size + 3)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
-        # Échéance, date, mensualité, intérêts, capital remboursé, assurance, capital restant
-        # dû : la mensualité est ce que la banque prélève, prime comprise.
+        # La mensualité de la ligne est ce que la banque prélève, prime comprise.
         cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
         expect(cells.first).to eq("1")
         expect(cells.second).to include("05 avril 2025")
@@ -450,8 +423,7 @@ RSpec.describe "Simulations", type: :request do
         expect(cells[5]).to eq(currency(19.32).gsub(/\s+/, " "))
       end
 
-      # L'annuité n'a pas de colonne, mais elle pèse sur le cash-flow de chaque année où le
-      # crédit court : c'est là qu'elle se lit.
+      # L'annuité n'a pas de colonne : elle se lit sur le cash-flow des années où le crédit court.
       it "takes the annuity out of the cash flow without giving it a column" do
         get simulation_path(on_credit)
 
@@ -466,8 +438,7 @@ RSpec.describe "Simulations", type: :request do
           .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment).gsub(/\s+/, " "))
       end
 
-      # L'annuité se coupe en deux sur le compte de résultat : les intérêts et la prime sont
-      # une charge, le capital rendu ne l'est pas — il passe sous le résultat net.
+      # Intérêts et prime sont une charge, le capital rendu non : il passe sous le résultat net.
       it "splits the annuity between the interest it charges and the capital it gives back" do
         get simulation_path(on_credit)
 
@@ -486,9 +457,7 @@ RSpec.describe "Simulations", type: :request do
         )
       end
 
-      # Ce qui est réellement immobilisé le premier jour, c'est l'apport et les frais que la
-      # signature coûte : le capital emprunté, lui, se rembourse par les annuités, et le
-      # compter deux fois ferait payer le bien deux fois.
+      # Seuls l'apport et les frais de la signature s'immobilisent : le capital se rend par les annuités.
       it "details the credit and immobilizes the down payment and the fees of the signature" do
         get simulation_path(on_credit)
 
@@ -532,8 +501,7 @@ RSpec.describe "Simulations", type: :request do
       expect(simulation.reload.name).to eq("🏠 Nante-63")
     end
 
-    # Le formulaire de modification rassemble les cinq pages : la case du crédit y est, et
-    # ses conditions avec elle.
+    # Le formulaire de modification rassemble les cinq pages, la case du crédit comprise.
     it "turns a purchase paid outright into a purchase financed by a credit" do
       simulation = create(:simulation, user: user, purchase_price: 200_000, initial_works: 0)
 
@@ -554,8 +522,7 @@ RSpec.describe "Simulations", type: :request do
       expect(simulation.reload.monthly_rent).to eq(1_000)
     end
 
-    # La modification tient sur une seule page : les quatre étapes n'ont de sens que pour
-    # qui découvre le formulaire.
+    # Les étapes n'ont de sens que pour qui découvre le formulaire : la modification tient sur une page.
     it "edits every page of the creation on a single form" do
       simulation = create(:simulation, user: user)
 
@@ -581,8 +548,7 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "the navigation shell" do
-    # La marque mène à la liste : le menu ne porte que ce qu'elle ne mène pas déjà, soit les
-    # conditions économiques par défaut, et rien d'autre tant qu'il n'y a rien d'autre à voir.
+    # La marque mène à la liste : le menu ne porte que ce qu'elle ne mène pas déjà.
     it "carries the general settings alone in the top menu of a signed-in user" do
       get simulations_path
 

@@ -1,18 +1,11 @@
 module Simulations
-  # La création d'une simulation, page par page.
-  #
-  # Rien n'est écrit en base avant la dernière : les réponses s'accumulent en session, et
-  # chaque page ne valide que ses propres champs — d'où les contextes de validation nommés
-  # comme les étapes (voir +Simulation::Step::NAMES+). Une simulation à moitié remplie n'existe
-  # donc jamais en base, et l'utilisateur peut revenir en arrière sans rien casser.
-  #
-  # Les pages ne sont pas les mêmes pour tout le monde : celle du crédit ne s'ouvre qu'à qui
-  # en a coché un sur la page de l'achat. La liste des pages se demande donc au brouillon
-  # (+Simulation#steps+) et non à la constante — et elle se redemande après chaque réponse,
-  # puisque c'est une réponse qui la change.
+  # La création d'une simulation, page par page. Rien n'est écrit en base avant la dernière :
+  # les réponses s'accumulent en session et chaque page ne valide que ses propres champs, d'où
+  # les contextes de validation nommés comme les étapes. Les pages ne sont pas les mêmes pour
+  # tout le monde — celle du crédit ne s'ouvre qu'à qui en a coché un —, aussi la liste se
+  # demande-t-elle au brouillon (Simulation#steps) après chaque réponse, et non à la constante.
   class StepsController < ApplicationController
-    # Ce que chaque page a le droit de demander. La liste sert deux fois : à filtrer les
-    # paramètres reçus, et à dire quels champs le brouillon garde.
+    # Ce que chaque page a le droit de demander, et ce que le brouillon garde d'elle.
     STEP_ATTRIBUTES = {
       "property" => [:property_type, :address, :city, :energy_rating, :surface, :condominium],
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
@@ -38,8 +31,7 @@ module Simulations
 
       session[DRAFT_KEY] = draft.merge(step_params)
 
-      # Le parcours se relit sur le brouillon mis à jour : c'est la page de l'achat qui dit
-      # s'il y a un crédit, donc si la page du crédit vient de s'ouvrir ou de se refermer.
+      # C'est la page de l'achat qui dit s'il y a un crédit : le parcours se relit sur le brouillon.
       @steps = steps
 
       last_step? ? create_simulation : redirect_to(new_simulation_step_path(step: next_step))
@@ -47,9 +39,7 @@ module Simulations
 
     private
 
-    # La page demandée, située dans le parcours de CE brouillon-là. Une page que le brouillon
-    # ne traverse pas — celle du crédit, pour un achat comptant — est traitée comme une page
-    # qui n'existe pas : on repart du début.
+    # Une page que ce brouillon-là ne traverse pas est traitée comme une page qui n'existe pas.
     def set_step
       @steps = steps
       @step = params[:step]
@@ -60,9 +50,7 @@ module Simulations
       @previous_step = @steps[@step_index - 1] if @step_index.positive?
     end
 
-    # On n'entre pas dans une page tant que les précédentes n'ont rien à dire : une adresse
-    # tapée à la main renvoie là où le brouillon s'est arrêté, pas sur un formulaire dont
-    # les valeurs par défaut n'auraient aucune surface d'où sortir.
+    # Une adresse tapée à la main renvoie là où le brouillon s'est arrêté.
     def ensure_step_reachable
       pending = first_pending_step
       return if pending.nil? || @step_index <= @steps.index(pending)
@@ -80,14 +68,7 @@ module Simulations
       current_user.simulations.build(draft).steps
     end
 
-    # La simulation telle que la page l'affiche : ce que le brouillon sait déjà, recouvert par
-    # ce que le formulaire vient d'envoyer, puis complété par ce que la page propose là où
-    # personne n'a encore répondu. Un champ vidé à la main reste donc vide, il ne repasse pas
-    # au défaut.
-    #
-    # Les valeurs proposées se demandent à la simulation en construction, et non à la classe :
-    # elles se déduisent des réponses déjà données — la surface, la copropriété —
-    # et c'est cet objet-là qui les porte, déjà converties.
+    # Le brouillon, recouvert par le formulaire, complété par les défauts : un champ vidé reste vide.
     def build_simulation(overrides = {})
       answers = draft.merge(overrides)
       simulation = current_user.simulations.build(answers)
@@ -96,9 +77,7 @@ module Simulations
       simulation
     end
 
-    # Les conditions économiques ne sont demandées par aucune page — la tranche d'imposition
-    # comprise : la simulation naît avec celles de l'utilisateur, et son onglet les corrigera
-    # ensuite pour elle seule.
+    # Aucune page ne les demande : la simulation naît avec celles de l'utilisateur.
     def create_simulation
       simulation = current_user.simulations.build(EconomicConditions.for(current_user).assumptions.merge(draft))
 

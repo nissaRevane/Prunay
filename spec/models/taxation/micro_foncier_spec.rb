@@ -43,8 +43,7 @@ RSpec.describe Taxation::MicroFoncier do
     expect(with_charges.total).to eq(BigDecimal("3964.80"))
   end
 
-  # Une tranche à zéro n'exonère de rien : les prélèvements sociaux, eux, ne connaissent pas
-  # le barème — 17,2 % des 70 % imposables, soit 12,04 % du loyer.
+  # Une tranche à zéro n'exonère de rien : 17,2 % des 70 % imposables, soit 12,04 % du loyer.
   it "still levies the social charges on a household the scale does not reach" do
     untaxed = described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 0)
 
@@ -56,8 +55,7 @@ RSpec.describe Taxation::MicroFoncier do
     expect(described_class.new(rent_excluding_charges: 0, marginal_tax_rate: 45).total).to eq(0)
   end
 
-  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait
-  # à zéro sur les 45 % du barème comme sur les 30 % de l'abattement.
+  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer bracket as a rate and not as a division" do
     expect(described_class.new(rent_excluding_charges: 10_000, marginal_tax_rate: 45).income_tax).to eq(3_150)
   end

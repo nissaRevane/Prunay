@@ -18,8 +18,7 @@ RSpec.describe "Home", type: :request do
       expect(doc.at_css(".navbar-links a[href='#{new_user_session_path}']")).not_to be_nil
     end
 
-    # La racine sert deux pages selon qui la demande : la vitrine au visiteur, la liste de
-    # ses simulations à l'utilisateur connecté (voir la contrainte `authenticated :user`).
+    # La racine sert la vitrine au visiteur et la liste des simulations à l'utilisateur connecté.
     it "is the simulations list for a signed-in user" do
       sign_in create(:user)
 

@@ -10,9 +10,6 @@ Rails.application.config.content_security_policy do |policy|
   end
 end
 
-# `javascript_importmap_tags` emits the importmap and the entry-point import as
-# *inline* script tags, which `script_src :self, :https` rejects. Without a nonce
-# generator `request.content_security_policy_nonce` is nil, the tags render
-# without a nonce and the browser drops them: no Turbo, no Stimulus, no JS at all.
+# `javascript_importmap_tags` emits inline script tags: without a nonce generator the browser drops them.
 Rails.application.config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
 Rails.application.config.content_security_policy_nonce_directives = %w[script-src]

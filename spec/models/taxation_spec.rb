@@ -27,15 +27,13 @@ RSpec.describe Taxation do
     end
   end
 
-  # L'ordre est celui des onglets de la fiche — les deux régimes du nu, puis celui du meublé —
-  # et le premier est celui que la liste suppose.
+  # L'ordre est celui des onglets de la fiche, et le premier est celui que la liste suppose.
   it "names the regimes in the order the simulation presents them" do
     expect(described_class::NAMES).to eq([:micro_foncier, :foncier_reel, :micro_bic])
     expect(described_class::DEFAULT_REGIME).to eq(:micro_foncier)
   end
 
-  # Ce que les régimes partagent : le barème du foyer. Les prélèvements sociaux, eux, se sont
-  # dédoublés — la LFSS 2026 n'a laissé 9,2 % de CSG qu'au foncier et à la plus-value.
+  # Les prélèvements sociaux se sont dédoublés : la LFSS 2026 n'a laissé 9,2 % de CSG qu'au foncier.
   it "carries a social charges rate for each world and the brackets of the scale" do
     expect(described_class::SOCIAL_CHARGES_RATE).to eq(BigDecimal("17.2"))
     expect(described_class::FURNISHED_SOCIAL_CHARGES_RATE).to eq(BigDecimal("18.6"))

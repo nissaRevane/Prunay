@@ -14,8 +14,7 @@ RSpec.describe Projection do
     expect(projection.years.map(&:number)).to eq((0..30).to_a)
   end
 
-  # Le jour de la signature ne porte ni loyer ni charge — rien n'a couru. Il porte ce qu'il est
-  # seul à montrer : le capital engagé avant que quoi que ce soit ne le rembourse.
+  # Le jour de la signature ne porte que le capital engagé : rien n'a encore couru.
   it "opens on the purchase date, nothing collected and everything immobilized" do
     origin = projection.years.first
 
@@ -30,15 +29,13 @@ RSpec.describe Projection do
     expect(origin.property_value).to eq(200_000)
   end
 
-  # La liste des simulations lit une année précise et non un rang dans le tableau : l'année
-  # zéro y occupe la première place.
+  # Une année se lit par son numéro et non par son rang : l'année zéro occupe la première place.
   it "gives back a year by its number" do
     expect(projection.year(15).number).to eq(15)
     expect(projection.year(0).date).to eq(Date.new(2025, 3, 10))
   end
 
-  # Les lignes suivantes sont les anniversaires : chacune porte les loyers des douze mois
-  # écoulés, et non ceux du jour où elle tombe.
+  # Chaque anniversaire porte les loyers des douze mois écoulés, et non ceux du jour où il tombe.
   it "dates each line that follows on an anniversary of the purchase" do
     expect(projection.years[1].date).to eq(Date.new(2026, 3, 10))
     expect(projection.years[2].date).to eq(Date.new(2027, 3, 10))
@@ -50,8 +47,7 @@ RSpec.describe Projection do
     expect(projection.years.drop(1).map(&:charges_excluding_provision).uniq).to eq([2_000])
   end
 
-  # Le foyer de la fabrique n'est pas imposé au barème, mais les prélèvements sociaux, eux,
-  # ne se choisissent pas : 17,2 % des 7 700 € imposables que laissent 11 000 € de loyers.
+  # Le barème n'atteint pas ce foyer : 17,2 % des 7 700 € imposables que laissent 11 000 € de loyers.
   it "taxes the rent excluding charges of every year, allowance deducted" do
     expect(projection.years.drop(1).map(&:taxes).uniq).to eq([BigDecimal("1324.40")])
     expect(projection.total_taxes).to eq(BigDecimal("1324.40") * described_class::HORIZON_YEARS)
@@ -61,17 +57,14 @@ RSpec.describe Projection do
     expect(projection.years.drop(1).map(&:cash_flow).uniq).to eq([BigDecimal("7675.60")])
   end
 
-  # Les frais de notaire et les travaux initiaux s'immobilisent avec le prix : ils sont
-  # engagés avant le premier loyer, et c'est de leur somme que les cash-flows se déduisent.
+  # Frais de notaire et travaux s'immobilisent avec le prix : les cash-flows se déduisent de leur somme.
   it "deducts the cash flows accumulated since the purchase from the price, the fees and the works" do
     expect(projection.years[1].immobilized_capital).to eq(236_612 - BigDecimal("7675.60"))
     expect(projection.years[2].immobilized_capital).to eq(236_612 - BigDecimal("15351.20"))
     expect(projection.years.last.immobilized_capital).to eq(236_612 - BigDecimal("230268.00"))
   end
 
-  # Le capital revient d'autant plus tard que l'impôt en prend sa part : à 1 000 € de loyer
-  # mensuel il ne revient plus dans l'horizon, et il faut 1 600 € pour le ramener — 13 480,96 €
-  # par an, soit dix-huit années pour couvrir les 236 612 € engagés.
+  # À 1 600 € par mois, 13 480,96 € par an : dix-huit années pour couvrir les 236 612 € engagés.
   it "marks a line as recovered once the capital has come back" do
     recovering = described_class.new(build(:simulation, purchase_price: 200_000, initial_works: 20_000,
                                                         monthly_rent: 1_600, occupancy_months: 11,
@@ -83,8 +76,7 @@ RSpec.describe Projection do
     expect(recovering.years.take(18).map(&:recovered?)).to all(be(false))
   end
 
-  # Le crédit pèse sur chaque année tant qu'il court, et cesse de peser le jour où il est
-  # soldé : une projection de trente ans porte vingt annuités d'un prêt de vingt ans.
+  # Une projection de trente ans porte les vingt annuités d'un prêt de vingt ans, et rien après.
   describe "of a purchase financed by a credit" do
     subject(:projection) { described_class.new(simulation, :micro_foncier) }
 
@@ -99,8 +91,7 @@ RSpec.describe Projection do
         .to eq(9_600 - BigDecimal("1155.84") - BigDecimal("1071.62") * 12)
     end
 
-    # Les deux moitiés de l'annuité ne pèsent pas au même endroit : les intérêts et la prime
-    # entament le résultat avant impôt, le capital rendu ne se lit qu'au cash-flow.
+    # Intérêts et prime entament le résultat avant impôt ; le capital rendu ne se lit qu'au cash-flow.
     it "charges the interest to the pre-tax result and the capital to the cash flow alone" do
       year = projection.years[1]
 
@@ -117,31 +108,27 @@ RSpec.describe Projection do
       expect(projection.years[21].cash_flow).to eq(9_600 - BigDecimal("1155.84"))
     end
 
-    # L'apport seul est immobilisé le premier jour, et les annuités le creusent avant que les
-    # loyers ne le comblent.
+    # L'apport seul est immobilisé le premier jour : le capital emprunté se rend par les annuités.
     it "starts from the down payment and not from the whole project" do
       expect(projection.years.first.immobilized_capital).to eq(23_388)
       expect(projection.years[1].immobilized_capital).to eq(23_388 - projection.years[1].cash_flow)
     end
 
-    # Le jour de la signature, rien n'est encore remboursé : la revente devrait solder tout le
-    # prêt. Le crédit éteint, elle n'a plus rien à rendre à la banque.
+    # Le jour de la signature la revente solderait tout le prêt ; le crédit éteint, plus rien.
     it "would have to clear the whole loan on the day it is signed, and nothing once it is over" do
       expect(projection.years.first.remaining_loan_capital).to eq(simulation.borrowed_capital)
       expect(projection.years[20].remaining_loan_capital).to eq(0)
       expect(projection.years[21].remaining_loan_capital).to eq(0)
     end
 
-    # Vingt-quatre échéances passées, la banque a été remboursée de la différence entre le
-    # capital emprunté et ce qu'il en reste : c'est ce que les deux premières annuités ont rendu.
+    # Vingt-quatre échéances passées, il reste à solder ce que les deux premières annuités n'ont pas rendu.
     it "owes what the annual principal has not yet repaid" do
       repaid = projection.years[1].capital_repayment + projection.years[2].capital_repayment
 
       expect(projection.years[2].remaining_loan_capital).to eq(simulation.borrowed_capital - repaid)
     end
 
-    # Le prix ne bouge pas — la fabrique est neutre —, alors la revente ne rapporte que ce que le
-    # crédit a déjà remboursé, une fois récupéré ce qui reste immobilisé.
+    # Le prix ne bougeant pas, la revente ne rapporte que ce que le crédit a déjà remboursé.
     it "sells for the market price less what is still owed, and profits by what is not immobilized" do
       year = projection.years[2]
 
@@ -150,14 +137,11 @@ RSpec.describe Projection do
     end
   end
 
-  # Le foncier réel déduit les charges réelles et les intérêts là où le micro-foncier applique
-  # son forfait : la projection ne fait que lui passer, année par année, ce qu'elle a composé.
+  # Le réel déduit les charges et les intérêts là où le micro-foncier applique son forfait.
   describe "under the foncier réel regime" do
     subject(:projection) { described_class.new(simulation, :foncier_reel) }
 
-    # 11 000 € de loyers hors charges moins 2 000 € de charges : 9 000 € imposables, dont 17,2 %
-    # pour le foyer que le barème n'atteint pas. C'est plus cher que les 1 324,40 € du
-    # micro-foncier — sans levier ni charges à déduire, le forfait vaut mieux que le réel.
+    # 11 000 € moins 2 000 € de charges : 9 000 € à 17,2 %, plus cher que les 1 324,40 € du forfait.
     it "taxes what the real charges leave of the rent, where the forfait ignored them" do
       expect(projection.years[1].taxes).to eq(1_548)
       expect(projection.years[1].cash_flow).to eq(7_452)
@@ -174,23 +158,20 @@ RSpec.describe Projection do
       expect(year.taxes).to eq((taxable * Taxation::SOCIAL_CHARGES_RATE / 100).round(2))
     end
 
-    # La provision rembourse une dépense : ni l'une ni l'autre ne se déclarent, et les charges
-    # déductibles s'en trouvent allégées d'autant.
+    # La provision rembourse une dépense : ni l'une ni l'autre ne se déclarent.
     it "deducts neither the provision for charges nor what it reimburses" do
       with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
                                                               occupancy_months: 12, condominium: true,
                                                               condominium_fees: 1_200), :foncier_reel)
       year = with_provision.years[1]
 
-      # La provision couvre exactement les charges de copropriété : il ne reste rien à déduire
-      # des 9 600 € de loyers hors charges, et le solde est celui des montants bruts.
+      # La provision couvre exactement les charges de copropriété : il ne reste rien à déduire.
       expect(year.charges_excluding_provision).to eq(0)
       expect(year.pre_tax_result).to eq(9_600)
       expect(year.taxes).to eq(BigDecimal("1651.20"))
     end
 
-    # Une provision qu'aucune dépense ne justifie ne rembourse plus rien : elle allège les
-    # charges déclarées au-delà de zéro, et l'assiette s'en trouve grossie d'autant.
+    # Une provision qu'aucune dépense ne justifie allège les charges au-delà de zéro : l'assiette grossit.
     it "taxes a provision that no charge reimburses" do
       unjustified = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
                                                            occupancy_months: 12), :foncier_reel)
@@ -211,20 +192,17 @@ RSpec.describe Projection do
     end
   end
 
-  # Le micro-BIC est le forfait du meublé : la moitié des recettes imposée là où le nu en
-  # laisse 70 %, mais la provision pour charges dans l'assiette et 18,6 % de prélèvements.
+  # La moitié des recettes imposée, provision comprise, et 18,6 % de prélèvements sociaux.
   describe "under the micro-BIC regime" do
     subject(:projection) { described_class.new(simulation, :micro_bic) }
 
-    # 11 000 € de recettes, la moitié imposable : 5 500 € à 18,6 %, soit 1 023 €. C'est moins
-    # que les 1 324,40 € du micro-foncier — l'abattement doublé paie le taux plus lourd.
+    # 5 500 € imposables à 18,6 % font 1 023 €, moins que les 1 324,40 € du micro-foncier.
     it "taxes half of the receipts, where the micro-foncier left seventy per cent of the rent" do
       expect(projection.years[1].taxes).to eq(1_023)
       expect(projection.years[1].cash_flow).to eq(7_977)
     end
 
-    # Toute la différence des deux mondes : le locataire verse 1 200 € de provision, le meublé
-    # les compte en recettes — 600 € d'assiette de plus, et 111,60 € d'impôt de plus.
+    # 1 200 € de provision comptés en recettes : 600 € d'assiette de plus, et 111,60 € d'impôt.
     it "taxes the provision for charges that the foncier leaves out of the assessment" do
       with_provision = build(:simulation, monthly_rent: 800, monthly_charges: 100, occupancy_months: 12,
                                           condominium: true, condominium_fees: 1_200)
@@ -234,8 +212,7 @@ RSpec.describe Projection do
       expect(described_class.new(rent_only, :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
     end
 
-    # La provision suit l'inflation, et l'assiette du meublé la suit avec elle : 1 236 € la
-    # deuxième année, dont la moitié s'ajoute aux 4 800 € que le loyer laisse imposables.
+    # La provision suit l'inflation : 1 236 € la deuxième année, dont la moitié entre dans l'assiette.
     it "follows the provision through the inflation into the assessment" do
       indexed = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
                                                       occupancy_months: 12, inflation_rate: 3), :micro_bic)
@@ -246,8 +223,7 @@ RSpec.describe Projection do
     end
   end
 
-  # Les conditions économiques composent la projection année après année : les loyers
-  # progressent, les charges suivent l'inflation, et le bien prend de la valeur.
+  # Les loyers progressent, les charges suivent l'inflation, et le bien prend de la valeur.
   describe "under evolving economic conditions" do
     subject(:projection) { described_class.new(simulation, :micro_foncier) }
 
@@ -264,8 +240,7 @@ RSpec.describe Projection do
       expect(projection.years[3].rent_excluding_charges).to eq(BigDecimal("12484.80"))
     end
 
-    # L'assiette progresse comme le loyer, et l'impôt avec elle : 12 000 € puis 12 240 € de
-    # loyers hors charges, dont 70 % supportent 30 % de barème et 17,2 % de prélèvements.
+    # 12 000 € puis 12 240 € de loyers, dont 70 % supportent 30 % de barème et 17,2 % de prélèvements.
     it "taxes an assessment that grows with the rent" do
       expect(projection.years[1].taxes).to eq(BigDecimal("3964.80"))
       expect(projection.years[2].taxes).to eq(BigDecimal("4044.10"))
@@ -277,8 +252,7 @@ RSpec.describe Projection do
       expect(projection.years[3].charges_excluding_provision).to eq(BigDecimal("1060.90"))
     end
 
-    # Une valeur à une date, non un montant encaissé sur une période : le jour de l'achat le
-    # bien vaut son prix, et au premier anniversaire il a déjà pris son année.
+    # Une valeur à une date : au premier anniversaire le bien a déjà pris son année.
     it "values the property from its price alone, a year gained on each anniversary" do
       expect(projection.years.first.property_value).to eq(200_000)
       expect(projection.years[1].property_value).to eq(202_000)
@@ -293,16 +267,13 @@ RSpec.describe Projection do
     end
   end
 
-  # Des taux à zéro rendent les années égales entre elles : c'est ce que le reste des exemples
-  # suppose, et ce que la fabrique pose.
+  # Des taux à zéro rendent les années égales : c'est ce que la fabrique pose.
   it "keeps every line equal when nothing evolves" do
     expect(projection.years.drop(1).map(&:rent_excluding_charges).uniq.size).to eq(1)
     expect(projection.years.map(&:property_value).uniq).to eq([200_000])
   end
 
-  # La provision pour charges est encaissée avec le loyer, mais elle ne fait que rembourser une
-  # dépense : le loyer déclaré ne la compte pas, et les charges déclarées la retranchent. La
-  # règle vaut pour les deux régimes, quoique le forfait ignore les charges de toute façon.
+  # Le loyer déclaré ne compte pas la provision, et les charges déclarées la retranchent.
   it "declares neither the provision for charges nor what it reimburses" do
     with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
                                                             occupancy_months: 12, condominium: true,
@@ -323,10 +294,7 @@ RSpec.describe Projection do
     expect(leap.years[1].date).to eq(Date.new(2025, 2, 28))
   end
 
-  # Comptant, il n'y a pas de banque à solder : la revente rapporte le prix du marché entier, et
-  # le bénéfice n'est que ce qui dépasse le capital encore immobilisé. Le jour de l'achat, les
-  # 236 612 € engagés dépassent de 36 612 € un bien qui n'en vaut que 200 000 : frais de notaire
-  # et travaux ne se revendent pas.
+  # Comptant, pas de banque à solder : le jour de l'achat les 236 612 € engagés dépassent de 36 612 € un bien à 200 000.
   describe "a sale simulated from a year" do
     it "owes nothing to a bank when the purchase was paid in cash" do
       origin = projection.years.first
@@ -336,8 +304,7 @@ RSpec.describe Projection do
       expect(origin.sale_profit).to eq(-36_612)
     end
 
-    # Le prix du bien suit son marché, et la revente avec lui : 3 % l'an sur dix ans. La
-    # plus-value que ces dix ans ont faite est imposée, et la revente ne rend que le reste.
+    # 3 % l'an sur dix ans : la plus-value ainsi faite est imposée, et la revente ne rend que le reste.
     it "sells at the price the year gives the property, the capital gain taxed" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
                                     :micro_foncier)
@@ -349,9 +316,7 @@ RSpec.describe Projection do
       expect(year.sale_profit).to eq(BigDecimal("262_335.65") - year.immobilized_capital)
     end
 
-    # La valeur fiscale, ce sont 200 000 € payés et 16 612 € de frais de notaire, auxquels la
-    # sixième année ajoute 30 000 € de travaux forfaitaires : cinq ans de hausse à 3 % laissent
-    # une plus-value imposée, la sixième la fait disparaître.
+    # 200 000 € payés et 16 612 € de frais, plus 30 000 € de travaux forfaitaires dès la sixième année.
     it "wipes the gain out on the sixth year, when the flat works join the fiscal value" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
                                     :micro_foncier)
@@ -364,8 +329,7 @@ RSpec.describe Projection do
       expect(growing.years[6].capital_gain_tax).to eq(0)
     end
 
-    # Trente ans de détention : l'abattement a effacé la plus-value pour le barème comme pour
-    # les prélèvements sociaux, et la revente n'est plus imposée du tout.
+    # Trente ans de détention : l'abattement a tout effacé, barème comme prélèvements sociaux.
     it "taxes nothing of a gain the thirty years held have entirely abated" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
                                     :micro_foncier)
@@ -383,8 +347,7 @@ RSpec.describe Projection do
     end
   end
 
-  # Le cumul se lit sur les lignes et ne se multiplie plus : un crédit qui s'éteint avant
-  # l'horizon rend les années inégales entre elles. L'année zéro n'y ajoute rien.
+  # Un crédit qui s'éteint avant l'horizon rend les années inégales : le cumul se lit sur les lignes.
   describe "#total_cash_flow" do
     it "adds up every line" do
       expect(projection.total_cash_flow).to eq(BigDecimal("7675.60") * 30)

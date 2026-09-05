@@ -15,7 +15,6 @@ module Taxation
       @loan_interest = loan_interest.to_d
     end
 
-    # Le revenu imposable : ce que le régime retient de l'année.
     def taxable_income
       raise NotImplementedError
     end
@@ -33,7 +32,6 @@ module Taxation
       share(taxable_income, social_charges_rate)
     end
 
-    # Ce que l'année coûte en tout : la projection le retranche de son cash-flow.
     def total
       income_tax + social_charges
     end

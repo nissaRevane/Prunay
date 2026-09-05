@@ -5,24 +5,21 @@ class SimulationsController < ApplicationController
     @simulations = current_user.simulations.order(purchase_date: :desc, id: :desc)
   end
 
-  # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification faite dans l'un
-  # d'eux, et le premier s'ouvre à défaut.
+  # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.
   def show
     @tab = params[:tab]
     @projections = @simulation.projections
     @schedule = @simulation.loan.schedule
   end
 
-  # La création vit dans Simulations::StepsController, en quatre pages. `/simulations/new`
-  # en reste la porte : il oublie le brouillon en cours et rouvre la première page.
+  # La création vit dans Simulations::StepsController : entrer ici oublie le brouillon et rouvre la première page.
   def new
     session.delete(Simulations::StepsController::DRAFT_KEY)
 
     redirect_to new_simulation_step_path(step: Simulation::Step::NAMES.first)
   end
 
-  # La modification, elle, tient sur une seule page : les quatre étapes n'ont de sens que
-  # pour qui découvre le formulaire, pas pour qui vient corriger un chiffre.
+  # Les étapes n'ont de sens que pour qui découvre le formulaire : corriger un chiffre tient sur une page.
   def edit
   end
 

@@ -1,8 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Content Security Policy", type: :request do
-  # The importmap and the entry-point import are inline script tags, so the
-  # policy has to nonce them or the browser drops every bit of JavaScript.
+  # The importmap and the entry-point import are inline scripts: the policy has to nonce them.
   it "nonces the inline importmap script tags with the nonce it advertises" do
     sign_in create(:user)
 

@@ -35,8 +35,7 @@ RSpec.describe "Authentication", type: :request do
       expect(response).to redirect_to(root_path)
     end
 
-    # firstname/lastname are not Devise attributes: without the sanitizer of
-    # ApplicationController they would be dropped silently and the account created nameless.
+    # firstname/lastname are not Devise attributes: without the sanitizer they are dropped silently.
     it "rejects a sign-up without a name" do
       expect {
         sign_up(email: "sans-nom@example.com", password: "password123",
@@ -69,8 +68,7 @@ RSpec.describe "Authentication", type: :request do
   end
 
   describe "the default guard" do
-    # authenticate_user! is a before_action of ApplicationController, and pages#home the
-    # single place that opts out: a controller added later is protected unless it says so.
+    # authenticate_user! is a before_action of ApplicationController, and pages#home the single opt-out.
     it "protects every page but the public landing one" do
       get account_path
 

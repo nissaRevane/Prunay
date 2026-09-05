@@ -12,8 +12,7 @@ RSpec.describe Loan do
       described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20, insurance: 0, signed_on: date)
     end
 
-    # Le remboursement commence le 5 : celui du mois de l'acte quand il est signé du 1er au
-    # 5, celui du mois suivant sinon.
+    # Le remboursement commence le 5 : celui du mois de l'acte s'il est signé du 1er au 5, le suivant sinon.
     it "starts repaying on the fifth that follows the signature" do
       expect(signed_on(Date.new(2025, 3, 10)).first_payment_on).to eq(Date.new(2025, 4, 5))
       expect(signed_on(Date.new(2025, 3, 31)).first_payment_on).to eq(Date.new(2025, 4, 5))
@@ -39,8 +38,7 @@ RSpec.describe Loan do
       expect(loan.annual_payment).to eq(BigDecimal("1071.62") * 12)
     end
 
-    # L'assurance ne rembourse rien : sa prime s'ajoute à la mensualité, et l'annuité que la
-    # projection retranche la porte douze fois.
+    # L'assurance ne rembourse rien : sa prime s'ajoute à la mensualité, et l'annuité la porte douze fois.
     it "adds the insurance premium to what the credit takes each month" do
       insured = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20,
                                     insurance: BigDecimal("19.32"), signed_on: Date.new(2025, 1, 15))
@@ -50,8 +48,7 @@ RSpec.describe Loan do
       expect(insured.annual_payment).to eq(BigDecimal("1090.94") * 12)
     end
 
-    # Les intérêts et l'assurance se lisent séparément — l'un est le prix du capital, l'autre
-    # celui de la garantie —, et le coût du crédit les additionne.
+    # L'un est le prix du capital, l'autre celui de la garantie : le coût du crédit les additionne.
     it "counts the insurance in what the credit costs, next to its interest" do
       insured = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20,
                                     insurance: BigDecimal("19.32"), signed_on: Date.new(2025, 1, 15))
@@ -60,8 +57,7 @@ RSpec.describe Loan do
       expect(insured.total_cost).to eq(insured.total_interest + insured.total_insurance)
     end
 
-    # Le cautionnement et les frais de dossier se paient une fois, à la signature : ils ne
-    # touchent ni la mensualité ni les intérêts, et le coût du crédit les porte tels quels.
+    # Payés une fois à la signature : ils ne touchent ni la mensualité ni les intérêts.
     it "counts the fees the signature costs without touching what it takes each month" do
       with_fees = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20, insurance: 0,
                                       guarantee_fees: 3_220, application_fees: 1_932,
@@ -73,16 +69,14 @@ RSpec.describe Loan do
     end
   end
 
-  # Un crédit sans capital, sans durée ou sans signature n'a pas de tableau à produire, et ne
-  # prélève donc rien : c'est l'état d'un achat comptant.
+  # Sans capital, sans durée ou sans signature, rien à amortir : c'est l'état d'un achat comptant.
   describe "a loan with nothing to amortize" do
     subject(:loan) do
       described_class.new(capital: 0, annual_rate: 0, duration_years: 0, insurance: 0,
                           guarantee_fees: 500, application_fees: 500, signed_on: nil)
     end
 
-    # Les frais eux-mêmes ne se prêtent pas à un crédit qui n'existe pas : un achat comptant
-    # peut porter des colonnes qu'une case décochée n'a pas encore remises à zéro.
+    # Un achat comptant peut porter des colonnes qu'une case décochée n'a pas encore remises à zéro.
     it "has no schedule and takes nothing" do
       expect(loan).not_to be_amortizable
       expect(loan.schedule).to be_nil

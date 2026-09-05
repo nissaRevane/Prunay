@@ -6,16 +6,12 @@ module Taxation
     # Le taux propre à la plus-value immobilière : le barème du foyer n'y est pour rien.
     INCOME_TAX_RATE = BigDecimal("19")
 
-    # Le forfait travaux : 15 % du prix d'achat, sans justificatif, dès la sixième année de
-    # détention. Les travaux réellement payés en tiennent lieu au choix du vendeur — Prunay ne
-    # simule que le forfait.
+    # Le forfait travaux : 15 % du prix d'achat, sans justificatif, dès la sixième année de détention.
     ASSUMED_WORKS_RATE = BigDecimal("15")
 
     ASSUMED_WORKS_AFTER_YEARS = 5
 
-    # L'abattement pour durée de détention, par tranche d'années et en points par année : la
-    # plus-value échappe au barème au bout de vingt-deux ans, aux prélèvements sociaux au bout
-    # de trente. Les deux rythmes cumulent à 100 exactement.
+    # En points par année : la plus-value échappe au barème à vingt-deux ans, aux prélèvements sociaux à trente.
     INCOME_TAX_ALLOWANCE = { (6..21) => BigDecimal("6"), (22..22) => BigDecimal("4") }.freeze
 
     SOCIAL_CHARGES_ALLOWANCE = { (6..21) => BigDecimal("1.65"), (22..22) => BigDecimal("1.60"),
@@ -63,7 +59,6 @@ module Taxation
       share(taxable_amount(social_charges_allowance_rate), SOCIAL_CHARGES_RATE)
     end
 
-    # Ce que la revente coûte en tout : la fiche de l'année le retranche du produit.
     def total
       income_tax + social_charges
     end

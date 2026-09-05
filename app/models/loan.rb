@@ -4,7 +4,6 @@
 class Loan
   MONTHS_PER_YEAR = 12
 
-  # Le jour du mois où la banque prélève.
   PAYMENT_DAY = 5
 
   DEFAULT_RATE = BigDecimal("3.5")
@@ -14,11 +13,9 @@ class Loan
   # La prime proposée : un dix-millième du capital emprunté par mois, soit 0,12 % par an.
   DEFAULT_INSURANCE_DIVISOR = 10_000
 
-  # Le cautionnement proposé : un soixantième du capital emprunté, l'ordre de grandeur d'une
-  # caution bancaire comme d'une hypothèque.
+  # Un soixantième du capital emprunté : l'ordre de grandeur d'une caution bancaire comme d'une hypothèque.
   DEFAULT_GUARANTEE_FEES_DIVISOR = 60
 
-  # Les frais de dossier proposés : un centième du capital emprunté.
   DEFAULT_APPLICATION_FEES_DIVISOR = 100
 
   # Aucune banque n'ouvre un dossier pour moins : la proposition ne descend pas sous ce plancher.
@@ -62,7 +59,6 @@ class Loan
     @monthly_rate ||= annual_rate / 100 / MONTHS_PER_YEAR
   end
 
-  # De quoi produire un tableau : une signature, une durée, et quelque chose à emprunter.
   def amortizable?
     signed_on.present? && capital.positive? && duration_months.positive?
   end
@@ -89,17 +85,15 @@ class Loan
     schedule&.monthly_payment || 0
   end
 
-  # Ce que la banque prélève réellement : la mensualité et la prime, qu'elle appelle ensemble.
+  # La banque appelle la mensualité et la prime ensemble.
   def total_monthly_payment
     schedule&.total_monthly_payment || 0
   end
 
-  # Douze échéances, assurance comprise : ce que le crédit prélève sur une année pleine.
   def annual_payment
     total_monthly_payment * MONTHS_PER_YEAR
   end
 
-  # Ce que le crédit prélève sur chaque année de la projection, indexé par numéro d'année.
   def annual_payments
     schedule&.annual_payments || {}
   end
@@ -113,7 +107,7 @@ class Loan
     schedule&.annual_principal || {}
   end
 
-  # Ce que la revente d'une année aurait à rembourser par anticipation, indexé comme les annuités.
+  # Ce qu'une revente aurait à rembourser par anticipation, année par année.
   def annual_remaining_capital
     schedule&.annual_remaining_capital || {}
   end
@@ -133,8 +127,7 @@ class Loan
     guarantee_fees + application_fees
   end
 
-  # Le chiffre à comparer au capital emprunté : les intérêts seuls le sous-estiment, autant
-  # que l'assurance et les frais de signature.
+  # Les intérêts seuls sous-estiment le crédit : l'assurance et les frais de signature comptent.
   def total_cost
     total_interest + total_insurance + upfront_fees
   end

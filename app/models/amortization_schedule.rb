@@ -22,7 +22,6 @@ class AmortizationSchedule
       end
   end
 
-  # Ce que l'échéance prélève en tout : la banque appelle mensualité et prime ensemble.
   def total_monthly_payment
     monthly_payment + insurance
   end
@@ -31,7 +30,6 @@ class AmortizationSchedule
     @rows ||= build_rows
   end
 
-  # Tout ce qui a été payé, moins le capital rendu et moins l'assurance, qui ne se prête pas.
   def total_interest
     rows.sum(&:interest)
   end
@@ -44,7 +42,6 @@ class AmortizationSchedule
     rows.sum(&:payment)
   end
 
-  # Douze échéances par année pleine : le crédit cesse de peser sans que la projection sache les dates.
   def annual_payments
     @annual_payments ||= yearly_rows.transform_values { |yearly| yearly.sum(&:payment) }
   end
@@ -58,7 +55,7 @@ class AmortizationSchedule
     @annual_principal ||= yearly_rows.transform_values { |yearly| yearly.sum(&:principal) }
   end
 
-  # Ce qu'il resterait à solder à la banque à la fin de chaque année : le prix d'une revente.
+  # Ce qu'une revente aurait à solder à la banque, année par année.
   def annual_remaining_capital
     @annual_remaining_capital ||= yearly_rows.transform_values { |yearly| yearly.last.remaining_capital }
   end

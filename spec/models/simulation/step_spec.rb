@@ -5,8 +5,7 @@ RSpec.describe Simulation::Step do
     Simulation.new(user: build(:user), **answers)
   end
 
-  # Le parcours n'est pas le même pour tout le monde : la page du crédit ne s'ouvre qu'à qui
-  # en a coché un sur la page de l'achat.
+  # La page du crédit ne s'ouvre qu'à qui en a coché un sur la page de l'achat.
   describe ".all_for" do
     it "walks the credit page only when there is a credit" do
       expect(described_class.all_for(build(:simulation, :with_credit)))
@@ -17,8 +16,7 @@ RSpec.describe Simulation::Step do
   end
 
   describe ".defaults" do
-    # La page du bien ne propose que ce que son propre type lui dicte : le reste — la ville,
-    # la surface — est justement ce qu'elle demande.
+    # La page du bien ne propose que ce que son type lui dicte : le reste est ce qu'elle demande.
     it "supposes an apartment is in a condominium, and no other property" do
       expect(described_class.defaults("property", draft(surface: 50))).to eq("condominium" => true)
       expect(described_class.defaults("property", draft(property_type: "house")))
@@ -32,8 +30,7 @@ RSpec.describe Simulation::Step do
       expect(defaults["initial_works"]).to eq(0)
     end
 
-    # La page de l'achat s'ouvre avant que le prix n'y soit tapé : elle ne peut alors rien
-    # proposer comme apport.
+    # La page de l'achat s'ouvre avant que le prix n'y soit tapé : aucun apport à proposer alors.
     it "proposes a tenth of the project cost as a down payment" do
       priced = draft(purchase_price: 200_000, initial_works: 0)
 
@@ -41,10 +38,7 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("purchase", draft)["down_payment"]).to eq(0)
     end
 
-    # Vingt ans à 3,5 %, et tout ce qui se lit sur le capital emprunté à la référence : un
-    # dix-millième des 193 224 € fait 19,32 € par mois d'assurance, un soixantième
-    # 3 220,40 € de cautionnement et un centième 1 932,24 € de frais de dossier. Un brouillon
-    # qui n'emprunte encore rien n'a ni prime ni dossier.
+    # Sur 193 224 € empruntés : 19,32 € d'assurance, 3 220,40 € de cautionnement, 1 932,24 € de dossier.
     it "proposes twenty years at 3.5 % and the amounts read on the capital borrowed" do
       expect(described_class.defaults("credit", draft)).to eq(
         "loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0,

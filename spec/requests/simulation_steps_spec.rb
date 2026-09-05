@@ -15,9 +15,7 @@ RSpec.describe "Simulation steps", type: :request do
     Nokogiri::HTML(response.body).at_css("##{name}")["value"]
   end
 
-  # Un champ qu'aucune condition ne justifie reste dans la page, masqué et désactivé :
-  # requis et invisible, il bloquerait l'envoi du formulaire, et le modèle remet à zéro le
-  # montant qu'il ne reçoit pas.
+  # Un champ qu'aucune condition ne justifie reste dans la page, masqué et désactivé.
   def asked_for?(name)
     field = Nokogiri::HTML(response.body).at_css("##{name}")
 
@@ -37,8 +35,7 @@ RSpec.describe "Simulation steps", type: :request do
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
   # Le loyer se détaille : 1 000 € hors charges, et 150 € de provision par-dessus.
   RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11" }.freeze
-  # Le bien de PROPERTY est en copropriété : la page des charges lui demande donc les
-  # charges de copro.
+  # Le bien de PROPERTY est en copropriété : la page des charges lui demande celles de copro.
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
               management_fees: "0", rent_guarantee: "0", other_charges: "150" }.freeze
 
@@ -49,8 +46,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response).to redirect_to(new_simulation_step_path(step: "property"))
     end
 
-    # Rouvrir la porte, c'est repartir de zéro : un brouillon abandonné ne doit pas
-    # ressurgir dans la simulation suivante.
+    # Un brouillon abandonné ne doit pas ressurgir dans la simulation suivante.
     it "forgets a draft left behind" do
       submit("property", PROPERTY)
 
@@ -87,8 +83,7 @@ RSpec.describe "Simulation steps", type: :request do
       )
     end
 
-    # La page du crédit ne s'ouvre qu'à qui en coche un : le parcours passe alors de quatre
-    # pages à cinq, et l'achat mène au crédit plutôt qu'à la location.
+    # Cocher le crédit porte le parcours de quatre pages à cinq, et l'achat mène au crédit.
     it "walks a fifth page when the purchase is financed by a credit" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)
@@ -107,8 +102,7 @@ RSpec.describe "Simulation steps", type: :request do
       )
     end
 
-    # Décocher le crédit referme sa page : elle n'est plus dans le parcours, et l'achat mène
-    # de nouveau directement à la location.
+    # Décocher le crédit referme sa page : l'achat mène de nouveau à la location.
     it "closes the credit page again when the purchase goes back to being paid outright" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)
@@ -153,8 +147,7 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
-  # Aucune page ne les demande : la simulation naît avec les conditions de l'utilisateur, et
-  # c'est son onglet, une fois qu'elle est écrite, qui les corrigera.
+  # Aucune page ne les demande : la simulation naît avec les conditions de l'utilisateur.
   describe "the economic conditions" do
     def walk
       submit("property", PROPERTY)
@@ -163,8 +156,7 @@ RSpec.describe "Simulation steps", type: :request do
       submit("charges", CHARGES)
     end
 
-    # La tranche d'imposition ne s'y demande pas davantage : elle est héritée comme les taux,
-    # d'où un champ de plus à ne trouver nulle part — et une liste déroulante, non un nombre.
+    # La tranche d'imposition est héritée comme les taux : un champ de plus à ne trouver nulle part.
     it "asks for none of them along the way" do
       names = EconomicConditions::ASSUMPTIONS.map { |assumption| "simulation[#{assumption}]" }
 
@@ -194,8 +186,7 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
-  # Un appartement est presque toujours en copropriété : la case se propose cochée, et rien
-  # n'empêche de la décocher. Changer de type ensuite la fait suivre, mais dans le navigateur.
+  # Un appartement est presque toujours en copropriété : la case se propose cochée, sans obliger.
   describe "the condominium the property page supposes" do
     it "pre-checks the box for the apartment it opens on" do
       get new_simulation_step_path(step: "property")
@@ -222,9 +213,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_initial_works")).to eq("0")
     end
 
-    # 650 € pour 50 m², mis à l'échelle par la racine carrée : 200 m² en font le double. La
-    # provision pour charges, elle, ne se déduit d'aucune surface : elle se lit sur l'appel
-    # de charges de la copropriété, et rien n'est donc proposé.
+    # 650 € pour 50 m² à la racine carrée ; la provision, elle, ne se déduit d'aucune surface.
     it "estimates the rent from the surface, supposes no provision and leaves a month of vacancy" do
       submit("purchase", PURCHASE)
 
@@ -248,8 +237,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_other_charges")).to eq("200")
     end
 
-    # Ni une gestion déléguée ni une garantie des loyers impayés ne se supposent : la page
-    # les propose à zéro.
+    # Ni gestion déléguée ni garantie des loyers impayés ne se supposent : la page les propose à zéro.
     it "proposes nothing for what it cannot deduce" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL)
@@ -260,8 +248,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_rent_guarantee")).to eq("0")
     end
 
-    # Hors copropriété, la façade, la toiture et les communs n'incombent à personne d'autre
-    # qu'au propriétaire : l'entretien proposé double.
+    # Hors copropriété, façade, toiture et communs n'incombent qu'au propriétaire : l'entretien double.
     it "asks a property outside any condominium to carry its own maintenance" do
       submit("property", PROPERTY.merge(surface: "200", condominium: "0"))
       submit("purchase", PURCHASE)
@@ -273,8 +260,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(asked_for?("simulation_condominium_fees")).to be(false)
     end
 
-    # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix, et
-    # n'offre donc aucun champ où les taper.
+    # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix.
     it "computes the notary fees from the price instead of asking for them" do
       submit("purchase", PURCHASE)
 
@@ -286,10 +272,7 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
-    # Vingt ans à 3,5 % : le crédit que la page propose tant que rien n'y a été saisi. La
-    # prime d'assurance, le cautionnement et les frais de dossier se lisent sur les
-    # 211 612 € empruntés : un dix-millième fait 21,16 € par mois, un soixantième 3 526,87 €
-    # et un centième 2 116,12 €.
+    # Vingt ans à 3,5 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 526,87 € et 2 116,12 € de frais.
     it "proposes twenty years at 3.5 % and the amounts the capital borrowed dictates" do
       submit("purchase", ON_CREDIT)
 
@@ -324,8 +307,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response.body).not_to include("Translation missing")
     end
 
-    # Une page ne juge que ses propres champs : refuser un prix d'achat sur la page du bien
-    # rendrait le découpage inutile.
+    # Une page ne juge que ses propres champs, sans quoi le découpage ne servirait à rien.
     it "says nothing about the pages that have not been reached" do
       submit("property", PROPERTY.merge(city: ""))
 
@@ -370,8 +352,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(steps[1]["class"]).to include("is-current")
     end
 
-    # La barre ne doit pas annoncer une page qui ne s'ouvrira pas — ni taire celle qui vient
-    # de s'ouvrir.
+    # La barre ne doit annoncer ni une page qui ne s'ouvrira pas, ni taire celle qui s'ouvre.
     it "announces the credit page as soon as the purchase declares one" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)

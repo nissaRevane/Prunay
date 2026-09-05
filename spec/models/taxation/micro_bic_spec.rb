@@ -7,8 +7,7 @@ RSpec.describe Taxation::MicroBic do
     described_class.new(rent_excluding_charges: 12_000, provision_for_charges: 1_200, marginal_tax_rate: 30)
   end
 
-  # C'est là que le meublé s'écarte du nu : ce que le locataire verse est une recette, quel
-  # qu'en soit le titre.
+  # C'est là que le meublé s'écarte du nu : ce que le locataire verse est une recette.
   describe "#receipts" do
     it "counts the provision for charges the tenant pays on top of the rent" do
       expect(taxation.receipts).to eq(13_200)
@@ -54,9 +53,7 @@ RSpec.describe Taxation::MicroBic do
     expect(with_charges.total).to eq(BigDecimal("3207.60"))
   end
 
-  # Le taux plus lourd ne rattrape pas l'abattement doublé : sur le même loyer nu, le
-  # micro-foncier impose 8 400 € à 17,2 % — 1 444,80 € — quand le micro-BIC n'en impose que
-  # 6 000 € à 18,6 %.
+  # Le micro-foncier impose 8 400 € à 17,2 % quand le micro-BIC n'impose que 6 000 € à 18,6 %.
   it "costs less than the micro-foncier on the same rent, its allowance being twice as large" do
     furnished = described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 0)
 
@@ -70,8 +67,7 @@ RSpec.describe Taxation::MicroBic do
     expect(described_class.new(rent_excluding_charges: 0, marginal_tax_rate: 45).total).to eq(0)
   end
 
-  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait
-  # à zéro sur les 45 % du barème comme sur les 50 % de l'abattement.
+  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer bracket as a rate and not as a division" do
     expect(described_class.new(rent_excluding_charges: 10_000, marginal_tax_rate: 45).income_tax).to eq(2_250)
   end

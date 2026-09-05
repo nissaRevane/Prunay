@@ -29,8 +29,7 @@ RSpec.describe Taxation::FoncierReel do
     end
   end
 
-  # Un déficit foncier ne se reporte pas ici : l'année qui n'a rien gagné ne doit rien, et
-  # rien ne passe à la suivante.
+  # Un déficit foncier ne se reporte pas : l'année qui n'a rien gagné ne doit rien.
   it "asks nothing of a year its charges and its interest have swallowed" do
     deficit = described_class.new(rent_excluding_charges: 9_600, marginal_tax_rate: 45, charges: 5_000,
                                   loan_interest: 6_000)

@@ -6,18 +6,13 @@
 class Projection
   HORIZON_YEARS = 30
 
-  # L'année où la liste des simulations les lit : un crédit de vingt ans y a déjà rendu la
-  # moitié de son capital, et le forfait travaux de la plus-value y joue depuis longtemps.
+  # L'année où la liste des simulations les lit : un crédit de vingt ans y a rendu la moitié de son capital.
   REVIEW_YEAR = 15
 
-  # Les deux lectures d'une année dans sa fiche. Le nom sert quatre fois : l'onglet, le panneau,
-  # son identifiant et les clés de traduction.
+  # Les deux lectures d'une année dans sa fiche : le nom sert d'onglet, de panneau, d'identifiant et de traduction.
   VIEWS = %w[result sale].freeze
 
-  # Le compte de résultat d'une année, tenu comme il se déclare : le loyer hors charges d'un
-  # côté, de l'autre les charges dont la provision remboursée est ôtée — la provision n'est pas
-  # un revenu, et les dépenses qu'elle couvre ne se déduisent pas davantage. Le solde, lui, est
-  # celui des montants bruts : ce que l'on retire d'un côté, on ne le compte pas de l'autre.
+  # Le compte de résultat d'une année : la provision remboursée n'est ni un revenu ni une charge déductible.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :capital_repayment, :taxes,
                     :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
@@ -35,7 +30,6 @@ class Projection
       net_result - capital_repayment
     end
 
-    # Ce que le crédit prélève en tout : c'est l'annuité que la banque appelle.
     def loan_payments
       loan_interest + capital_repayment
     end
@@ -44,14 +38,11 @@ class Projection
       immobilized_capital <= 0
     end
 
-    # Ce qu'une revente cette année-là mettrait en main : le prix du marché, la plus-value
-    # imposée et la banque soldée.
     def sale_proceeds
       property_value - capital_gain_tax - remaining_loan_capital
     end
 
-    # Ce que l'opération aurait rapporté : le produit de la revente moins ce qui reste engagé,
-    # les loyers déjà encaissés ayant d'eux-mêmes entamé ce dernier.
+    # Les loyers déjà encaissés ont d'eux-mêmes entamé le capital qui reste engagé.
     def sale_profit
       sale_proceeds - immobilized_capital
     end
@@ -72,7 +63,6 @@ class Projection
     years.find { |year| year.number == number }
   end
 
-  # Les loyers ne se multiplient plus : ils progressent d'une année sur l'autre.
   def total_rent
     years.sum(&:rent_excluding_charges)
   end
@@ -85,28 +75,22 @@ class Projection
     years.sum(&:taxes)
   end
 
-  # Le cumul ne se multiplie plus : un crédit qui s'éteint rend les années inégales entre elles.
   def total_cash_flow
     years.sum(&:cash_flow)
   end
 
-  # Ce qui reste immobilisé au bout de l'horizon. Négatif, l'investissement est récupéré.
+  # Négatif, l'investissement est récupéré.
   def final_immobilized_capital
     years.last.immobilized_capital
   end
 
-  # Ce que le bien vaut au bout de l'horizon, l'évolution des prix appliquée année par année.
   def final_property_value
     years.last.property_value
   end
 
   private
 
-  # La première année pleine porte les montants tels qu'ils ont été saisis : ils décrivent les
-  # douze mois qui suivent l'achat. Le prix du bien, lui, a déjà pris une année au premier
-  # anniversaire — c'est une valeur à une date, non un montant encaissé sur une période. La
-  # provision suit l'inflation et non les loyers : elle rembourse des dépenses, et se régularise
-  # sur elles.
+  # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
   def build_years
     outlay = @simulation.initial_outlay
     interest = @simulation.loan.annual_interest
@@ -143,16 +127,13 @@ class Projection
     end
   end
 
-  # L'assiette ne se compose pas ici : l'année porte déjà les montants qui se déclarent, et
-  # c'est le régime qui sait lesquels il retient — la provision, par exemple, en meublé seulement.
+  # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
   def taxes_for(rent, provision, charges, loan_interest)
     @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
                                  charges: charges, loan_interest: loan_interest).total
   end
 
-  # Le jour de l'achat : aucun loyer, aucune charge, aucune échéance — rien n'a encore couru.
-  # La ligne est là pour ce qu'elle seule montre, le capital immobilisé d'où part le reste du
-  # tableau, et pour le prix payé avant que le marché n'y touche.
+  # Le jour de l'achat : rien n'a couru, la ligne est là pour le capital immobilisé et le prix payé.
   def origin_year
     Year.new(
       number: 0,
@@ -171,8 +152,7 @@ class Projection
     )
   end
 
-  # `to_d` comme dans Loan : un taux qu'un formulaire invalide vient de vider se lit comme une
-  # absence d'évolution, le temps que la page se réaffiche avec son erreur.
+  # `to_d` : un taux qu'un formulaire invalide vient de vider se lit comme une absence d'évolution.
   def compound(amount, annual_rate, years)
     (amount.to_d * (1 + annual_rate.to_d / 100)**years).round(2)
   end

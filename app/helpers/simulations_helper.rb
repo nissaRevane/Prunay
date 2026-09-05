@@ -1,6 +1,5 @@
 module SimulationsHelper
-  # L'onglet des conditions économiques. Le nom sert quatre fois : le partiel qui le remplit,
-  # la traduction qui l'intitule, l'identifiant du panneau et le paramètre `tab` qui le rouvre.
+  # Le nom sert de partiel, de traduction, d'identifiant de panneau et de paramètre `tab`.
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
 
   # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
@@ -12,9 +11,7 @@ module SimulationsHelper
     Simulation::ENERGY_RATINGS
   end
 
-  # Les onglets de la fiche, dans l'ordre où ils se lisent : une projection par régime fiscal,
-  # et le tableau d'amortissement pour la seule simulation qui porte un crédit. Chaque nom est
-  # aussi celui du partiel qui le remplit et de la traduction qui l'intitule.
+  # Une projection par régime, et l'amortissement pour la seule simulation qui porte un crédit.
   def simulation_tabs(schedule)
     tabs = ["parameters"] + Taxation::NAMES.map(&:to_s)
     tabs << "amortization" if schedule
@@ -22,9 +19,7 @@ module SimulationsHelper
     tabs << ECONOMIC_CONDITIONS_TAB
   end
 
-  # La condition qui gouverne une charge, telle que le contrôleur `charges` la reconnaît :
-  # le prédicat du modèle, sans son point d'interrogation. Nil pour une charge que rien ne
-  # conditionne — l'attribut ne s'écrit alors pas.
+  # Le prédicat du modèle sans son point d'interrogation ; nil quand rien ne conditionne la charge.
   def charge_condition_name(field)
     Simulation::CHARGE_CONDITIONS[field]&.to_s&.delete("?")
   end

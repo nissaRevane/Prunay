@@ -2,8 +2,7 @@
     prêt. La mensualité y est ce que la banque prélève — intérêts, capital et prime
     d'assurance. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
 <div class="section">
-  <%# Ce que le crédit engage, avant le détail ligne à ligne : ce qui est emprunté, sur
-      combien d'échéances, et ce que la banque prélève chaque mois — prime comprise. %>
+  <%# Ce que le crédit engage, avant le détail ligne à ligne. %>
   <% loan = simulation.loan %>
   <div class="stat-grid">
     <div class="stat-card">
@@ -63,8 +62,7 @@
     </table>
   </div>
 
-  <%# Ce que le financement coûte en tout : les intérêts du capital et les primes de
-      l'assurance, que la dernière ligne du tableau additionne. %>
+  <%# Ce que le financement coûte en tout : les intérêts et les primes d'assurance. %>
   <div class="section-total">
     <span><%= t("views.simulations.show.total_loan_cost") %></span>
     <span><%= number_to_currency(schedule.total_interest + schedule.total_insurance) %></span>

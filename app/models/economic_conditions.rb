@@ -3,11 +3,9 @@
 # du barème où le foyer est imposé. Cet enregistrement porte celles d'un utilisateur ; chaque
 # simulation en reçoit une copie.
 class EconomicConditions < ApplicationRecord
-  # Les trois taux, dans l'ordre où les formulaires les demandent.
   RATES = %i[rent_growth_rate property_growth_rate inflation_rate].freeze
 
-  # Tout ce qu'une simulation hérite : les taux, et la tranche marginale d'imposition — qui
-  # n'est pas un taux libre mais un choix dans le barème (voir Taxation::MARGINAL_TAX_RATES).
+  # Tout ce qu'une simulation hérite de son utilisateur à la création.
   ASSUMPTIONS = [*RATES, :marginal_tax_rate].freeze
 
   # Ce que Prunay suppose tant que personne n'en a décidé autrement.
@@ -32,7 +30,7 @@ class EconomicConditions < ApplicationRecord
     user.economic_conditions || user.build_economic_conditions(DEFAULTS)
   end
 
-  # De quoi en habiller une simulation qui naît : les colonnes portent les mêmes noms des deux côtés.
+  # Les colonnes portent les mêmes noms des deux côtés : une simulation s'en habille telle quelle.
   def assumptions
     ASSUMPTIONS.index_with { |name| public_send(name) }.stringify_keys
   end

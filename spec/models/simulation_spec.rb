@@ -1,8 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Simulation, type: :model do
-  # Chaque page de la création est un contexte de validation : elle ne juge que ses propres
-  # champs, pour qu'une étape puisse être validée sans exiger les réponses des suivantes.
+  # Chaque page est un contexte de validation : elle ne juge que ses propres champs.
   describe "validations" do
     it { is_expected.to validate_presence_of(:city).on(:property) }
     it { is_expected.to validate_numericality_of(:surface).is_greater_than(0).on(:property) }
@@ -13,8 +12,7 @@ RSpec.describe Simulation, type: :model do
     it { is_expected.to validate_numericality_of(:purchase_price).is_greater_than(0).on(:purchase) }
     it { is_expected.to validate_numericality_of(:initial_works).is_greater_than_or_equal_to(0).on(:purchase) }
 
-    # Le crédit ne se juge qu'à qui en prend un : sans crédit, la page n'existe pas, et
-    # l'apport comme le taux et la durée sont remis à zéro avant même d'être validés.
+    # Sans crédit la page n'existe pas : apport, taux et durée sont remis à zéro avant validation.
     context "of a purchase financed by a credit" do
       subject { build(:simulation, :with_credit) }
 
@@ -63,8 +61,7 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # Le parcours n'est pas le même pour tout le monde : la page du crédit ne s'ouvre qu'à qui
-  # en a coché un sur la page de l'achat.
+  # La page du crédit ne s'ouvre qu'à qui en a coché un sur la page de l'achat.
   describe "#steps" do
     it "walks the credit page only when there is a credit" do
       expect(build(:simulation, :with_credit).steps).to eq(%w[property purchase credit rental charges])
@@ -96,8 +93,7 @@ RSpec.describe Simulation, type: :model do
       expect(build(:simulation, monthly_rent: 800, occupancy_months: 11).annual_rent).to eq(8_800)
     end
 
-    # Le locataire rembourse ses charges par-dessus le loyer : c'est encaissé, et cela compte
-    # dans le cash-flow — 800 + 60, onze fois.
+    # La provision est encaissée avec le loyer et compte dans le cash-flow : 800 + 60, onze fois.
     it "collects the provision for charges next to the rent" do
       let_out = build(:simulation, monthly_rent: 800, monthly_charges: 60, occupancy_months: 11)
 
@@ -114,8 +110,7 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # Les régimes sont dans Taxation : la simulation ne fait que leur passer son assiette, ses
-  # charges, ses intérêts d'emprunt et la tranche de son foyer.
+  # La simulation ne fait que passer aux régimes son assiette, ses charges, ses intérêts et sa tranche.
   describe "#annual_taxes" do
     it "taxes the rent excluding charges at the bracket of the household" do
       taxed = build(:simulation, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
@@ -126,15 +121,13 @@ RSpec.describe Simulation, type: :model do
       expect(taxed.annual_taxes).to eq(BigDecimal("3964.80"))
     end
 
-    # Les prélèvements sociaux ne se choisissent pas : 12,04 % des loyers hors charges restent
-    # dus même au foyer que le barème n'atteint pas.
+    # Les prélèvements sociaux ne se choisissent pas : 12,04 % des loyers restent dus.
     it "still owes the social charges when the bracket is nil" do
       expect(build(:simulation, monthly_rent: 1_000, occupancy_months: 12, marginal_tax_rate: 0).annual_taxes)
         .to eq(BigDecimal("1444.80"))
     end
 
-    # Le forfait du micro-foncier ignore ce que l'année a réellement dépensé ; le foncier réel,
-    # lui, le déduit — les charges et les intérêts de la première annuité.
+    # Le forfait ignore ce que l'année a dépensé ; le réel déduit charges et intérêts.
     it "deducts the real charges and the loan interest where the forfait does not" do
       on_credit = build(:simulation, :with_credit, monthly_rent: 1_000, occupancy_months: 12,
                                                   property_tax: 700)
@@ -155,8 +148,7 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.annual_charges).to eq(4_050)
     end
 
-    # Une charge qu'aucune condition ne justifie ne pèse pas sur la projection : elle est
-    # ramenée à zéro avant l'enregistrement, et le total ne la compte pas.
+    # Une charge qu'aucune condition ne justifie est ramenée à zéro avant l'enregistrement.
     it "ignores what the property is not asked for" do
       simulation = create(:simulation, condominium: false, property_tax: 700, condominium_fees: 1_200)
 
@@ -165,16 +157,14 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # Les charges de copropriété ne se demandent qu'à un bien en copropriété, et ne survivent
-  # pas à sa disparition.
+  # Les charges de copropriété ne se demandent qu'à un bien en copropriété.
   describe "the charges a condition governs" do
     it "asks a condominium for its fees, and a property outside one for nothing of the sort" do
       expect(build(:simulation, condominium: true).applicable_charges).to include(:condominium_fees)
       expect(build(:simulation, condominium: false).applicable_charges).not_to include(:condominium_fees)
     end
 
-    # Sortir de copropriété, c'est cesser d'en payer les charges : un montant que le
-    # formulaire ne montre plus ne doit pas continuer de peser sur la projection.
+    # Un montant que le formulaire ne montre plus ne doit pas continuer de peser sur la projection.
     it "clears an amount its condition no longer justifies" do
       simulation = create(:simulation, condominium: true, condominium_fees: 1_200)
 
@@ -194,8 +184,7 @@ RSpec.describe Simulation, type: :model do
       expect(build(:simulation, purchase_price: 100_000).notary_fees).to eq(9_192)
     end
 
-    # La page de l'achat s'affiche avant qu'un prix n'y soit tapé : elle ne doit pas
-    # annoncer la part fixe toute seule, comme si un bien à zéro euro coûtait 1 772 € de notaire.
+    # Sans prix, pas de part fixe toute seule : un bien à zéro euro ne coûte pas 1 772 € de notaire.
     it "is nothing as long as no price has been named" do
       expect(build(:simulation, purchase_price: nil).notary_fees).to eq(0)
     end
@@ -217,15 +206,13 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.borrowed_capital).to eq(193_224)
     end
 
-    # La simulation ne fait que déduire le crédit de ses colonnes : c'est Loan qui sait
-    # ensuite ce qu'il prélève et ce qu'il coûte.
+    # La simulation déduit le crédit de ses colonnes ; Loan sait ce qu'il prélève et ce qu'il coûte.
     it "hands the loan what the columns answered" do
       expect(simulation.loan).to have_attributes(capital: 193_224, annual_rate: 3, duration_years: 20,
                                                  signed_on: simulation.purchase_date)
     end
 
-    # Le cautionnement et les frais de dossier vont au crédit comme le reste : c'est lui qui
-    # sait ensuite qu'ils se paient à la signature.
+    # Cautionnement et frais de dossier vont au crédit, qui sait qu'ils se paient à la signature.
     it "hands the loan the fees the signature costs" do
       with_fees = build(:simulation, :with_credit, loan_guarantee_fees: 3_220, loan_application_fees: 1_932)
 
@@ -239,16 +226,14 @@ RSpec.describe Simulation, type: :model do
       expect(paid_outright.loan.schedule).to be_nil
     end
 
-    # Le capital emprunté n'est pas immobilisé : il se rembourse par les annuités, que la
-    # projection retranche du cash-flow. Le compter deux fois ferait payer le bien deux fois.
+    # Le capital emprunté se rend par les annuités : le compter aussi ferait payer le bien deux fois.
     it "immobilizes the down payment alone, where a purchase paid outright immobilizes it all" do
       expect(simulation.initial_outlay).to eq(23_388)
       expect(build(:simulation, credit: false, purchase_price: 200_000, initial_works: 0).initial_outlay)
         .to eq(216_612)
     end
 
-    # Cautionnement et frais de dossier se paient le même jour que l'apport, et sortent de la
-    # même poche : 23 388 + 3 220 + 1 932.
+    # Ils sortent de la même poche que l'apport, le même jour : 23 388 + 3 220 + 1 932.
     it "immobilizes the fees the signature costs next to the down payment" do
       with_fees = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
                                                    down_payment: 23_388, loan_guarantee_fees: 3_220,
@@ -257,8 +242,7 @@ RSpec.describe Simulation, type: :model do
       expect(with_fees.initial_outlay).to eq(28_540)
     end
 
-    # Renoncer au crédit, c'est cesser d'en porter les conditions — et le crédit déjà lu ne
-    # doit pas survivre à la case qui le déclarait.
+    # Le crédit déjà lu ne doit pas survivre à la case qui le déclarait.
     it "clears what a purchase paid outright no longer answers" do
       saved = create(:simulation, :with_credit, loan_insurance: 19.32, loan_guarantee_fees: 3_220,
                                                 loan_application_fees: 1_932)
@@ -273,8 +257,7 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # Ce qui se déclare : la provision n'est pas un revenu, et la dépense qu'elle rembourse n'est
-  # pas déductible. Les deux sortent ensemble, sous l'un comme sous l'autre régime.
+  # La provision n'est pas un revenu et la dépense qu'elle rembourse n'est pas déductible.
   describe "#annual_charges_excluding_provision" do
     it "takes the provision the tenant reimburses out of the charges" do
       let_out = build(:simulation, monthly_charges: 100, occupancy_months: 12, condominium: true,
@@ -293,8 +276,7 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#annual_cash_flow" do
-    # Le cash-flow d'une année pleine, sans le détail des années que la projection déroule :
-    # l'impôt y pèse comme les charges et l'annuité — 12,04 % de 9 600 € de loyers.
+    # Une année pleine : l'impôt y pèse comme les charges et l'annuité, 12,04 % de 9 600 € de loyers.
     it "takes the taxes and the annuity out of what the charges leave of the rent" do
       simulation = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
                                                     down_payment: 23_388, monthly_rent: 800,

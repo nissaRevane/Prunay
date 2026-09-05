@@ -19,8 +19,7 @@ RSpec.describe EconomicConditions, type: :model do
     it { is_expected.to validate_inclusion_of(:marginal_tax_rate).in_array(Taxation::MARGINAL_TAX_RATES) }
   end
 
-  # Un utilisateur n'a pas de ligne en base tant qu'il n'a rien changé : la page doit tout de
-  # même s'ouvrir sur quelque chose, et ce quelque chose est ce que Prunay suppose.
+  # Pas de ligne en base tant que rien n'a changé : la page s'ouvre sur ce que Prunay suppose.
   describe ".for" do
     it "is what Prunay assumes as long as the user has not decided otherwise" do
       conditions = described_class.for(user)
@@ -42,8 +41,7 @@ RSpec.describe EconomicConditions, type: :model do
     end
   end
 
-  # Les colonnes portent les mêmes noms des deux côtés : c'est ce qui permet d'en habiller
-  # une simulation qui naît sans les nommer une seconde fois.
+  # Les colonnes portent les mêmes noms des deux côtés : une simulation s'en habille sans les renommer.
   describe "#assumptions" do
     it "reads as the simulation columns of the same name" do
       conditions = build(:economic_conditions, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,

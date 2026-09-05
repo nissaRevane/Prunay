@@ -33,8 +33,7 @@
   </dl>
 </div>
 
-<%# Le détail de ce que la signature coûte : le prix, les frais de notaire qu'il entraîne
-    et les travaux à engager avant la première location. %>
+<%# Le prix, les frais de notaire qu'il entraîne et les travaux à engager avant la première location. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.purchase_detail") %></h2>
@@ -65,9 +64,7 @@
   <%= render "credit", simulation: simulation %>
 <% end %>
 
-<%# Ce que le bien rapporte, et à quelles conditions. Le loyer est saisi au mois — c'est
-    ainsi qu'un bail l'énonce —, détaillé comme lui en un loyer hors charges et une provision
-    pour charges, et le total dit ce qu'une année encaisse réellement, mois de vacance déduits. %>
+<%# Le loyer est saisi au mois, comme un bail l'énonce : hors charges d'un côté, provision de l'autre. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
@@ -99,9 +96,7 @@
     <h2><%= t("views.simulations.show.charges_detail") %></h2>
   </div>
 
-  <%# Les charges que ce bien-ci se voit demander, dans l'ordre des groupes du formulaire.
-      Une maison n'affiche donc pas de charges de copropriété : une ligne à zéro se lirait
-      comme une charge oubliée. %>
+  <%# Une maison n'affiche pas de charges de copropriété : une ligne à zéro se lirait comme un oubli. %>
   <dl class="detail-grid">
     <% simulation.applicable_charges.each do |charge| %>
       <div class="detail-item">

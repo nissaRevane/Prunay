@@ -17,8 +17,7 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#economic_conditions_rent_growth_rate")["value"]).to eq("1.0")
       expect(doc.at_css("#economic_conditions_property_growth_rate")["value"]).to eq("1.0")
       expect(doc.at_css("#economic_conditions_inflation_rate")["value"]).to eq("2.0")
-      # La tranche se choisit dans le barème, et non sur une échelle : cinq options, celle de
-      # la plupart des foyers qui investissent étant sélectionnée.
+      # La tranche se choisit dans le barème : cinq options, celle de la plupart des foyers cochée.
       options = doc.css("#economic_conditions_marginal_tax_rate option")
       expect(options.map { |option| option["value"] }).to eq(%w[0 11 30 41 45])
       expect(options.find { |option| option["selected"] }["value"]).to eq("30")
@@ -65,8 +64,7 @@ RSpec.describe "Economic conditions", type: :request do
     end
   end
 
-  # Les conditions déjà écrites dans une simulation sont les siennes : les valeurs par défaut
-  # ne les rattrapent pas, sans quoi une projection changerait sans que personne n'y touche.
+  # Les défauts ne rattrapent pas une simulation écrite : sa projection ne doit pas changer seule.
   describe "the conditions of a simulation" do
     let(:simulation) { create(:simulation, user: user, rent_growth_rate: 1, inflation_rate: 2) }
 
@@ -81,8 +79,7 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
     end
 
-    # La tranche marginale se corrige là où se corrige le reste du contexte : c'est elle qui
-    # dit ce que l'impôt prend des loyers, et la projection s'en trouve refaite.
+    # La tranche marginale se corrige avec le reste du contexte, et la projection s'en trouve refaite.
     it "carries the tax bracket of the household next to the rates" do
       taxed = create(:simulation, user: user, marginal_tax_rate: 30)
 
@@ -137,8 +134,7 @@ RSpec.describe "Economic conditions", type: :request do
       expect(others.reload.rent_growth_rate).to eq(1)
     end
 
-    # Corriger les conditions par défaut ne doit pas réécrire l'histoire des simulations
-    # déjà projetées : chacune porte les siennes.
+    # Corriger les défauts ne doit pas réécrire une simulation déjà projetée : chacune porte les siennes.
     it "is left untouched when the general conditions change" do
       simulation
 

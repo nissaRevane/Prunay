@@ -9,8 +9,7 @@ RSpec.describe Taxation::CapitalGain do
                         acquisition_fees: 16_612, held_years: held_years)
   end
 
-  # La valeur fiscale n'est jamais le seul prix payé : les frais d'acquisition s'y ajoutent, et
-  # passé cinq ans de détention, 15 % de travaux forfaitaires que rien n'oblige à justifier.
+  # Les frais d'acquisition s'ajoutent au prix payé, et passé cinq ans, 15 % de travaux forfaitaires.
   describe "#fiscal_value" do
     it "adds the acquisition fees to the price paid" do
       expect(gain(sale_price: 250_000, held_years: 3).fiscal_value).to eq(216_612)
@@ -58,9 +57,7 @@ RSpec.describe Taxation::CapitalGain do
     end
   end
 
-  # Les deux abattements ne courent pas au même rythme : cinq années au-delà de la cinquième
-  # valent 30 % au barème (6 % l'an) et 8,25 % aux prélèvements sociaux (1,65 % l'an). Sur les
-  # 53 388 € que laisse une valeur fiscale déjà majorée des travaux forfaitaires.
+  # Cinq années au-delà de la cinquième valent 30 % au barème et 8,25 % aux prélèvements sociaux.
   describe "the allowance for the years held" do
     subject(:tenth_year) { gain(sale_price: 300_000, held_years: 10) }
 
@@ -81,8 +78,7 @@ RSpec.describe Taxation::CapitalGain do
       expect(gain(sale_price: 250_000, held_years: 5).social_charges_allowance_rate).to eq(0)
     end
 
-    # Vingt-deux ans : 6 % pendant seize ans puis 4 % la dernière, et le barème n'a plus rien à
-    # prendre. Les prélèvements sociaux, eux, n'en sont qu'à 28 %.
+    # Vingt-deux ans : 6 % pendant seize ans puis 4 %, et le barème n'a plus rien à prendre.
     it "frees the gain from the income tax after twenty-two years, the social charges apart" do
       sale = gain(sale_price: 300_000, held_years: 22)
 
@@ -101,8 +97,7 @@ RSpec.describe Taxation::CapitalGain do
     end
   end
 
-  # `to_d` comme dans Loan : un prix entier ferait une division entière, et l'impôt tomberait
-  # à zéro comme les 15 % de travaux forfaitaires.
+  # `to_d` comme dans Loan : un prix entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer price as a decimal and not as a division" do
     entire = described_class.new(sale_price: 250_000, purchase_price: 200_000, acquisition_fees: 0, held_years: 3)
 

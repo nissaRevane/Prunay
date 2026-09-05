@@ -65,9 +65,7 @@
     </div>
   </dl>
 
-  <%# Ce que l'acheteur sort réellement de sa poche à la signature : son apport, cautionnement
-      et frais de dossier compris. Le capital emprunté, lui, ne s'immobilise pas — il se
-      rembourse par les annuités que la projection retranche. %>
+  <%# Ce que l'acheteur sort de sa poche à la signature ; le capital emprunté, lui, se rend par les annuités. %>
   <div class="section-total">
     <span><%= t("views.simulations.show.initial_outlay") %></span>
     <span><%= number_to_currency(simulation.initial_outlay) %></span>

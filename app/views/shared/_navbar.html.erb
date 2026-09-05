@@ -7,8 +7,7 @@
     <% end %>
   </div>
 
-  <%# Le menu ne porte que ce que la marque ne mène pas déjà : elle ouvre la liste des
-      simulations, et les conditions économiques par défaut sont la seule autre page. %>
+  <%# Le menu ne porte que ce que la marque ne mène pas déjà : elle ouvre la liste des simulations. %>
   <% if user_signed_in? %>
     <div class="navbar-links">
       <%= link_to t("views.nav.economic_conditions"), edit_economic_conditions_path, class: "nav-link" %>

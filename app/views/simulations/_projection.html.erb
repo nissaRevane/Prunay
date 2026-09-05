@@ -19,8 +19,7 @@
           <tr class="row-expandable" data-action="click->projection#open"
               data-projection-year-param="<%= year.number %>">
             <td>
-              <%# Le bouton est là pour le clavier ; le clic sur la ligne entière remonte
-                  jusqu'à elle et ouvre la même fiche. %>
+              <%# Le bouton est là pour le clavier : le clic sur la ligne entière ouvre la même fiche. %>
               <button type="button" class="row-toggle" aria-haspopup="dialog"
                       aria-controls="<%= projection.regime %>-year-<%= year.number %>-statement"><%= year.number %></button>
             </td>
@@ -46,10 +45,7 @@
     <span><%= number_to_currency(projection.final_property_value) %></span>
   </div>
 
-  <%# Une fiche par année, rendue avec le tableau et ouverte par lui, sous deux angles que ses
-      onglets échangent : le compte de résultat de l'année — les charges en négatif, chaque solde
-      suivant ce qui l'a produit — et la revente qu'elle permettrait. Le régime préfixe les
-      identifiants : les deux onglets de la page portent la même projection. %>
+  <%# Une fiche par année, sous deux angles : son compte de résultat et la revente qu'elle permettrait. %>
   <% projection.years.each do |year| %>
     <dialog class="statement" id="<%= projection.regime %>-year-<%= year.number %>-statement" data-projection-target="statement"
             data-year="<%= year.number %>" data-controller="statement" data-statement-view-value="result"
@@ -89,8 +85,7 @@
           <span class="statement-amount"><%= number_to_currency(year.rent_excluding_charges) %></span>
         </div>
         <div class="statement-line">
-          <%# La provision remboursée est déjà ôtée des charges : la note dit pourquoi elles
-              sont plus légères que celles du formulaire, sans faire une ligne du compte. %>
+          <%# La note dit pourquoi les charges sont plus légères que celles du formulaire. %>
           <span class="statement-label">
             <%= t("views.simulations.show.annual_charges_column") %>
             <% if year.provision_for_charges.positive? %>
@@ -128,9 +123,7 @@
         </div>
       </div>
 
-      <%# Ce qu'une revente à cette date-là laisserait : le prix du marché, la plus-value imposée,
-          la banque soldée, et le capital encore engagé récupéré. Les loyers déjà encaissés ont
-          d'eux-mêmes allégé ce dernier, et le bénéfice n'a donc pas à les recompter. %>
+      <%# Les loyers déjà encaissés ont allégé le capital engagé : le bénéfice n'a pas à les recompter. %>
       <div class="statement-lines" role="tabpanel" data-statement-target="view" data-view="sale"
            id="<%= projection.regime %>-year-<%= year.number %>-sale" hidden>
         <div class="statement-line">
@@ -138,8 +131,7 @@
           <span class="statement-amount"><%= number_to_currency(year.property_value) %></span>
         </div>
         <div class="statement-line">
-          <%# La note dit la plus-value brute : l'impôt qu'elle vaut ne s'en déduit pas de tête,
-              l'abattement pour durée de détention en ayant déjà mangé une part. %>
+          <%# La note dit la plus-value brute : l'abattement pour durée de détention en a mangé une part. %>
           <span class="statement-label">
             <%= t("views.simulations.show.sale_capital_gain_tax") %>
             <% if year.capital_gain.positive? %>

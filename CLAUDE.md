@@ -40,10 +40,11 @@ ne pas inventer de commande de build.
 - Aucun texte visible en dur : tout passe par `config/locales/fr.yml`.
 
 ### Les commentaires
-Ils disent la règle métier ou le pourquoi d'une décision, jamais la mécanique du code.
-Trois lignes en tête d'une classe pour dire ce qu'elle représente et ce qui vit ailleurs,
-une ligne ailleurs, rien du tout quand le code se lit seul. Style du reste du fichier :
-une phrase, pas une étiquette.
+On ne commente que ce que le code ne dit pas, et le plus souvent il n'y a rien à dire : la
+règle métier ou le pourquoi d'une décision, jamais la mécanique. Cinq lignes au plus en tête
+d'une classe pour dire ce qu'elle représente et ce qui vit ailleurs, une seule ligne partout
+ailleurs, rien du tout dès que le code se lit seul. Style du reste du fichier : une phrase,
+pas une étiquette.
 
 ### L'argent et les taux
 `BigDecimal` partout. `.to_d` sur toute entrée dans un constructeur — un taux entier ferait

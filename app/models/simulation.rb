@@ -7,7 +7,7 @@ class Simulation < ApplicationRecord
   PROPERTY_TYPES = %w[apartment house parking building].freeze
   ENERGY_RATINGS = %w[A B C D E F G].freeze
 
-  # L'appartement, nommé : c'est le seul type de bien que l'on suppose en copropriété.
+  # Le seul type de bien que l'on suppose en copropriété.
   APARTMENT = "apartment"
 
   # Les charges annuelles, groupées comme le formulaire les demande : l'ordre est le sien.
@@ -42,14 +42,12 @@ class Simulation < ApplicationRecord
   # Un crédit abandonné ne doit pas survivre à la case qui le déclarait.
   after_save { @loan = nil }
 
-  # La page du bien.
   validates :property_type, presence: true, inclusion: { in: PROPERTY_TYPES, allow_blank: true },
             on: [:create, :update, :property]
   validates :city, presence: true, on: [:create, :update, :property]
   validates :surface, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :property]
   validates :energy_rating, inclusion: { in: ENERGY_RATINGS, allow_blank: true }, on: [:create, :update, :property]
 
-  # La page de l'achat, financement compris : c'est la case du crédit qui ouvre la suivante.
   validates :purchase_date, presence: true, on: [:create, :update, :purchase]
   validates :purchase_price, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :purchase]
   validates :initial_works, presence: true, numericality: { greater_than_or_equal_to: 0 },
@@ -61,7 +59,6 @@ class Simulation < ApplicationRecord
             on: [:create, :update, :purchase],
             if: -> { credit? && purchase_price.present? && initial_works.present? }
 
-  # La page du crédit. Sans crédit elle n'existe pas, et ses champs sont déjà retombés à zéro.
   validates :loan_rate, presence: true, numericality: { greater_than_or_equal_to: 0, less_than: 100 },
             on: [:create, :update, :credit], if: :credit?
   validates :loan_duration_years, presence: true,
@@ -75,8 +72,6 @@ class Simulation < ApplicationRecord
   validates :loan_application_fees, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :credit], if: :credit?
 
-  # La page de la location. Le loyer se détaille en deux montants : hors charges, la seule
-  # part imposable, et la provision pour charges que le locataire rembourse par-dessus.
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
   validates :monthly_charges, presence: true, numericality: { greater_than_or_equal_to: 0 },
@@ -89,8 +84,7 @@ class Simulation < ApplicationRecord
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
-  # Les conditions économiques, héritées de l'utilisateur à la création : aucune page du
-  # parcours ne les demande, seul l'onglet de la simulation les corrige ensuite.
+  # Héritées de l'utilisateur à la création : aucune page du parcours ne les demande.
   validates(*EconomicConditions::RATES, presence: true,
             numericality: { greater_than_or_equal_to: EconomicConditions::MIN_RATE,
                             less_than_or_equal_to: EconomicConditions::MAX_RATE },
@@ -109,7 +103,6 @@ class Simulation < ApplicationRecord
     Step.defaults(step, self)
   end
 
-  # Un montant proposé pour ce bien-ci : sa surface, et sa copropriété là où elle change la donne.
   def estimate(field)
     Estimate.for(field, surface, condominium: condominium?)
   end
@@ -118,7 +111,6 @@ class Simulation < ApplicationRecord
     property_type == APARTMENT
   end
 
-  # Ce que le formulaire affiche, ce que la fiche détaille et ce que le total additionne.
   def applicable_charges
     ANNUAL_CHARGES.select { |field| charge_applicable?(field) }
   end
@@ -129,8 +121,7 @@ class Simulation < ApplicationRecord
     condition.nil? || public_send(condition)
   end
 
-  # Le bien se nomme lui-même, et lui seul : l'icône du type, les premières lettres de la
-  # ville et la surface au mètre près. Rien à saisir, rien à stocker.
+  # Rien à saisir, rien à stocker : le bien se nomme par son type, sa ville et sa surface.
   def name
     I18n.t(
       "simulations.name",
@@ -152,7 +143,6 @@ class Simulation < ApplicationRecord
     purchase_price + notary_fees + initial_works
   end
 
-  # Ce que la banque prête : le coût du projet moins l'apport.
   def borrowed_capital
     return 0 unless credit?
 
@@ -170,13 +160,10 @@ class Simulation < ApplicationRecord
     Projection.new(self, regime)
   end
 
-  # La fiche montre les régimes côte à côte : c'est le modèle qui sait lesquels.
   def projections
     Taxation::NAMES.index_with { |regime| projection(regime) }
   end
 
-  # Ce qu'une année encaisse, provision pour charges comprise : par les mois effectivement
-  # loués, car un bien vide un mois par an ne fait pas douze loyers.
   def annual_rent
     annual_rent_excluding_charges + annual_provision_for_charges
   end
@@ -186,8 +173,7 @@ class Simulation < ApplicationRecord
     monthly_rent * occupancy_months
   end
 
-  # La provision encaissée sur une année : c'est elle que le locataire rembourse par-dessus le
-  # loyer, et que la copropriété reprend ensuite.
+  # La provision que le locataire rembourse par-dessus le loyer, et que la copropriété reprend.
   def annual_provision_for_charges
     monthly_charges * occupancy_months
   end
@@ -197,15 +183,12 @@ class Simulation < ApplicationRecord
     applicable_charges.sum { |field| public_send(field) }
   end
 
-  # Les charges telles qu'elles se déclarent : la provision remboursée en est ôtée, puisque les
-  # dépenses qu'elle couvre ne se déclarent pas plus qu'elle — la règle vaut pour les deux
-  # régimes. Négatives, si aucune dépense ne la justifie : la provision est alors un profit.
+  # La provision remboursée est ôtée : les dépenses qu'elle couvre ne se déclarent pas plus qu'elle.
   def annual_charges_excluding_provision
     annual_charges - annual_provision_for_charges
   end
 
-  # L'impôt d'une année : à défaut, celle qui a été saisie ; la projection passe la sienne. La
-  # provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
+  # La provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
                provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0))
@@ -218,8 +201,7 @@ class Simulation < ApplicationRecord
     taxation(regime).total
   end
 
-  # Ce qu'une revente coûterait au fisc cette année-là : la plus-value se compte sur la valeur
-  # fiscale du bien, frais de notaire compris, et s'efface avec la durée de détention.
+  # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la détention.
   def capital_gain_taxation(sale_price, held_years)
     Taxation::CapitalGain.new(sale_price: sale_price, purchase_price: purchase_price,
                               acquisition_fees: notary_fees, held_years: held_years)
@@ -230,8 +212,7 @@ class Simulation < ApplicationRecord
     annual_rent - annual_charges - annual_taxes - loan.annual_payment
   end
 
-  # Tout le projet comptant ; à crédit, l'apport et les frais du prêt — eux se paient à la
-  # signature, quand l'emprunt, lui, se rend par les annuités.
+  # À crédit seuls l'apport et les frais se paient à la signature : l'emprunt, lui, se rend par les annuités.
   def initial_outlay
     credit? ? down_payment + loan.upfront_fees : total_investment
   end

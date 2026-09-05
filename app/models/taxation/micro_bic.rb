@@ -6,8 +6,7 @@ module Taxation
     # Le forfait du micro-BIC : 50 % des recettes pour une location meublée de longue durée.
     ALLOWANCE_RATE = BigDecimal("50")
 
-    # Les recettes de l'année : tout ce que le locataire verse. La provision pour charges en
-    # fait partie, là où le foncier l'écarte de l'assiette — c'est la différence des deux mondes.
+    # La provision pour charges entre dans les recettes, là où le foncier l'écarte de l'assiette.
     def receipts
       rent_excluding_charges + provision_for_charges
     end
