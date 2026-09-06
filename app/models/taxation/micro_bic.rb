@@ -16,7 +16,9 @@ module Taxation
 
     def receipts = rent_excluding_charges + provision_for_charges
 
-    def allowance = share(receipts, ALLOWANCE_RATE)
+    def allowance_rate = ALLOWANCE_RATE
+
+    def allowance = share(receipts, allowance_rate)
 
     def taxable_income = receipts - allowance
 

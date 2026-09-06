@@ -405,6 +405,60 @@ RSpec.describe Projection do
     end
   end
 
+  # La fiche d'une année déplie ce que ses lignes recouvrent : chaque poste tel que l'année le porte.
+  describe "the detail a year opens" do
+    it "indexes each charge like the year that bears it" do
+      inflating = described_class.new(build(:simulation, property_tax: 700, maintenance: 1_000, inflation_rate: 2),
+                                      :micro_foncier)
+
+      # 700 € et 1 000 € composés deux fois par 2 % d'inflation : c'est ce que la troisième année paie.
+      expect(inflating.charge_lines(inflating.year(3)))
+        .to eq(property_tax: BigDecimal("728.28"), maintenance: BigDecimal("1040.40"))
+    end
+
+    it "has nothing to detail on the day of the purchase" do
+      expect(projection.charge_lines(projection.year(0))).to be_empty
+    end
+
+    it "counts the business tax of a furnished letting with the charges it details" do
+      furnished = described_class.new(simulation, :micro_bic)
+
+      # 30 % d'un loyer mensuel de 1 000 € : la CFE se détaille avec les charges, non avec l'impôt.
+      expect(furnished.charge_lines(furnished.year(1))[:business_tax]).to eq(300)
+    end
+
+    it "reads the rent of the year at the month, indexed like the year" do
+      growing = described_class.new(build(:simulation, monthly_rent: 1_000, rent_growth_rate: 2), :micro_foncier)
+
+      # 1 000 € de loyer composés deux fois par 2 % : la troisième année se loue 1 040,40 € par mois.
+      expect(growing.monthly_rent_of(growing.year(3))).to eq(BigDecimal("1040.40"))
+    end
+
+    it "splits the sale costs, each inflated like the year that would sell" do
+      inflating = described_class.new(build(:simulation, condominium: true, inflation_rate: 2), :micro_foncier)
+
+      # 400 € de diagnostics, 500 € de remise en état pour 50 m² et 380 € d'état daté, 2 % une fois.
+      expect(inflating.sale_cost_lines(inflating.year(1)))
+        .to eq(diagnostics: BigDecimal("408"), refurbishment: BigDecimal("510"),
+               condominium_statement: BigDecimal("387.60"))
+    end
+
+    it "separates the insurance premium from the interest the annuity charges with it" do
+      financed = described_class.new(build(:simulation, :with_credit, loan_insurance: 20), :micro_foncier)
+      year = financed.year(1)
+
+      # 5 938,79 € portés par la première année, dont douze primes de 20 €.
+      expect(year.loan_interest).to eq(BigDecimal("5938.79"))
+      expect(year.loan_insurance).to eq(240)
+      expect(year.interest_excluding_insurance).to eq(BigDecimal("5698.79"))
+    end
+
+    it "counts what the years have already given back of the investment" do
+      # 7 675,60 € de cash-flow par an, et l'année zéro qui n'a rien encaissé.
+      expect(projection.cumulative_cash_flow(projection.year(2))).to eq(BigDecimal("15351.20"))
+    end
+  end
+
   describe "#final_immobilized_capital" do
     it "is what the last line shows" do
       expect(projection.final_immobilized_capital).to eq(projection.years.last.immobilized_capital)

@@ -14,9 +14,20 @@ class Projection
 
   # Le compte de résultat d'une année : hors meublé, la provision remboursée n'est ni un revenu ni une charge.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
-                    :provision_for_charges, :loan_interest, :capital_repayment, :taxes, :business_tax,
-                    :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
+                    :provision_for_charges, :loan_interest, :loan_insurance, :capital_repayment,
+                    :taxation, :gain, :immobilized_capital, :property_value,
                     :remaining_loan_capital, :sale_costs, :early_repayment_fee, keyword_init: true) do
+    def taxes = taxation.total
+
+    def business_tax = taxation.business_tax
+
+    def capital_gain = gain.amount
+
+    def capital_gain_tax = gain.total
+
+    # L'annuité porte les deux ensemble ; la fiche, qui les détaille, les redemande séparés.
+    def interest_excluding_insurance = loan_interest - loan_insurance
+
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
     def pre_tax_result = rent_excluding_charges - charges_excluding_provision - loan_interest
 
@@ -81,12 +92,47 @@ class Projection
   # L'état daté n'est dû qu'en copropriété : la fiche le dit dans la note des frais de revente.
   def condominium? = @simulation.condominium?
 
+  def purchase_price = @simulation.purchase_price
+
+  def occupancy_months = @simulation.occupancy_months
+
+  def initial_outlay = @simulation.initial_outlay
+
+  # Ce que l'année a déjà rendu de l'investissement : le capital immobilisé s'en déduit.
+  def cumulative_cash_flow(year) = years.take(year.number + 1).sum(&:cash_flow)
+
+  # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
+  def monthly_rent_of(year) = indexed(@simulation.monthly_rent, @simulation.rent_growth_rate, year)
+
+  def monthly_provision_of(year) = indexed(@simulation.monthly_charges, @simulation.inflation_rate, year)
+
+  # Chaque poste de charge tel que l'inflation l'a porté, et la CFE que le meublé y ajoute.
+  def charge_lines(year)
+    return {} if year.number.zero?
+
+    lines = @simulation.applicable_charges.index_with do |field|
+      indexed(@simulation.public_send(field), @simulation.inflation_rate, year)
+    end
+
+    without_zeros(lines.merge(business_tax: year.business_tax))
+  end
+
+  # Les frais de revente suivent l'inflation depuis la signature, l'année de vente comprise.
+  def sale_cost_lines(year)
+    costs = @simulation.sale_costs
+    lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment,
+              condominium_statement: costs.condominium_statement }
+
+    without_zeros(lines.transform_values { |amount| compound(amount, @simulation.inflation_rate, year.number) })
+  end
+
   private
 
   # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
   def build_years
     outlay = @simulation.initial_outlay
     interest = @simulation.loan.annual_interest
+    insurance = @simulation.loan.annual_insurance
     principal = @simulation.loan.annual_principal
     remaining = @simulation.loan.annual_remaining_capital
     cumulative_cash_flow = 0
@@ -109,12 +155,11 @@ class Projection
         charges_excluding_provision: charges + taxation.business_tax,
         provision_for_charges: provision,
         loan_interest: loan_interest,
+        loan_insurance: insurance.fetch(number, 0),
         capital_repayment: principal.fetch(number, 0),
-        taxes: taxation.total,
-        business_tax: taxation.business_tax,
+        taxation: taxation,
+        gain: gain,
         property_value: property_value,
-        capital_gain: gain.amount,
-        capital_gain_tax: gain.total,
         remaining_loan_capital: remaining.fetch(number, 0),
         sale_costs: compound(sale_costs, @simulation.inflation_rate, number),
         early_repayment_fee: @simulation.loan.early_repayment_fee(remaining.fetch(number, 0))
@@ -143,18 +188,22 @@ class Projection
       charges_excluding_provision: 0,
       provision_for_charges: 0,
       loan_interest: 0,
+      loan_insurance: 0,
       capital_repayment: 0,
-      taxes: 0,
-      business_tax: 0,
+      taxation: taxation_for(0, 0, 0, 0, 0),
+      gain: @simulation.capital_gain_taxation(@simulation.purchase_price, 0),
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price,
-      capital_gain: 0,
-      capital_gain_tax: 0,
       remaining_loan_capital: @simulation.loan.capital,
       sale_costs: @simulation.sale_costs.total,
       early_repayment_fee: @simulation.loan.early_repayment_fee(@simulation.loan.capital)
     )
   end
+
+  # Les montants saisis décrivent la première année : chaque anniversaire suivant les compose une fois de plus.
+  def indexed(amount, rate, year) = compound(amount, rate, year.number - 1)
+
+  def without_zeros(lines) = lines.reject { |_, amount| amount.zero? }
 
   # `to_d` : un taux qu'un formulaire invalide vient de vider se lit comme une absence d'évolution.
   def compound(amount, annual_rate, years) = (amount.to_d * (1 + annual_rate.to_d / 100)**years).round(2)

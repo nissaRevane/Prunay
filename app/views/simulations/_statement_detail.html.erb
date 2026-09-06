@@ -1,0 +1,11 @@
+<%# Le calcul d'une ligne, replié tant qu'on n'a pas demandé à le voir. %>
+<% if lines.any? %>
+  <div class="statement-detail" data-statement-target="detail" hidden>
+    <% lines.each do |label, amount| %>
+      <div class="statement-detail-line">
+        <span class="statement-detail-label"><%= label %></span>
+        <span class="statement-amount"><%= number_to_currency(amount) %></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>

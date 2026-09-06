@@ -43,6 +43,11 @@ class AmortizationSchedule
     @annual_interest ||= yearly_rows.transform_values { |yearly| yearly.sum { |row| row.interest + row.insurance } }
   end
 
+  # La fiche d'une année sépare ce que l'annuité mêle : la prime, seule, n'est pas un intérêt.
+  def annual_insurance
+    @annual_insurance ||= yearly_rows.transform_values { |yearly| yearly.sum(&:insurance) }
+  end
+
   def annual_principal
     @annual_principal ||= yearly_rows.transform_values { |yearly| yearly.sum(&:principal) }
   end

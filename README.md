@@ -173,6 +173,13 @@ docker compose run --rm web bundle exec rspec
   provision the tenant repays is neither a revenue nor a deductible charge, and charges included
   under the micro-BIC, which declares it and deducts the whole charges in return — either reading
   leaves the same pre-tax result, the provision moving on both sides at once.
+  The statement is read twice over: a summary of one line per amount, and, behind the Détail
+  button of its header, the calculation of each of those lines folded under it — the rent at the
+  month, every charge indexed as the year bears it, the interest apart from the insurance
+  premium, the assessment down to the two rates that strike it, and, on the sale view, what the
+  costs are made of, how the fiscal value leaves or leaves no gain, and what the years have
+  already given back of the investment. Beside the labels that need one, a question mark holds
+  a sentence of explanation on hover: what the line covers and what it deliberately leaves out.
   The annual rent counts only the months actually
   let, and the annuity — the insurance premium included — is read from the schedule year by
   year: twelve payments while the loan runs, what is left of it the year it is cleared,

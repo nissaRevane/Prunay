@@ -23,6 +23,14 @@ module Taxation
 
     def taxable_income = raise NotImplementedError
 
+    # Ce que le régime déclare avant tout abattement : le meublé y ajoute la provision.
+    def receipts = rent_excluding_charges
+
+    # Le réel n'en a pas : il déduit ses charges pour de vrai. Voir les deux micro-régimes.
+    def allowance = 0
+
+    def allowance_rate = 0
+
     # Le taux du nu, que le meublé remplace par le sien : voir Taxation.
     def social_charges_rate = SOCIAL_CHARGES_RATE
 

@@ -9,6 +9,10 @@ RSpec.describe "Simulations", type: :request do
     ActionController::Base.helpers.number_to_currency(amount)
   end
 
+  def percentage(rate)
+    ActionController::Base.helpers.number_to_percentage(rate, precision: 2, strip_insignificant_zeros: true)
+  end
+
   describe "GET /simulations" do
     it "returns success" do
       get simulations_path
@@ -200,6 +204,77 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.sale_proceeds"), currency(199_100).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.immobilized_capital"), currency(BigDecimal("-221260.80")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.sale_profit"), currency(BigDecimal("-22160.80")).gsub(/\s+/, " ")]
+      ])
+    end
+
+    # Le détail se demande : replié sous chaque ligne, il en porte le calcul poste par poste.
+    it "folds the calculation of each line under it, hidden until the detail is asked for" do
+      let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
+                                    condominium: true, condominium_fees: 1_500, property_tax: 800,
+                                    marginal_tax_rate: 30)
+
+      get simulation_path(let_out)
+
+      doc = Nokogiri::HTML(response.body)
+      result = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement #micro_foncier-year-1-result")
+      details = result.css(".statement-detail")
+      lines = details.css(".statement-detail-line").map do |line|
+        [line.at_css(".statement-detail-label").text.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(details.map { |detail| detail["hidden"] }).to all(be_truthy)
+      # 12 000 € de loyers et 1 200 € de provision ; 2 300 € de charges dont la provision rembourse 1 200 €.
+      # Micro-foncier : 30 % d'abattement, 8 400 € imposables, 30 % de TMI et 17,2 % de prélèvements sociaux.
+      expect(lines).to eq([
+        [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_000), months: "12"),
+         currency(12_000).gsub(/\s+/, " ")],
+        [Simulation.human_attribute_name(:property_tax), currency(-800).gsub(/\s+/, " ")],
+        [Simulation.human_attribute_name(:condominium_fees), currency(-1_500).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_provision_repaid"), currency(1_200).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_receipts"), currency(12_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_allowance", rate: percentage(30)), currency(-3_600).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(8_400).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)), currency(-2_520).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_social_charges", rate: percentage(BigDecimal("17.2"))),
+         currency(BigDecimal("-1444.80")).gsub(/\s+/, " ")]
+      ])
+    end
+
+    # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
+    it "carries a hover explanation beside the labels that need one" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      hint = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement .statement-hint")
+
+      expect(hint["data-hint"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
+      expect(hint["aria-label"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
+    end
+
+    # La revente détaille ce qu'elle coûte et l'impôt qu'elle doit, à même la fiche.
+    it "details the costs and the capital gain tax of a sale" do
+      growing = create(:simulation, user: user, property_growth_rate: 2)
+
+      get simulation_path(growing)
+
+      doc = Nokogiri::HTML(response.body)
+      sale = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-10-statement #micro_foncier-year-10-sale")
+      lines = sale.css(".statement-detail-line").map do |line|
+        [line.at_css(".statement-detail-label").text.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      # 200 000 € à 2 % pendant dix ans : 243 798,88 €, pour une valeur fiscale de 246 612 € travaux forfaitaires
+      # compris — pas de plus-value, donc pas d'impôt à détailler. Dix cash-flows de 8 444,16 € sont encaissés.
+      expect(lines).to eq([
+        [I18n.t("views.simulations.show.detail_purchase_price"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_property_growth"), currency(BigDecimal("43798.88")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_diagnostics"), currency(-400).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_refurbishment"), currency(-500).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_initial_outlay"), currency(-216_612).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_cumulative_cash_flow"),
+         currency(BigDecimal("84441.60")).gsub(/\s+/, " ")]
       ])
     end
 

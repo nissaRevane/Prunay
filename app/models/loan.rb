@@ -91,6 +91,8 @@ class Loan
   # Le compte de résultat sépare les deux : les intérêts et la prime sont une charge, le capital non.
   def annual_interest = schedule&.annual_interest || {}
 
+  def annual_insurance = schedule&.annual_insurance || {}
+
   def annual_principal = schedule&.annual_principal || {}
 
   # Ce qu'une revente aurait à rembourser par anticipation, année par année.

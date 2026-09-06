@@ -406,6 +406,8 @@ a.nav-user-name:hover {
   margin: auto;
   width: min(30rem, calc(100vw - 2rem));
   max-height: calc(100vh - 4rem);
+  /* Dépliée ligne à ligne, la fiche déborde : elle défile plutôt que de sortir de l'écran. */
+  overflow-y: auto;
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -450,14 +452,43 @@ a.nav-user-name:hover {
 
 /* Les deux lectures d'une fiche se choisissent juste sous son titre : le filet des onglets
    tient lieu de celui de l'en-tête, qui le cède plutôt que de doubler le trait. */
-.statement-header:has(+ .statement-tabs) {
+.statement-header:has(+ .statement-controls) {
   border-bottom: none;
   padding-bottom: 0.75rem;
 }
 
-.statement-tabs {
-  margin-bottom: 0;
+/* Sur la même ligne : ce que la fiche montre, et à quelle finesse elle le montre. */
+.statement-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   padding: 0 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.statement-tabs {
+  flex: 1;
+  margin-bottom: 0;
+  padding: 0;
+  border-bottom: none;
+}
+
+.statement-detail-toggle {
+  flex-shrink: 0;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.statement-detail-toggle.is-active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .statement-lines {
@@ -502,6 +533,66 @@ a.nav-user-name:hover {
   margin-top: 0.125rem;
   font-size: 0.8125rem;
   font-style: italic;
+}
+
+/* Le calcul d'une ligne, en retrait sous elle : une justification, non une ligne de plus. */
+.statement-detail {
+  margin: 0 0 0.375rem 0.25rem;
+  padding-left: 0.875rem;
+  border-left: 2px solid var(--color-border);
+}
+
+.statement-detail-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.125rem 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* L'explication tient au survol du libellé : un point d'interrogation, et une phrase, jamais un pavé. */
+.statement-hint {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: auto;
+  width: 1.125rem;
+  height: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: help;
+}
+
+.statement-hint::after {
+  content: attr(data-hint);
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: -0.5rem;
+  z-index: 2;
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.statement-hint:hover::after,
+.statement-hint:focus::after {
+  visibility: visible;
 }
 
 /* Des chiffres de même largeur : sans quoi une colonne de montants ne s'aligne pas. */

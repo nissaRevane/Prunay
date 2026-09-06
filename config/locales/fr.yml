@@ -249,6 +249,42 @@ fr:
         statement_sale_title: "Revente — Année %{year}"
         statement_sale_tab: Revente
         statement_close: Fermer
+        statement_detail: Détail
+        hint_annual_rent_column: "Le loyer seul, hors provision pour charges, sur les mois effectivement loués."
+        hint_annual_rent_including_charges_column: "Le meublé déclare la provision avec le loyer, puis la déduit."
+        hint_charges_excluded: "Les charges indexées par l'inflation, la provision remboursée déduite."
+        hint_charges_included: "Les charges saisies, indexées par l'inflation, la CFE du meublé comprise."
+        hint_loan_interest_column: "Ce que le crédit coûte sans rien rendre : intérêts et assurance."
+        hint_income_tax_column: "Votre tranche marginale et les prélèvements sociaux, sur la même assiette."
+        hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
+        hint_cash_flow: "Ce qui reste en poche une fois l'année écoulée, échéances et impôt payés."
+        hint_sale_property_value: "Le prix d'achat revalorisé ; ni les frais ni les travaux ne se revendent."
+        hint_sale_capital_gain_tax: "19 % et 17,2 %, chacun après son abattement pour durée de détention."
+        hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
+        hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
+        hint_immobilized_capital: "L'investissement du premier jour, diminué des cash-flows déjà encaissés."
+        hint_sale_profit: "Le produit de la revente, une fois récupéré le capital encore engagé."
+        detail_rent_excluding_charges: "%{amount} par mois × %{months} mois loués"
+        detail_provision_for_charges: "Provision de %{amount} par mois × %{months} mois loués"
+        detail_provision_repaid: "Provision remboursée par le locataire"
+        detail_loan_interest: Intérêts
+        detail_loan_insurance: Assurance emprunteur
+        detail_receipts: Recettes déclarées
+        detail_allowance: "Abattement forfaitaire de %{rate}"
+        detail_taxable_income: Revenu imposable
+        detail_income_tax: "Impôt sur le revenu (%{rate})"
+        detail_social_charges: "Prélèvements sociaux (%{rate})"
+        detail_purchase_price: "Prix d'achat"
+        detail_property_growth: "Revalorisation depuis l'achat"
+        detail_diagnostics: Diagnostics
+        detail_refurbishment: Remise en état
+        detail_condominium_statement: État daté
+        detail_fiscal_value: Valeur fiscale du bien
+        detail_capital_gain: Plus-value brute
+        detail_capital_gain_income_tax: "Impôt (%{rate}, abattement de %{allowance})"
+        detail_capital_gain_social_charges: "Prélèvements sociaux (%{rate}, abattement de %{allowance})"
+        detail_initial_outlay: Investissement initial
+        detail_cumulative_cash_flow: "Cash-flow déjà encaissé"
         sale_property_value: Valeur du bien
         sale_costs: Frais de revente
         sale_costs_note: "diagnostics et remise en état"
