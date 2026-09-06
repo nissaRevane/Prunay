@@ -135,6 +135,15 @@
           <span class="statement-amount"><%= number_to_currency(year.property_value) %></span>
         </div>
         <div class="statement-line">
+          <span class="statement-label">
+            <%= t("views.simulations.show.sale_costs") %>
+            <span class="statement-note">
+              <%= t("views.simulations.show.sale_costs_note#{"_condominium" if projection.condominium?}") %>
+            </span>
+          </span>
+          <span class="statement-amount"><%= number_to_currency(-year.sale_costs) %></span>
+        </div>
+        <div class="statement-line">
           <%# La note dit la plus-value brute : l'abattement pour durée de détention en a mangé une part. %>
           <span class="statement-label">
             <%= t("views.simulations.show.sale_capital_gain_tax") %>
@@ -149,6 +158,10 @@
           <span class="statement-label"><%= t("views.simulations.show.remaining_capital") %></span>
           <span class="statement-amount"><%= number_to_currency(-year.remaining_loan_capital) %></span>
         </div>
+        <div class="statement-line">
+          <span class="statement-label"><%= t("views.simulations.show.sale_early_repayment_fee") %></span>
+          <span class="statement-amount"><%= number_to_currency(-year.early_repayment_fee) %></span>
+        </div>
         <div class="statement-line statement-line-subtotal">
           <span class="statement-label"><%= t("views.simulations.show.sale_proceeds") %></span>
           <span class="statement-amount"><%= number_to_currency(year.sale_proceeds) %></span>
@@ -158,10 +171,7 @@
           <span class="statement-amount"><%= number_to_currency(-year.immobilized_capital) %></span>
         </div>
         <div class="statement-line statement-line-total">
-          <span class="statement-label">
-            <%= t("views.simulations.show.sale_profit") %>
-            <span class="statement-note"><%= t("views.simulations.show.sale_profit_note") %></span>
-          </span>
+          <span class="statement-label"><%= t("views.simulations.show.sale_profit") %></span>
           <span class="statement-amount <%= year.sale_profit.negative? ? 'text-danger' : 'text-success' %>">
             <%= number_to_currency(year.sale_profit) %>
           </span>

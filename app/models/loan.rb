@@ -21,6 +21,12 @@ class Loan
   # Aucune banque n'ouvre un dossier pour moins : la proposition ne descend pas sous ce plancher.
   MIN_APPLICATION_FEES = 500
 
+  # Ce que la banque prend d'un crédit soldé avant terme : 3 % du capital rendu, sans dépasser
+  # six mois de ses intérêts. Sous 6 % l'an, c'est toujours le plafond qui s'applique.
+  EARLY_REPAYMENT_RATE = BigDecimal("3")
+
+  EARLY_REPAYMENT_CAP_MONTHS = 6
+
   attr_reader :capital, :annual_rate, :duration_years, :insurance, :guarantee_fees, :application_fees,
               :signed_on
 
@@ -87,6 +93,12 @@ class Loan
 
   # Ce qu'une revente aurait à rembourser par anticipation, année par année.
   def annual_remaining_capital = schedule&.annual_remaining_capital || {}
+
+  def early_repayment_fee(remaining_capital)
+    remaining = remaining_capital.to_d
+
+    [remaining * EARLY_REPAYMENT_RATE / 100, remaining * monthly_rate * EARLY_REPAYMENT_CAP_MONTHS].min.round(2)
+  end
 
   def total_interest = schedule&.total_interest || 0
 

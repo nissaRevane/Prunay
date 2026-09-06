@@ -128,11 +128,15 @@ RSpec.describe Projection do
       expect(projection.years[2].remaining_loan_capital).to eq(simulation.borrowed_capital - repaid)
     end
 
-    # Le prix ne bougeant pas, la revente ne rapporte que ce que le crédit a déjà remboursé.
+    # Le prix ne bougeant pas, la revente ne rapporte que ce que le crédit a déjà remboursé, frais déduits.
     it "sells for the market price less what is still owed, and profits by what is not immobilized" do
       year = projection.years[2]
 
-      expect(year.sale_proceeds).to eq(200_000 - year.remaining_loan_capital)
+      # 178 684,91 € restant dus : à 3 % l'an, six mois d'intérêts plafonnent l'indemnité à 1,5 %.
+      expect(year.remaining_loan_capital).to eq(BigDecimal("178_684.91"))
+      expect(year.early_repayment_fee).to eq(BigDecimal("2680.27"))
+      expect(year.sale_proceeds)
+        .to eq(200_000 - 900 - BigDecimal("178_684.91") - BigDecimal("2680.27"))
       expect(year.sale_profit).to eq(year.sale_proceeds - year.immobilized_capital)
     end
   end
@@ -314,13 +318,16 @@ RSpec.describe Projection do
   end
 
   # Comptant, pas de banque à solder : le jour de l'achat les 236 612 € engagés dépassent de 36 612 € un bien à 200 000.
+  # 50 m² hors copropriété : 400 € de diagnostics et 500 € de remise en état s'y ajoutent.
   describe "a sale simulated from a year" do
     it "owes nothing to a bank when the purchase was paid in cash" do
       origin = projection.years.first
 
       expect(origin.remaining_loan_capital).to eq(0)
-      expect(origin.sale_proceeds).to eq(200_000)
-      expect(origin.sale_profit).to eq(-36_612)
+      expect(origin.sale_costs).to eq(900)
+      expect(origin.early_repayment_fee).to eq(0)
+      expect(origin.sale_proceeds).to eq(199_100)
+      expect(origin.sale_profit).to eq(-37_512)
     end
 
     # 3 % l'an sur dix ans : la plus-value ainsi faite est imposée, et la revente ne rend que le reste.
@@ -331,8 +338,8 @@ RSpec.describe Projection do
 
       expect(year.property_value).to eq(BigDecimal("268_783.28"))
       expect(year.capital_gain_tax).to eq(BigDecimal("6447.63"))
-      expect(year.sale_proceeds).to eq(BigDecimal("262_335.65"))
-      expect(year.sale_profit).to eq(BigDecimal("262_335.65") - year.immobilized_capital)
+      expect(year.sale_proceeds).to eq(BigDecimal("261_435.65"))
+      expect(year.sale_profit).to eq(BigDecimal("261_435.65") - year.immobilized_capital)
     end
 
     # 200 000 € payés et 16 612 € de frais, plus 30 000 € de travaux forfaitaires dès la sixième année.
@@ -348,6 +355,21 @@ RSpec.describe Projection do
       expect(growing.years[6].capital_gain_tax).to eq(0)
     end
 
+    # 2 % d'inflation : les 900 € de frais d'aujourd'hui en valent 1 097,09 € à la dixième année.
+    it "inflates the sale costs like every other expense" do
+      inflating = described_class.new(build(:simulation, inflation_rate: 2), :micro_foncier)
+
+      expect(inflating.years.first.sale_costs).to eq(900)
+      expect(inflating.years[10].sale_costs).to eq(BigDecimal("1097.09"))
+    end
+
+    # L'état daté, que le syndic facture au vendeur, s'ajoute aux 900 € des autres frais.
+    it "adds the condominium statement to the costs of an apartment in a condominium" do
+      condominium = described_class.new(build(:simulation, condominium: true), :micro_foncier)
+
+      expect(condominium.years.first.sale_costs).to eq(1_280)
+    end
+
     # Trente ans de détention : l'abattement a tout effacé, barème comme prélèvements sociaux.
     it "taxes nothing of a gain the thirty years held have entirely abated" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
@@ -356,7 +378,7 @@ RSpec.describe Projection do
 
       expect(year.capital_gain).to be_positive
       expect(year.capital_gain_tax).to eq(0)
-      expect(year.sale_proceeds).to eq(year.property_value)
+      expect(year.sale_proceeds).to eq(year.property_value - 900)
     end
   end
 

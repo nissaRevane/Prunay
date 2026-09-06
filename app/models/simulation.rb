@@ -178,6 +178,9 @@ class Simulation < ApplicationRecord
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
 
+  # Diagnostics, remise en état, état daté : ce que la revente coûte avant même la plus-value.
+  def sale_costs = SaleCosts.new(surface: surface, condominium: condominium?)
+
   # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la détention.
   def capital_gain_taxation(sale_price, held_years)
     Taxation::CapitalGain.new(sale_price: sale_price, purchase_price: purchase_price,

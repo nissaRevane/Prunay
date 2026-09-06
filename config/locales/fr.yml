@@ -249,11 +249,14 @@ fr:
         statement_sale_tab: Revente
         statement_close: Fermer
         sale_property_value: Valeur du bien
+        sale_costs: Frais de revente
+        sale_costs_note: "diagnostics et remise en état"
+        sale_costs_note_condominium: "diagnostics, remise en état et état daté"
+        sale_early_repayment_fee: "Indemnité de remboursement anticipé"
         sale_capital_gain_tax: Impôt sur la plus-value
         sale_capital_gain_note: "plus-value de %{amount}"
         sale_proceeds: Produit de la revente
         sale_profit: "Bénéfice de l'opération"
-        sale_profit_note: hors frais de revente
         total_cash_flow: "Cash-flow cumulé sur %{years} ans"
         final_property_value: "Valeur du bien au bout de %{years} ans"
         back: Retour aux simulations

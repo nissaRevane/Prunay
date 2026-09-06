@@ -16,7 +16,7 @@ class Projection
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :capital_repayment, :taxes, :business_tax,
                     :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
-                    :remaining_loan_capital, keyword_init: true) do
+                    :remaining_loan_capital, :sale_costs, :early_repayment_fee, keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
     def pre_tax_result = rent_excluding_charges - charges_excluding_provision - loan_interest
 
@@ -28,7 +28,8 @@ class Projection
 
     def recovered? = immobilized_capital <= 0
 
-    def sale_proceeds = property_value - capital_gain_tax - remaining_loan_capital
+    def sale_proceeds = property_value - sale_costs - capital_gain_tax - remaining_loan_capital -
+                        early_repayment_fee
 
     # Les loyers déjà encaissés ont d'eux-mêmes entamé le capital qui reste engagé.
     def sale_profit = sale_proceeds - immobilized_capital
@@ -60,6 +61,9 @@ class Projection
 
   def final_property_value = years.last.property_value
 
+  # L'état daté n'est dû qu'en copropriété : la fiche le dit dans la note des frais de revente.
+  def condominium? = @simulation.condominium?
+
   private
 
   # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
@@ -69,6 +73,7 @@ class Projection
     principal = @simulation.loan.annual_principal
     remaining = @simulation.loan.annual_remaining_capital
     cumulative_cash_flow = 0
+    sale_costs = @simulation.sale_costs.total
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
       rent = compound(@simulation.annual_rent_excluding_charges, @simulation.rent_growth_rate, number - 1)
@@ -93,7 +98,9 @@ class Projection
         property_value: property_value,
         capital_gain: gain.amount,
         capital_gain_tax: gain.total,
-        remaining_loan_capital: remaining.fetch(number, 0)
+        remaining_loan_capital: remaining.fetch(number, 0),
+        sale_costs: compound(sale_costs, @simulation.inflation_rate, number),
+        early_repayment_fee: @simulation.loan.early_repayment_fee(remaining.fetch(number, 0))
       )
       cumulative_cash_flow += year.cash_flow
       year.immobilized_capital = outlay - cumulative_cash_flow
@@ -126,7 +133,9 @@ class Projection
       property_value: @simulation.purchase_price,
       capital_gain: 0,
       capital_gain_tax: 0,
-      remaining_loan_capital: @simulation.loan.capital
+      remaining_loan_capital: @simulation.loan.capital,
+      sale_costs: @simulation.sale_costs.total,
+      early_repayment_fee: @simulation.loan.early_repayment_fee(@simulation.loan.capital)
     )
   end
 

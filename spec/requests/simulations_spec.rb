@@ -81,7 +81,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".empty-state")).to be_present
     end
 
-    # 7 948,80 € par an : après quinze ans, 119 232 € retrouvés sur 216 612 € engagés, et 97 380 € à solder.
+    # 7 948,80 € par an : après quinze ans, 119 232 € retrouvés sur 216 612 € engagés, moins 900 € de frais de revente.
     it "reads each projection at the review year of the review regime" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -91,7 +91,7 @@ RSpec.describe "Simulations", type: :request do
       cells = doc.css(".table tbody tr td").map { |cell| cell.text.gsub(/\s+/, " ").strip }
 
       expect(cells[1]).to eq(currency(BigDecimal("7948.80")).gsub(/\s+/, " "))
-      expect(cells[2]).to eq(currency(102_620).gsub(/\s+/, " "))
+      expect(cells[2]).to eq(currency(101_720).gsub(/\s+/, " "))
     end
 
     # Le régime et l'année ne se devinent pas d'un montant : le titre de la page les dit.
@@ -179,7 +179,7 @@ RSpec.describe "Simulations", type: :request do
       expect(result).not_to include(currency(200_000).gsub(/\s+/, " "))
     end
 
-    # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt et laisse 21 260,80 € engagés.
+    # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt, mais 900 € de diagnostics et de remise en état.
     it "simulates a sale from the same statement, behind a tab of its own" do
       get simulation_path(simulation)
 
@@ -193,11 +193,13 @@ RSpec.describe "Simulations", type: :request do
       expect(sale["hidden"]).not_to be_nil
       expect(lines).to eq([
         [I18n.t("views.simulations.show.sale_property_value"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_costs"), currency(-900).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.sale_capital_gain_tax"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.remaining_capital"), currency(0).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.sale_proceeds"), currency(200_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_early_repayment_fee"), currency(0).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.sale_proceeds"), currency(199_100).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.immobilized_capital"), currency(BigDecimal("-221260.80")).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.sale_profit"), currency(BigDecimal("-21260.80")).gsub(/\s+/, " ")]
+        [I18n.t("views.simulations.show.sale_profit"), currency(BigDecimal("-22160.80")).gsub(/\s+/, " ")]
       ])
     end
 

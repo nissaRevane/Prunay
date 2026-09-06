@@ -151,6 +151,19 @@ docker compose run --rm web bundle exec rspec
   escapes the social charges after thirty. The surtax on gains above 50 000 € is not
   simulated. The sale view of a year's statement deducts that tax right after the price of the
   property, before the bank is cleared.
+  Selling costs something before it is taxed (`SaleCosts`): the mandatory diagnostics, a flat
+  400 € whatever the property, putting it back in order, 500 € for 50 m² and the square root of
+  the surface from there — twice the surface is not twice the work — and, in a condominium
+  alone, the 380 € the syndic charges the seller for the état daté. No agency: the property is
+  supposed to be sold between individuals. The costs are deducted from the price in the sale
+  view, above the capital gain tax, and they inflate year by year like every other expense of
+  the projection. They do not lower the taxable gain: only an agency commission would, and
+  works only against invoices Prunay does not simulate.
+  Clearing the loan before its term costs one more thing, and it is the bank's, not the sale's
+  (`Loan#early_repayment_fee`): 3 % of the capital repaid, capped at six months of its
+  interest — under 6 % a year the cap is what applies, so it is half the rate on what is still
+  owed. The sale view deducts it right after the capital, and it falls to nothing the year the
+  loan is cleared.
 - **The projection:** thirty lines, one per anniversary of the purchase. The table carries
   five columns and no commentary — the year, its month, its rent, its cash flow and the
   capital still immobilized. The charges, the tax and the annuity weigh on the cash flow
