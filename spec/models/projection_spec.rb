@@ -235,6 +235,20 @@ RSpec.describe Projection do
       expect(described_class.new(rent_only, :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
     end
 
+    # Ce que le meublé déclare : 10 800 € encaissés et 1 740 € de charges, CFE de 240 € comprise.
+    it "reads the year charges included, the provision on both sides" do
+      furnished = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
+                                                        occupancy_months: 12, condominium: true,
+                                                        condominium_fees: 1_500), :micro_bic)
+      year = furnished.years[1]
+
+      expect(furnished.rent_column).to eq("annual_rent_including_charges_column")
+      expect(furnished.rent_of(year)).to eq(10_800)
+      expect(furnished.charges_of(year)).to eq(1_740)
+      # Les deux lectures d'une même année laissent le même résultat avant impôt.
+      expect(furnished.rent_of(year) - furnished.charges_of(year)).to eq(year.pre_tax_result)
+    end
+
     # La provision suit l'inflation : 1 236 € la deuxième année, dont la moitié entre dans l'assiette.
     it "follows the provision through the inflation into the assessment" do
       indexed = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,

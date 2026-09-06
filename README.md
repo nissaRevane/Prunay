@@ -168,7 +168,12 @@ docker compose run --rm web bundle exec rspec
   five columns and no commentary — the year, its month, its rent, its cash flow and the
   capital still immobilized. The charges, the tax and the annuity weigh on the cash flow
   without a column of their own: they are what the parameters tab is for, and a table one
-  reads to decide is not a table that explains itself. The annual rent counts only the months actually
+  reads to decide is not a table that explains itself. The rent column and the year's statement
+  read the way the regime declares: excluding charges under the two foncier regimes, where the
+  provision the tenant repays is neither a revenue nor a deductible charge, and charges included
+  under the micro-BIC, which declares it and deducts the whole charges in return — either reading
+  leaves the same pre-tax result, the provision moving on both sides at once.
+  The annual rent counts only the months actually
   let, and the annuity — the insurance premium included — is read from the schedule year by
   year: twelve payments while the loan runs, what is left of it the year it is cleared,
   nothing after. What is immobilized on day one is what actually leaves the buyer's pocket —

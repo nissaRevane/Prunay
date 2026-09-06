@@ -233,11 +233,11 @@ fr:
         year: Année
         date: Date
         annual_rent_column: Loyers hors charges
+        annual_rent_including_charges_column: Loyers charges comprises
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
         annual_charges_column: "Charges de l'année"
         provision_deducted: "provision pour charges de %{amount} déduite"
-        business_tax_included: "CFE de %{amount} comprise"
         income_tax_column: "Impôt sur le revenu et prélèvements sociaux"
         loan_interest_column: "Intérêts d'emprunt et assurance"
         pre_tax_result: Résultat avant impôt

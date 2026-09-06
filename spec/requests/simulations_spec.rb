@@ -221,6 +221,25 @@ RSpec.describe "Simulations", type: :request do
         .to eq(currency(-300).gsub(/\s+/, " "))
     end
 
+    # Le meublé déclare les 13 200 € encaissés et déduit ses 1 800 € de charges, sans note : il déduit tout.
+    it "shows the rent charges included and the whole charges under the micro-BIC" do
+      let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
+                                    occupancy_months: 12, condominium: true, condominium_fees: 1_500)
+
+      get simulation_path(let_out)
+
+      doc = Nokogiri::HTML(response.body)
+      rent = doc.css("#panel-micro_bic dialog#micro_bic-year-1-statement .statement-line")[0]
+      charges = doc.css("#panel-micro_bic dialog#micro_bic-year-1-statement .statement-line")[1]
+
+      expect(doc.at_css("#panel-micro_bic thead th:nth-child(3)").text.strip)
+        .to eq(I18n.t("views.simulations.show.annual_rent_including_charges_column"))
+      expect(rent.at_css(".statement-amount").text.gsub(/\s+/, " ").strip).to eq(currency(13_200).gsub(/\s+/, " "))
+      expect(charges.at_css(".statement-note")).to be_nil
+      expect(charges.at_css(".statement-amount").text.gsub(/\s+/, " ").strip)
+        .to eq(currency(-1_800).gsub(/\s+/, " "))
+    end
+
     # Deux lectures d'une seule et même projection : même horizon, régime à part.
     it "opens a tab of its own on the foncier réel projection" do
       get simulation_path(simulation)
@@ -295,9 +314,12 @@ RSpec.describe "Simulations", type: :request do
         end
       end
       taxed = ["income_tax_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
-      # La CFE du meublé alourdit ses charges, et le résultat avant impôt s'en ressent.
-      own = taxed + ["annual_charges_column", "pre_tax_result"].map { |key| I18n.t("views.simulations.show.#{key}") }
+      # Le meublé titre son loyer autrement, et sa CFE alourdit ses charges jusqu'au résultat avant impôt.
+      own = taxed + ["annual_charges_column", "pre_tax_result", "annual_rent_column",
+                     "annual_rent_including_charges_column"].map { |key| I18n.t("views.simulations.show.#{key}") }
 
+      # Sans provision pour charges, tous déclarent le même loyer : seul son intitulé les sépare.
+      expect(statements.values.map { |lines| lines.values.first }.uniq).to eq([currency(11_000).gsub(/\s+/, " ")])
       expect(statements.values.map { |lines| lines.except(*own) }.uniq.size).to eq(1)
       expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end

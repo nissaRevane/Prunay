@@ -22,9 +22,11 @@ module Taxation
   # Le réel, seul à tenir compte des charges et des intérêts, départage deux biens financés autrement.
   REVIEW_REGIME = :foncier_reel
 
-  def self.for(name, **attributes)
+  def self.regime(name)
     raise ArgumentError, "régime fiscal inconnu : #{name.inspect}" unless NAMES.include?(name.to_s.to_sym)
 
-    const_get(name.to_s.camelize).new(**attributes)
+    const_get(name.to_s.camelize)
   end
+
+  def self.for(name, **attributes) = regime(name).new(**attributes)
 end

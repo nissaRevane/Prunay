@@ -12,7 +12,7 @@ class Projection
   # Les deux lectures d'une année dans sa fiche : le nom sert d'onglet, de panneau, d'identifiant et de traduction.
   VIEWS = %w[result sale].freeze
 
-  # Le compte de résultat d'une année : la provision remboursée n'est ni un revenu ni une charge déductible.
+  # Le compte de résultat d'une année : hors meublé, la provision remboursée n'est ni un revenu ni une charge.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :capital_repayment, :taxes, :business_tax,
                     :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
@@ -23,6 +23,11 @@ class Projection
     def net_result = pre_tax_result - taxes
 
     def cash_flow = net_result - capital_repayment
+
+    # Ce que le meublé déclare et déduit : la provision voyage alors des deux côtés du résultat.
+    def rent_including_charges = rent_excluding_charges + provision_for_charges
+
+    def charges_including_provision = charges_excluding_provision + provision_for_charges
 
     def loan_payments = loan_interest + capital_repayment
 
@@ -47,6 +52,18 @@ class Projection
   end
 
   def year(number) = years.find { |year| year.number == number }
+
+  # Le meublé déclare la provision et déduit tout ce qu'elle couvre ; le foncier la laisse dehors.
+  def provision_in_receipts? = Taxation.regime(regime).provision_in_receipts?
+
+  # Le libellé du loyer dit ce que l'année déclare, et sert de clé de traduction dans les deux sens.
+  def rent_column = provision_in_receipts? ? "annual_rent_including_charges_column" : "annual_rent_column"
+
+  def rent_of(year) = provision_in_receipts? ? year.rent_including_charges : year.rent_excluding_charges
+
+  def charges_of(year)
+    provision_in_receipts? ? year.charges_including_provision : year.charges_excluding_provision
+  end
 
   def total_rent = years.sum(&:rent_excluding_charges)
 

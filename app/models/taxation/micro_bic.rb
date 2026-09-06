@@ -12,6 +12,8 @@ module Taxation
     BUSINESS_TAX_RATE = BigDecimal("30")
 
     # La provision pour charges entre dans les recettes, là où le foncier l'écarte de l'assiette.
+    def self.provision_in_receipts? = true
+
     def receipts = rent_excluding_charges + provision_for_charges
 
     def allowance = share(receipts, ALLOWANCE_RATE)

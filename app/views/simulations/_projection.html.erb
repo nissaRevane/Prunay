@@ -1,7 +1,7 @@
 <%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
-    l'année déclare, ce qu'elle laisse et ce qui reste engagé. Le loyer y est hors charges — la
-    provision n'est pas un revenu. Le clic sur une ligne ouvre la fiche de l'année : son compte
-    de résultat, et la revente qu'elle permettrait. %>
+    l'année déclare, ce qu'elle laisse et ce qui reste engagé. C'est le régime qui dit si le
+    loyer s'y montre charges comprises et les charges en entier. Le clic sur une ligne ouvre la
+    fiche de l'année : son compte de résultat, et la revente qu'elle permettrait. %>
 <div class="section" data-controller="projection">
   <div class="table-scroll">
     <table class="table">
@@ -9,7 +9,7 @@
         <tr>
           <th><%= t("views.simulations.show.year") %></th>
           <th><%= t("views.simulations.show.date") %></th>
-          <th class="text-right"><%= t("views.simulations.show.annual_rent_column") %></th>
+          <th class="text-right"><%= t("views.simulations.show.#{projection.rent_column}") %></th>
           <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
           <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
         </tr>
@@ -24,7 +24,7 @@
                       aria-controls="<%= projection.regime %>-year-<%= year.number %>-statement"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>
-            <td class="text-right"><%= number_to_currency(year.rent_excluding_charges) %></td>
+            <td class="text-right"><%= number_to_currency(projection.rent_of(year)) %></td>
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
@@ -81,23 +81,19 @@
       <div class="statement-lines" role="tabpanel" data-statement-target="view" data-view="result"
            id="<%= projection.regime %>-year-<%= year.number %>-result">
         <div class="statement-line">
-          <span class="statement-label"><%= t("views.simulations.show.annual_rent_column") %></span>
-          <span class="statement-amount"><%= number_to_currency(year.rent_excluding_charges) %></span>
+          <span class="statement-label"><%= t("views.simulations.show.#{projection.rent_column}") %></span>
+          <span class="statement-amount"><%= number_to_currency(projection.rent_of(year)) %></span>
         </div>
         <div class="statement-line">
-          <%# Les notes disent ce que le formulaire ne montrait pas : la provision ôtée, la CFE ajoutée. %>
+          <%# La note dit ce que le formulaire ne montrait pas ; le meublé, qui déduit tout, n'en a pas. %>
           <span class="statement-label">
             <%= t("views.simulations.show.annual_charges_column") %>
-            <% if year.provision_for_charges.positive? %>
+            <% if year.provision_for_charges.positive? && !projection.provision_in_receipts? %>
               <span class="statement-note"><%= t("views.simulations.show.provision_deducted",
                                                  amount: number_to_currency(year.provision_for_charges)) %></span>
             <% end %>
-            <% if year.business_tax.positive? %>
-              <span class="statement-note"><%= t("views.simulations.show.business_tax_included",
-                                                 amount: number_to_currency(year.business_tax)) %></span>
-            <% end %>
           </span>
-          <span class="statement-amount"><%= number_to_currency(-year.charges_excluding_provision) %></span>
+          <span class="statement-amount"><%= number_to_currency(-projection.charges_of(year)) %></span>
         </div>
         <div class="statement-line">
           <span class="statement-label"><%= t("views.simulations.show.loan_interest_column") %></span>

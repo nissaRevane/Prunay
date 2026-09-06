@@ -18,6 +18,9 @@ module Taxation
       @monthly_rent = monthly_rent.to_d
     end
 
+    # La provision refacturée n'est une recette que du meublé : voir Taxation::MicroBic.
+    def self.provision_in_receipts? = false
+
     def taxable_income = raise NotImplementedError
 
     # Le taux du nu, que le meublé remplace par le sien : voir Taxation.
