@@ -17,7 +17,7 @@
     <% tabs.each_with_index do |tab, index| %>
       <button type="button" class="tab" role="tab" id="tab-<%= tab %>"
               aria-controls="panel-<%= tab %>" aria-selected="<%= index == opened %>"
-              data-tabs-target="tab" data-action="click->tabs#select">
+              data-tabs-target="tab" data-tabs-name-param="<%= tab %>" data-action="click->tabs#select">
         <%= t("views.simulations.show.tab_#{tab}") %>
       </button>
     <% end %>

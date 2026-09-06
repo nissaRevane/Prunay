@@ -12,6 +12,15 @@ export default class extends Controller {
 
   select(event) {
     this.indexValue = this.tabTargets.indexOf(event.currentTarget)
+    this.rememberTab(event.currentTarget.dataset.tabsNameParam)
+  }
+
+  // L'onglet ouvert vit dans l'URL : recharger la page rouvre le même.
+  rememberTab(name) {
+    const url = new URL(window.location)
+
+    url.searchParams.set("tab", name)
+    history.replaceState(history.state, "", url)
   }
 
   indexValueChanged() {
