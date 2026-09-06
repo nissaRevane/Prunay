@@ -14,7 +14,7 @@ class Projection
 
   # Le compte de résultat d'une année : la provision remboursée n'est ni un revenu ni une charge déductible.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
-                    :provision_for_charges, :loan_interest, :capital_repayment, :taxes,
+                    :provision_for_charges, :loan_interest, :capital_repayment, :taxes, :business_tax,
                     :immobilized_capital, :property_value, :capital_gain, :capital_gain_tax,
                     :remaining_loan_capital, keyword_init: true) do
     # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
@@ -72,21 +72,24 @@ class Projection
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
       rent = compound(@simulation.annual_rent_excluding_charges, @simulation.rent_growth_rate, number - 1)
+      monthly_rent = compound(@simulation.monthly_rent, @simulation.rent_growth_rate, number - 1)
       provision = compound(@simulation.annual_provision_for_charges, @simulation.inflation_rate, number - 1)
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       gain = @simulation.capital_gain_taxation(property_value, number)
+      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent)
 
       year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
         rent_excluding_charges: rent,
-        charges_excluding_provision: charges,
+        charges_excluding_provision: charges + taxation.business_tax,
         provision_for_charges: provision,
         loan_interest: loan_interest,
         capital_repayment: principal.fetch(number, 0),
-        taxes: taxes_for(rent, provision, charges, loan_interest),
+        taxes: taxation.total,
+        business_tax: taxation.business_tax,
         property_value: property_value,
         capital_gain: gain.amount,
         capital_gain_tax: gain.total,
@@ -100,9 +103,11 @@ class Projection
   end
 
   # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
-  def taxes_for(rent, provision, charges, loan_interest)
+  # La CFE qu'il rend ne lui est pas repassée : seul un régime réel déduirait ses charges, et le
+  # meublé n'a que son forfait, qui tient déjà lieu de toutes.
+  def taxation_for(rent, provision, charges, loan_interest, monthly_rent)
     @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
-                                 charges: charges, loan_interest: loan_interest).total
+                                 charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent)
   end
 
   # Le jour de l'achat : rien n'a couru, la ligne est là pour le capital immobilisé et le prix payé.
@@ -116,6 +121,7 @@ class Projection
       loan_interest: 0,
       capital_repayment: 0,
       taxes: 0,
+      business_tax: 0,
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price,
       capital_gain: 0,

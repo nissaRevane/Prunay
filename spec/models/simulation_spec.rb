@@ -157,6 +157,16 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  # 30 % d'un loyer mensuel de 800 €, que le total des charges saisies ne compte pas.
+  describe "#annual_business_tax" do
+    it "reads the CFE off the furnished regime and leaves the entered charges alone" do
+      simulation = build(:simulation, monthly_rent: 800, property_tax: 700)
+
+      expect(simulation.annual_business_tax).to eq(240)
+      expect(simulation.annual_charges).to eq(700)
+    end
+  end
+
   # Les charges de copropriété ne se demandent qu'à un bien en copropriété.
   describe "the charges a condition governs" do
     it "asks a condominium for its fees, and a property outside one for nothing of the sort" do

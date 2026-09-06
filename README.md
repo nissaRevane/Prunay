@@ -111,8 +111,9 @@ docker compose run --rm web bundle exec rspec
   alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of
   the household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation,
   30 % by default) and the social charges, which no bracket governs — a household the scale
-  does not reach still owes them. Only the assessment, the allowance and the social rate are
-  each regime's own.
+  does not reach still owes them — what `#total` names is that income tax and nothing else.
+  Only the assessment, the allowance, the social rate and the business tax are each regime's
+  own.
   - **The micro-foncier** (`Taxation::MicroFoncier`), for a bare letting: the assessment is
     the year's rent excluding charges — the provision for charges the tenant repays is
     collected with the rent but is not a revenue, it settles an expense — reduced by the flat
@@ -122,16 +123,24 @@ docker compose run --rm web bundle exec rspec
     included — deducted from that same rent. A deficit is not carried forward: a year that
     gained nothing owes nothing, and nothing passes to the next. 17.2 % of social charges.
   - **The micro-BIC** (`Taxation::MicroBic`), for a furnished letting: a furnished rent is not
-    a property income but a commercial receipt, and it shows twice. The assessment counts the
-    provision for charges, which the two foncier regimes leave out, and the allowance is half
-    the receipts. The social charges are 18.6 % and not 17.2: the 2026 social security
-    financing act raised the CSG on capital income to 10.6 % and spared property income and
-    property capital gains alone. The 77 700 € ceiling of receipts above which the regime
-    closes is not checked, and a furnished letting is supposed to bring the same rent and cost
-    the same charges as a bare one — what the tabs compare is the tax, not the letting.
+    a property income but a commercial receipt, and it shows three times. The assessment
+    counts the provision for charges, which the two foncier regimes leave out, and the
+    allowance is half the receipts. The social charges are 18.6 % and not 17.2: the 2026
+    social security financing act raised the CSG on capital income to 10.6 % and spared
+    property income and property capital gains alone. A furnished letting also owes the CFE,
+    which the property income never pays: it is not a tax on the income but a tax on the
+    premises, and it is counted as a charge of the year, above the pre-tax result, not with
+    the income tax. Its real base is the rental value the commune assesses, and, that being
+    out of reach, Prunay takes 30 % of one monthly rent — the rent of the year, so the tax
+    follows its growth. A real regime would deduct it from its assessment; the micro-BIC has
+    only its flat allowance, which already stands in for every charge, the CFE included. It
+    is not asked of the user. The 77 700 € ceiling of receipts above which the regime closes
+    is not checked, and a furnished letting is supposed to bring the same rent and cost the
+    same charges as a bare one — what the tabs compare is the tax, not the letting.
 
-  The parameters tab details the calculation line by line, and the tax weighs on the cash flow
-  of every year of the projection.
+  The parameters tab lists the CFE with the annual charges, noted as the furnished letting's
+  own and left out of their total, and details the calculation line by line; the tax weighs on
+  the cash flow of every year of the projection.
   The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
   individuals: the gain is what the price of that year gets above the fiscal value of the
   property — the price paid, the notary fees, and from the sixth year the flat 15 % of works

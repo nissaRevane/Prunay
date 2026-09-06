@@ -104,6 +104,15 @@
         <dd class="detail-value"><%= number_to_currency(simulation.public_send(charge)) %></dd>
       </div>
     <% end %>
+
+    <%# La CFE ne se saisit pas et ne vaut que meublé : la note le dit à même le libellé. %>
+    <div class="detail-item">
+      <dt class="detail-label">
+        <%= t("views.simulations.show.business_tax") %>
+        <span class="detail-note"><%= t("views.simulations.show.business_tax_hint") %></span>
+      </dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.annual_business_tax) %></dd>
+    </div>
   </dl>
 
   <div class="section-total">

@@ -192,14 +192,33 @@ RSpec.describe Projection do
     end
   end
 
-  # La moitié des recettes imposée, provision comprise, et 18,6 % de prélèvements sociaux.
+  # La moitié des recettes imposée, provision comprise, 18,6 % de prélèvements sociaux, et la CFE
+  # rangée dans les charges de l'année.
   describe "under the micro-BIC regime" do
     subject(:projection) { described_class.new(simulation, :micro_bic) }
 
-    # 5 500 € imposables à 18,6 % font 1 023 €, moins que les 1 324,40 € du micro-foncier.
+    # 5 500 € imposables à 18,6 % font 1 023 € : l'impôt de l'année, la CFE mise à part.
     it "taxes half of the receipts, where the micro-foncier left seventy per cent of the rent" do
       expect(projection.years[1].taxes).to eq(1_023)
-      expect(projection.years[1].cash_flow).to eq(7_977)
+    end
+
+    # 300 € de CFE, qui pèsent sur les charges et non sur l'impôt : 2 000 € de charges deviennent 2 300 €.
+    it "counts the business tax with the charges of the year and not with the tax" do
+      year = projection.years[1]
+
+      expect(year.business_tax).to eq(300)
+      expect(year.charges_excluding_provision).to eq(2_300)
+      expect(year.pre_tax_result).to eq(8_700)
+      expect(year.cash_flow).to eq(7_677)
+    end
+
+    # 30 % d'un loyer mensuel qui progresse comme lui : 240 € la première année, 244,80 € la seconde.
+    it "asks for a business tax that follows the rent through its growth" do
+      growing = described_class.new(build(:simulation, monthly_rent: 800, occupancy_months: 12,
+                                                       rent_growth_rate: 2), :micro_bic)
+
+      expect(growing.years[1].business_tax).to eq(240)
+      expect(growing.years[2].business_tax).to eq(BigDecimal("244.80"))
     end
 
     # 1 200 € de provision comptés en recettes : 600 € d'assiette de plus, et 111,60 € d'impôt.

@@ -85,12 +85,16 @@
           <span class="statement-amount"><%= number_to_currency(year.rent_excluding_charges) %></span>
         </div>
         <div class="statement-line">
-          <%# La note dit pourquoi les charges sont plus légères que celles du formulaire. %>
+          <%# Les notes disent ce que le formulaire ne montrait pas : la provision ôtée, la CFE ajoutée. %>
           <span class="statement-label">
             <%= t("views.simulations.show.annual_charges_column") %>
             <% if year.provision_for_charges.positive? %>
               <span class="statement-note"><%= t("views.simulations.show.provision_deducted",
                                                  amount: number_to_currency(year.provision_for_charges)) %></span>
+            <% end %>
+            <% if year.business_tax.positive? %>
+              <span class="statement-note"><%= t("views.simulations.show.business_tax_included",
+                                                 amount: number_to_currency(year.business_tax)) %></span>
             <% end %>
           </span>
           <span class="statement-amount"><%= number_to_currency(-year.charges_excluding_provision) %></span>
@@ -104,7 +108,7 @@
           <span class="statement-amount"><%= number_to_currency(year.pre_tax_result) %></span>
         </div>
         <div class="statement-line">
-          <span class="statement-label"><%= t("views.simulations.show.annual_taxes_column") %></span>
+          <span class="statement-label"><%= t("views.simulations.show.income_tax_column") %></span>
           <span class="statement-amount"><%= number_to_currency(-year.taxes) %></span>
         </div>
         <div class="statement-line statement-line-subtotal">

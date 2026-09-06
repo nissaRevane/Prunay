@@ -169,7 +169,7 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.annual_charges_column"), currency(-2_000).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.loan_interest_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.pre_tax_result"), currency(9_000).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.annual_taxes_column"), currency(BigDecimal("-1324.40")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.income_tax_column"), currency(BigDecimal("-1324.40")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.net_result"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
@@ -249,12 +249,12 @@ RSpec.describe "Simulations", type: :request do
         currency(229_160).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
-        I18n.t("views.simulations.show.annual_taxes_column") => currency(-1_548).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.income_tax_column") => currency(-1_548).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.cash_flow") => currency(7_452).gsub(/\s+/, " ")
       )
     end
 
-    # Moitié des recettes imposée à 18,6 % : 1 023 € là où le micro-foncier en compte 1 324,40 €.
+    # Moitié des recettes imposée à 18,6 % : 1 023 € d'impôt, et 300 € de CFE parmi les charges.
     it "opens a tab of its own on the micro-BIC projection, half the receipts taxed" do
       get simulation_path(simulation)
 
@@ -270,16 +270,16 @@ RSpec.describe "Simulations", type: :request do
         "1",
         "mar.-2026",
         currency(11_000).gsub(/\s+/, " "),
-        currency(7_977).gsub(/\s+/, " "),
-        currency(228_635).gsub(/\s+/, " ")
+        currency(7_677).gsub(/\s+/, " "),
+        currency(228_935).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
-        I18n.t("views.simulations.show.annual_taxes_column") => currency(-1_023).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.cash_flow") => currency(7_977).gsub(/\s+/, " ")
+        I18n.t("views.simulations.show.income_tax_column") => currency(-1_023).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(7_677).gsub(/\s+/, " ")
       )
     end
 
-    # La même année et les mêmes loyers : seul l'impôt sépare les régimes.
+    # La même année et les mêmes loyers : seuls l'impôt et la CFE du meublé séparent les régimes.
     it "renders the same year under every regime, the tax apart" do
       get simulation_path(simulation)
 
@@ -287,12 +287,16 @@ RSpec.describe "Simulations", type: :request do
       statements = Taxation::NAMES.index_with do |regime|
         doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement")
            .css("##{regime}-year-1-result .statement-line").to_h do |line|
-          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+          # Le libellé seul : les notes qui le suivent disent justement ce qui distingue le régime.
+          [line.at_css(".statement-label").children.first.text.strip,
+           line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
       end
-      taxed = ["annual_taxes_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
+      taxed = ["income_tax_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
+      # La CFE du meublé alourdit ses charges, et le résultat avant impôt s'en ressent.
+      own = taxed + ["annual_charges_column", "pre_tax_result"].map { |key| I18n.t("views.simulations.show.#{key}") }
 
-      expect(statements.values.map { |lines| lines.except(*taxed) }.uniq.size).to eq(1)
+      expect(statements.values.map { |lines| lines.except(*own) }.uniq.size).to eq(1)
       expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end
 
@@ -315,12 +319,12 @@ RSpec.describe "Simulations", type: :request do
 
       # Le forfait impose 7 700 € ; le réel, les 4 601,21 € que charges et intérêts laissent des loyers.
       expect(amounts[:micro_foncier]).to include(
-        I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("-3634.40")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.income_tax_column") => currency(BigDecimal("-3634.40")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.net_result") => currency(BigDecimal("966.81")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("-6193.84")).gsub(/\s+/, " ")
       )
       expect(amounts[:foncier_reel]).to include(
-        I18n.t("views.simulations.show.annual_taxes_column") => currency(BigDecimal("-2171.77")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.income_tax_column") => currency(BigDecimal("-2171.77")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.net_result") => currency(BigDecimal("2429.44")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("-4731.21")).gsub(/\s+/, " ")
       )
@@ -387,6 +391,20 @@ RSpec.describe "Simulations", type: :request do
 
       expect(labels).to include(Simulation.human_attribute_name(:property_tax))
       expect(labels).not_to include(Simulation.human_attribute_name(:condominium_fees))
+    end
+
+    # La CFE ne se saisit pas : une réserve au libellé dit qu'elle attend le meublé.
+    it "shows the business tax among the charges, told apart by a note" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
+      item = section.css(".detail-item").find { |node| node.at_css(".detail-note") }
+
+      expect(item.at_css(".detail-label").children.first.text.strip).to eq(I18n.t("views.simulations.show.business_tax"))
+      expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
+      expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.business_tax_hint"))
+      expect(section.at_css(".section-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
     end
 
     # Un achat comptant n'a rien à amortir : l'onglet du tableau ne s'ouvre pas.

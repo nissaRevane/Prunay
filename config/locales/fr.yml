@@ -207,6 +207,8 @@ fr:
         charges_detail: Les charges annuelles
         economic_conditions_detail: Les conditions économiques
         annual_charges_total: Total des charges annuelles
+        business_tax: CFE
+        business_tax_hint: "(meublé seulement)"
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
         not_provided: Non renseigné
@@ -235,7 +237,8 @@ fr:
         immobilized_capital: Capital immobilisé
         annual_charges_column: "Charges de l'année"
         provision_deducted: "provision pour charges de %{amount} déduite"
-        annual_taxes_column: "Impôt de l'année"
+        business_tax_included: "CFE de %{amount} comprise"
+        income_tax_column: "Impôt sur le revenu et prélèvements sociaux"
         loan_interest_column: "Intérêts d'emprunt et assurance"
         pre_tax_result: Résultat avant impôt
         net_result: Résultat net

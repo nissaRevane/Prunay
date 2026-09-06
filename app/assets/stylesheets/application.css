@@ -880,6 +880,13 @@ a.icon-btn:hover {
   overflow-wrap: anywhere;
 }
 
+/* Une réserve à même le libellé, et non une ligne de plus : sa casse et son gras la trahiraient. */
+.detail-note {
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .navbar {

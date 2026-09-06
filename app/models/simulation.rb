@@ -162,13 +162,18 @@ class Simulation < ApplicationRecord
   # La provision remboursée est ôtée : les dépenses qu'elle couvre ne se déclarent pas plus qu'elle.
   def annual_charges_excluding_provision = annual_charges - annual_provision_for_charges
 
+  # La CFE, que le meublé seul paie : elle ne se saisit pas et reste hors du total des charges.
+  def annual_business_tax = taxation(:micro_bic).business_tax
+
   # La provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
                provision_for_charges: annual_provision_for_charges,
-               charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0))
+               charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0),
+               monthly_rent: self.monthly_rent)
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
-                         loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate)
+                         loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,
+                         monthly_rent: monthly_rent)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
