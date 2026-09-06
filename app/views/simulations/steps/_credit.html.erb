@@ -46,6 +46,12 @@
     </div>
   </div>
 
+  <%# Elle ne pèse que sur une revente avant le terme, et se négocie parfois à zéro. %>
+  <div class="form-group form-check">
+    <%= f.check_box :early_repayment_fee %>
+    <%= f.label :early_repayment_fee %>
+  </div>
+
   <div class="form-row">
     <div class="form-group form-group-half">
       <span class="form-label"><%= Simulation.human_attribute_name(:monthly_payment) %></span>

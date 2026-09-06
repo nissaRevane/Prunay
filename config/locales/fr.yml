@@ -35,6 +35,7 @@ fr:
         loan_insurance: "Assurance emprunteur (par mois)"
         loan_guarantee_fees: "Cautionnement (caution bancaire ou hypothèque)"
         loan_application_fees: Frais de dossier
+        early_repayment_fee: "Indemnité de remboursement anticipé en cas de revente"
         monthly_payment: "Mensualité (hors assurance)"
         total_monthly_payment: "Mensualité totale, assurance comprise"
         annual_loan_payment: "Annuité (12 échéances, assurance comprise)"

@@ -10,7 +10,7 @@ module Simulations
       "property" => [:property_type, :address, :city, :energy_rating, :surface, :condominium],
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
-                   :loan_application_fees],
+                   :loan_application_fees, :early_repayment_fee],
       "rental" => [:monthly_rent, :monthly_charges, :occupancy_months],
       "charges" => Simulation::ANNUAL_CHARGES
     }.freeze

@@ -555,6 +555,16 @@ RSpec.describe "Simulations", type: :request do
                                                    borrowed_capital: 193_224)
     end
 
+    # L'indemnité de remboursement anticipé se décoche : c'est une clause qui se négocie.
+    it "waives the early repayment indemnity when the box is unchecked" do
+      simulation = create(:simulation, :with_credit, user: user)
+
+      patch simulation_path(simulation), params: { simulation: { early_repayment_fee: "0" } }
+
+      expect(simulation.reload.early_repayment_fee).to be(false)
+      expect(simulation.loan.early_repayment_fee(100_000)).to eq(0)
+    end
+
     it "updates the simulation" do
       simulation = create(:simulation, user: user, monthly_rent: 800)
 

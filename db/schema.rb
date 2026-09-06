@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000014) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000014) do
     t.decimal "loan_application_fees", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "monthly_charges", precision: 12, scale: 2, default: "0.0", null: false
     t.integer "marginal_tax_rate", default: 30, null: false
+    t.boolean "early_repayment_fee", default: true, null: false
     t.index ["user_id", "purchase_date"], name: "index_simulations_on_user_id_and_purchase_date"
     t.index ["user_id"], name: "index_simulations_on_user_id"
   end

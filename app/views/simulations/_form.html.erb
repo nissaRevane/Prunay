@@ -118,6 +118,11 @@
             required: true, disabled: !simulation.credit? %>
       </div>
     <% end %>
+
+    <%= tag.div class: "form-group form-check", hidden: !simulation.credit?, data: { credit_target: "field" } do %>
+      <%= f.check_box :early_repayment_fee, disabled: !simulation.credit? %>
+      <%= f.label :early_repayment_fee %>
+    <% end %>
   </fieldset>
 
   <fieldset class="form-fieldset">

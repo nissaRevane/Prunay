@@ -141,7 +141,8 @@ class Simulation < ApplicationRecord
   def loan
     @loan ||= Loan.new(capital: borrowed_capital, annual_rate: loan_rate, duration_years: loan_duration_years,
                        insurance: loan_insurance, guarantee_fees: loan_guarantee_fees,
-                       application_fees: loan_application_fees, signed_on: purchase_date)
+                       application_fees: loan_application_fees, early_repayment_fee: early_repayment_fee?,
+                       signed_on: purchase_date)
   end
 
   def projection(regime) = Projection.new(self, regime)

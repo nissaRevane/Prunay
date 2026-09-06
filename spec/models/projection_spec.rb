@@ -139,6 +139,15 @@ RSpec.describe Projection do
         .to eq(200_000 - 900 - BigDecimal("178_684.91") - BigDecimal("2680.27"))
       expect(year.sale_profit).to eq(year.sale_proceeds - year.immobilized_capital)
     end
+
+    # Indemnité négociée à la signature : la revente ne rend que le capital restant dû.
+    it "keeps the indemnity out of the sale when the loan waives it" do
+      simulation.early_repayment_fee = false
+      year = projection.years[2]
+
+      expect(year.early_repayment_fee).to eq(0)
+      expect(year.sale_proceeds).to eq(200_000 - 900 - BigDecimal("178_684.91"))
+    end
   end
 
   # Le réel déduit les charges et les intérêts là où le micro-foncier applique son forfait.

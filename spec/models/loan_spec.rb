@@ -122,8 +122,9 @@ RSpec.describe Loan do
   end
 
   describe "#early_repayment_fee" do
-    def loan(rate) = described_class.new(capital: 100_000, annual_rate: rate, duration_years: 20,
-                                         insurance: 0, signed_on: Date.new(2025, 1, 15))
+    def loan(rate, early_repayment_fee: true) =
+      described_class.new(capital: 100_000, annual_rate: rate, duration_years: 20, insurance: 0,
+                          early_repayment_fee: early_repayment_fee, signed_on: Date.new(2025, 1, 15))
 
     # À 3 % l'an, six mois d'intérêts font 1,5 % : moins que les 3 % du capital, c'est eux qui s'appliquent.
     it "caps the indemnity at six months of the interest it saves" do
@@ -138,6 +139,11 @@ RSpec.describe Loan do
     # Un crédit soldé ne doit plus rien : la revente d'une année d'après ne coûte pas d'indemnité.
     it "owes nothing once there is no capital left" do
       expect(loan(3).early_repayment_fee(0)).to eq(0)
+    end
+
+    # Une indemnité négociée à la signature : la revente ne la paie plus, quel que soit le capital.
+    it "owes nothing when the indemnity has been waived" do
+      expect(loan(3, early_repayment_fee: false).early_repayment_fee(100_000)).to eq(0)
     end
   end
 end
