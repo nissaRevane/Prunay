@@ -1,4 +1,6 @@
 class SimulationsController < ApplicationController
+  include RendersSimulation
+
   before_action :set_simulation, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -6,11 +8,7 @@ class SimulationsController < ApplicationController
   end
 
   # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.
-  def show
-    @tab = params[:tab]
-    @projections = @simulation.projections
-    @schedule = @simulation.loan.schedule
-  end
+  def show = assign_detail
 
   # La création vit dans Simulations::StepsController : entrer ici oublie le brouillon et rouvre la première page.
   def new
@@ -23,11 +21,18 @@ class SimulationsController < ApplicationController
   def edit
   end
 
+  # Une valeur cliquée sur la fiche s'enregistre seule ; le formulaire complet, lui, redirige.
   def update
     if @simulation.update(simulation_params)
-      redirect_to @simulation, notice: t("flash.simulations.updated")
+      respond_to do |format|
+        format.turbo_stream { render_detail }
+        format.html { redirect_to @simulation, notice: t("flash.simulations.updated") }
+      end
     else
-      render :edit, status: :unprocessable_entity
+      respond_to do |format|
+        format.turbo_stream { render_error }
+        format.html { render :edit, status: :unprocessable_entity }
+      end
     end
   end
 

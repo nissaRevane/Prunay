@@ -61,8 +61,17 @@ docker compose run --rm web bundle exec rspec
   after `Simulation::STEPS`). The credit page is conditional: it only opens for a purchase
   whose box is ticked (`Simulation::STEP_CONDITIONS`), so the walk is four pages long for a
   purchase paid outright and five for a purchase financed by a loan — the progress bar reads
-  `Simulation#steps`, never the constant. Editing, by contrast, is a single form: the pages
-  only help someone discovering the form.
+  `Simulation#steps`, never the constant. The pages only help someone discovering the form:
+  correcting a figure afterwards happens where the figure is read.
+- **Correcting a simulation in place:** every answer the user gave is a click away on the
+  tab that shows it — the value turns into the field that asked for it, and the field saves
+  itself as soon as it changes (`inline_edit_controller.js`). No edit button, no save
+  button. The server answers with the whole page (`simulations/_detail`, replaced by a Turbo
+  Stream), because everything on it is derived and one corrected figure remakes ten; a
+  refused value leaves the page as it was and answers with the message alone. The single
+  form of `/simulations/:id/edit` remains, reachable from the list, for what one field
+  cannot express on its own: turning a purchase paid outright into a purchase financed by a
+  credit takes five answers at once.
 - **Amounts proposed from the answers already given:** the rent and most of the annual
   charges are pre-filled from a reference amount for 50 m², scaled by the square root of
   the surface and rounded to the nearest ten euros — orders of magnitude to correct, not a
@@ -104,8 +113,8 @@ docker compose run --rm web bundle exec rspec
   assumes. Every simulation then carries its own copy of the three, taken from those defaults
   the day it is created — correcting the defaults afterwards never rewrites a projection
   already read. None of the creation pages asks for them: they are corrected, once the
-  simulation exists, from a tab of its own on the simulation page, which reopens on itself
-  after each change (`?tab=economic_conditions`).
+  simulation exists, from a tab of its own on the simulation page, one rate at a time like
+  every other value, and the page comes back on that tab (`?tab=economic_conditions`).
 - **The taxation** (`Taxation`): three regimes, each a tab of the simulation page and a
   projection of its own — the same property, the same rents, the same charges, and the tax
   alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of

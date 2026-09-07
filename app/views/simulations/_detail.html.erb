@@ -1,0 +1,31 @@
+<%# La fiche entière, en-tête comprise : tout y est dérivé, et une valeur corrigée dans un
+    onglet en refait plusieurs ailleurs. Le serveur la renvoie donc d'un bloc. %>
+<div class="page-header">
+  <div>
+    <h1><%= simulation.name %></h1>
+    <p class="page-header-hint"><%= t("views.simulations.show.subtitle", date: l(simulation.purchase_date, format: :long)) %></p>
+  </div>
+</div>
+
+<%# Tous les panneaux sont rendus par le serveur ; `tab` dit lequel s'ouvre au chargement. %>
+<% tabs = simulation_tabs(schedule) %>
+<% opened = tabs.index(tab) || 0 %>
+
+<div data-controller="tabs" data-tabs-index-value="<%= opened %>">
+  <div class="tabs" role="tablist">
+    <% tabs.each_with_index do |name, index| %>
+      <button type="button" class="tab" role="tab" id="tab-<%= name %>"
+              aria-controls="panel-<%= name %>" aria-selected="<%= index == opened %>"
+              data-tabs-target="tab" data-tabs-name-param="<%= name %>" data-action="click->tabs#select">
+        <%= t("views.simulations.show.tab_#{name}") %>
+      </button>
+    <% end %>
+  </div>
+
+  <% tabs.each_with_index do |name, index| %>
+    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{name}", aria: { labelledby: "tab-#{name}" },
+                data: { tabs_target: "panel" }, hidden: index != opened do %>
+      <%= render "simulations/#{name}", simulation: simulation, projections: projections, schedule: schedule %>
+    <% end %>
+  <% end %>
+</div>

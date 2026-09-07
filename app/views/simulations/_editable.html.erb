@@ -1,0 +1,18 @@
+<%# Une ligne de la fiche que le clic ouvre : le texte s'efface, le champ prend sa place et
+    son changement part seul. Aucun bouton — la valeur revenue du serveur est la confirmation. %>
+<div class="detail-item" data-controller="inline-edit">
+  <dt class="detail-label"><%= label %></dt>
+  <dd class="<%= class_names("detail-value", value_class) %>">
+    <button type="button" class="inline-edit-display" data-inline-edit-target="display"
+            data-action="inline-edit#open"><%= value %></button>
+
+    <%= form_with model: simulation, url: url, method: :patch, class: "inline-edit-form",
+                  html: { hidden: true },
+                  data: { inline_edit_target: "form",
+                          action: "change->inline-edit#save keydown.enter->inline-edit#confirm " \
+                                  "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
+                                  "submit->inline-edit#lock turbo:submit-end->inline-edit#release" } do |f| %>
+      <%= yield f %>
+    <% end %>
+  </dd>
+</div>

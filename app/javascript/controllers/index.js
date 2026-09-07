@@ -12,6 +12,9 @@ application.register("condominium", CondominiumController)
 import CreditController from "controllers/credit_controller"
 application.register("credit", CreditController)
 
+import InlineEditController from "controllers/inline_edit_controller"
+application.register("inline-edit", InlineEditController)
+
 import LoanController from "controllers/loan_controller"
 application.register("loan", LoanController)
 

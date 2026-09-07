@@ -1,35 +1,7 @@
-<div class="page-header">
-  <div>
-    <h1><%= @simulation.name %></h1>
-    <p class="page-header-hint"><%= t("views.simulations.show.subtitle", date: l(@simulation.purchase_date, format: :long)) %></p>
-  </div>
-  <div class="page-header-actions">
-    <%= link_to t("views.simulations.show.edit"), edit_simulation_path(@simulation), class: "btn btn-primary" %>
-  </div>
-</div>
-
-<%# Tous les panneaux sont rendus par le serveur ; `tab` dit lequel s'ouvre au chargement. %>
-<% tabs = simulation_tabs(@schedule) %>
-<% opened = tabs.index(@tab) || 0 %>
-
-<div data-controller="tabs" data-tabs-index-value="<%= opened %>">
-  <div class="tabs" role="tablist">
-    <% tabs.each_with_index do |tab, index| %>
-      <button type="button" class="tab" role="tab" id="tab-<%= tab %>"
-              aria-controls="panel-<%= tab %>" aria-selected="<%= index == opened %>"
-              data-tabs-target="tab" data-tabs-name-param="<%= tab %>" data-action="click->tabs#select">
-        <%= t("views.simulations.show.tab_#{tab}") %>
-      </button>
-    <% end %>
-  </div>
-
-  <% tabs.each_with_index do |tab, index| %>
-    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{tab}", aria: { labelledby: "tab-#{tab}" },
-                data: { tabs_target: "panel" }, hidden: index != opened do %>
-      <%= render "simulations/#{tab}", simulation: @simulation, projections: @projections, schedule: @schedule %>
-    <% end %>
-  <% end %>
-</div>
+<%# Une valeur corrigée dans un onglet renvoie toute la fiche : elle se remplace d'un seul id. %>
+<%= tag.div id: dom_id(@simulation) do %>
+  <%= render "simulations/detail", simulation: @simulation, projections: @projections, schedule: @schedule, tab: @tab %>
+<% end %>
 
 <div class="form-actions">
   <%= link_to t("views.simulations.show.back"), simulations_path, class: "btn btn-outline" %>

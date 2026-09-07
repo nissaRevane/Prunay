@@ -1,5 +1,6 @@
 module SimulationsHelper
   # Le nom sert de partiel, de traduction, d'identifiant de panneau et de paramètre `tab`.
+  PARAMETERS_TAB = "parameters".freeze
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
 
   # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
@@ -11,9 +12,14 @@ module SimulationsHelper
     Simulation::ENERGY_RATINGS
   end
 
+  # Un booléen se corrige mieux dans une liste que dans une case : la fiche l'affiche déjà ainsi.
+  def answer_options
+    [[t("views.simulations.show.answer_yes"), true], [t("views.simulations.show.answer_no"), false]]
+  end
+
   # Une projection par régime, et l'amortissement pour la seule simulation qui porte un crédit.
   def simulation_tabs(schedule)
-    tabs = ["parameters"] + Taxation::NAMES.map(&:to_s)
+    tabs = [PARAMETERS_TAB] + Taxation::NAMES.map(&:to_s)
     tabs << "amortization" if schedule
 
     tabs << ECONOMIC_CONDITIONS_TAB
@@ -22,6 +28,15 @@ module SimulationsHelper
   # Le prédicat du modèle sans son point d'interrogation ; nil quand rien ne conditionne la charge.
   def charge_condition_name(field)
     Simulation::CHARGE_CONDITIONS[field]&.to_s&.delete("?")
+  end
+
+  # Une valeur modifiable au clic : le libellé vient du modèle, le champ du bloc.
+  def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),
+                      value_class: nil, &block)
+    render(layout: "simulations/editable", locals: {
+             simulation: simulation, label: Simulation.human_attribute_name(field),
+             value: value, url: url, value_class: value_class
+           }, &block)
   end
 
   # Une explication au survol, jamais un pavé : le libellé la porte à côté de lui.

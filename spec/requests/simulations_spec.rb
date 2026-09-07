@@ -454,7 +454,8 @@ RSpec.describe "Simulations", type: :request do
       expect(amounts).to eq(
         Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
-        Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " ")
+        Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:purchase_date) => "10 mars 2025"
       )
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
     end
@@ -504,6 +505,33 @@ RSpec.describe "Simulations", type: :request do
       expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
       expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.business_tax_hint"))
       expect(section.at_css(".section-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
+    end
+
+    # On corrige un chiffre là où on le lit : pas de bouton Modifier, pas de bouton Enregistrer.
+    it "carries a field of its own behind each value the user answered" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      forms = doc.css("#panel-parameters .detail-item form")
+
+      expect(doc.css("a[href='#{edit_simulation_path(simulation)}']")).to be_empty
+      expect(forms.map { |form| form["action"] }.uniq)
+        .to eq([simulation_path(simulation, tab: "parameters")])
+      expect(forms.css("input[type=submit], button[type=submit]")).to be_empty
+      expect(doc.at_css("#simulation_monthly_rent")["value"]).to eq("1000.0")
+    end
+
+    # Le texte reste la valeur mise en forme : le champ, lui, porte le chiffre brut.
+    it "shows each value as text until its field is asked for" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      item = doc.css("#panel-parameters .detail-item").find do |node|
+        node.at_css(".detail-label").text.strip == Simulation.human_attribute_name(:purchase_price)
+      end
+
+      expect(item.at_css(".inline-edit-display").text.gsub(/\s+/, " ")).to eq(currency(200_000).gsub(/\s+/, " "))
+      expect(item.at_css("form")["hidden"]).not_to be_nil
     end
 
     # Un achat comptant n'a rien à amortir : l'onglet du tableau ne s'ouvre pas.
@@ -647,6 +675,39 @@ RSpec.describe "Simulations", type: :request do
 
       expect(response).to redirect_to(simulation)
       expect(simulation.reload.monthly_rent).to eq(1_000)
+    end
+
+    # Tout est dérivé : un loyer corrigé refait la projection, d'où la fiche entière en retour.
+    it "returns the whole page when a single value is saved on its own" do
+      simulation = create(:simulation, user: user, monthly_rent: 800, occupancy_months: 12)
+
+      patch simulation_path(simulation, tab: "micro_foncier"),
+            params: { simulation: { monthly_rent: "1000" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      expect(simulation.reload.monthly_rent).to eq(1_000)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-stream")["target"]).to eq("simulation_#{simulation.id}")
+      # L'onglet d'où part la correction est celui qui se rouvre.
+      expect(doc.at_css("#panel-micro_foncier")["hidden"]).to be_nil
+      expect(doc.at_css("#panel-parameters .detail-value").text).to be_present
+      expect(doc.css("#panel-micro_foncier tbody tr")[1].text).to include(currency(12_000).gsub(/\s+/, " "))
+    end
+
+    # Un refus ne renvoie pas la fiche : elle porte encore la valeur d'avant, seul le message change.
+    it "answers a refused value with the message alone" do
+      simulation = create(:simulation, user: user, monthly_rent: 800)
+
+      patch simulation_path(simulation), params: { simulation: { monthly_rent: "-1" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(simulation.reload.monthly_rent).to eq(800)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-stream")["target"]).to eq("flash")
+      expect(doc.at_css(".alert-danger").text)
+        .to include(Simulation.human_attribute_name(:monthly_rent), "doit être supérieur ou égal à 0")
     end
 
     # Les étapes n'ont de sens que pour qui découvre le formulaire : la modification tient sur une page.

@@ -191,7 +191,6 @@ fr:
         title: Modifier la simulation
       show:
         subtitle: "Acquisition prévue le %{date}"
-        edit: Modifier
         project_cost: Coût du projet
         initial_outlay: Investissement initial
         tab_parameters: Paramètres

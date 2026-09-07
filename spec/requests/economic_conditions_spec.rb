@@ -79,6 +79,45 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
     end
 
+    # Le contexte se corrige comme les paramètres : au clic sur le taux, et sans bouton.
+    it "carries one self-saving field per assumption" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      panel = doc.at_css("#panel-economic_conditions")
+
+      expect(panel.css("form").map { |form| form["action"] }.uniq)
+        .to eq([simulation_economic_conditions_path(simulation)])
+      expect(panel.css("input[type=submit], button[type=submit]")).to be_empty
+      expect(panel.css(".detail-item").size).to eq(EconomicConditions::ASSUMPTIONS.size)
+    end
+
+    # Un taux corrigé refait la projection : la fiche revient entière, sur son onglet.
+    it "returns the whole page on that tab once a rate is saved" do
+      patch simulation_economic_conditions_path(simulation),
+            params: { simulation: { rent_growth_rate: "3" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      expect(simulation.reload.rent_growth_rate).to eq(3)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-stream")["target"]).to eq("simulation_#{simulation.id}")
+      expect(doc.at_css("#panel-economic_conditions")["hidden"]).to be_nil
+    end
+
+    # Un taux refusé ne renvoie que son message : la fiche garde celui qu'elle portait.
+    it "answers a refused rate with the message alone" do
+      patch simulation_economic_conditions_path(simulation),
+            params: { simulation: { inflation_rate: "" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(simulation.reload.inflation_rate).to eq(2)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("turbo-stream")["target"]).to eq("flash")
+      expect(doc.at_css(".alert-danger").text).to include("doit être rempli(e)")
+    end
+
     # La tranche marginale se corrige avec le reste du contexte, et la projection s'en trouve refaite.
     it "carries the tax bracket of the household next to the rates" do
       taxed = create(:simulation, user: user, marginal_tax_rate: 30)
