@@ -6,12 +6,7 @@
     <button type="button" class="inline-edit-display" data-inline-edit-target="display"
             data-action="inline-edit#open"><%= value %></button>
 
-    <%= form_with model: simulation, url: url, method: :patch, class: "inline-edit-form",
-                  html: { hidden: true },
-                  data: { inline_edit_target: "form",
-                          action: "change->inline-edit#save keydown.enter->inline-edit#confirm " \
-                                  "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
-                                  "submit->inline-edit#lock turbo:submit-end->inline-edit#release" } do |f| %>
+    <%= inline_edit_form(simulation, url) do |f| %>
       <%= yield f %>
     <% end %>
   </dd>

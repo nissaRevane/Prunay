@@ -440,24 +440,60 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
-    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix.
-    it "details the purchase, notary fees included, and totals what it immobilizes" do
+    # Le bien se lit en une phrase dont chaque mot saisi se clique ; DPE et copropriété se tiennent à côté du compte.
+    # HTML5 parse comme le navigateur : un formulaire dans un paragraphe le fermerait, et la phrase avec.
+    it "presents the property in a sentence, its facts beside the purchase" do
+      simulation.update!(address: "14 rue du Beau Laurier", energy_rating: "E", condominium: true)
+
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      summary = doc.at_css("#panel-parameters .summary")
+      words = summary.css(".inline-word .inline-edit-display").map(&:text)
+      summary.css("form").remove
+
+      expect(summary.text.gsub(/\s+/, " ").strip)
+        .to eq("Appartement de 50 m² au 14 rue du Beau Laurier à Nantes. Acheté le 10 mars 2025.")
+      expect(words).to eq(["Appartement", "50 m²", "14 rue du Beau Laurier", "Nantes", "10 mars 2025"])
+
+      facts = doc.css("#panel-parameters .facts .detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.strip, item.at_css(".inline-edit-display").text.strip]
+      end
+      expect(facts).to eq(Simulation.human_attribute_name(:energy_rating) => "E",
+                          Simulation.human_attribute_name(:condominium) => I18n.t("views.simulations.show.answer_yes"))
+    end
+
+    # Sans adresse, la phrase le dit à sa place, et le mot reste à cliquer pour la renseigner.
+    it "keeps a word to click when the address is not provided" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      summary = doc.at_css("#panel-parameters .summary")
+      address = summary.css(".inline-word").find { |word| word.at_css("#simulation_address") }
+      summary.css("form").remove
+
+      expect(summary.text.gsub(/\s+/, " ").strip)
+        .to eq("Appartement de 50 m² à Nantes, adresse non renseignée. Acheté le 10 mars 2025.")
+      expect(address.at_css(".inline-edit-display").text).to eq(I18n.t("views.simulations.show.address_not_provided"))
+    end
+
+    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix, et le total tire le trait.
+    it "adds up the purchase, notary fees included, into the cost of the project" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.purchase_detail") }
-
-      amounts = section.css(".detail-item").to_h do |item|
+      lines = doc.css("#panel-parameters .sum .detail-item").to_h do |item|
         [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
-      expect(amounts).to eq(
+      expect(lines).to eq(
         Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " "),
-        Simulation.human_attribute_name(:purchase_date) => "10 mars 2025"
+        I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " ")
       )
-      expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(236_612).gsub(/\s+/, " "))
+      expect(doc.at_css("#panel-parameters .sum .sum-total .detail-label").text.strip)
+        .to eq(I18n.t("views.simulations.show.project_cost"))
     end
 
     # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.
@@ -512,7 +548,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      forms = doc.css("#panel-parameters .detail-item form")
+      forms = doc.css("#panel-parameters form")
 
       expect(doc.css("a[href='#{edit_simulation_path(simulation)}']")).to be_empty
       expect(forms.map { |form| form["action"] }.uniq)

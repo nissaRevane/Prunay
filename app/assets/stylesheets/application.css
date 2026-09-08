@@ -977,14 +977,14 @@ a.icon-btn:hover {
   overflow-wrap: anywhere;
 }
 
-/* Une valeur qui s'enregistre seule : elle se lit comme un texte, et le clic découvre son champ. */
+/* Une valeur qui s'enregistre seule : un trait discontinu la dit corrigeable, le clic découvre son champ. */
 .inline-edit-display {
   font: inherit;
   color: inherit;
   text-align: left;
   background: none;
   border: none;
-  border-bottom: 1px dashed transparent;
+  border-bottom: 1px dashed var(--color-text-muted);
   padding: 0;
   cursor: text;
   overflow-wrap: anywhere;
@@ -992,6 +992,7 @@ a.icon-btn:hover {
 
 .inline-edit-display:hover,
 .inline-edit-display:focus-visible {
+  color: var(--color-primary);
   border-bottom-color: var(--color-primary);
   outline: none;
 }
@@ -1006,6 +1007,79 @@ a.icon-btn:hover {
   font-weight: 400;
   font-style: italic;
   text-transform: none;
+}
+
+/* Le bien se présente en une phrase : chaque mot que l'on a saisi s'y corrige à même le texte. */
+.summary {
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+/* Le mot ouvert garde sa place dans la ligne : le champ s'y glisse au lieu de la casser. */
+.inline-word .inline-edit-form:not([hidden]) {
+  display: inline-block;
+}
+
+.inline-word .form-control {
+  width: auto;
+  font-size: inherit;
+}
+
+/* Le compte et les caractéristiques côte à côte tant que l'écran le permet, l'un sous l'autre sinon. */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem 4rem;
+  margin-bottom: 2rem;
+}
+
+/* Une addition : le montant à droite de chaque ligne, et le total sous un trait. */
+.sum {
+  flex: 1 1 20rem;
+  max-width: 28rem;
+}
+
+.sum .detail-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.sum .detail-label {
+  font-size: inherit;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.sum .detail-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sum .form-control {
+  width: 9rem;
+  text-align: right;
+}
+
+.sum-total {
+  margin-top: 0.375rem;
+  border-top: 2px solid var(--color-text);
+  font-weight: 700;
+}
+
+.sum-total .detail-label {
+  color: var(--color-text);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
 }
 
 /* Responsive */

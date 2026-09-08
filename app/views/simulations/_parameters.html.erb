@@ -1,46 +1,35 @@
-<%# Les hypothèses de la simulation : le bien, ce que sa signature coûte et ce qu'il dépense
-    chaque année. C'est ce que l'on relit avant de croire à la projection, et chaque valeur
-    saisie s'y corrige d'un clic. Ce qui se calcule, lui, ne se clique pas. %>
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.property") %></h2>
-  </div>
+<%# Les hypothèses de la simulation : le bien en une phrase, ce que sa signature coûte et ce
+    qu'il dépense chaque année. C'est ce que l'on relit avant de croire à la projection, et
+    chaque valeur saisie s'y corrige d'un clic. Ce qui se calcule, lui, ne se clique pas. %>
+<% property_type = editable_word simulation, :property_type, t("simulations.property_types.#{simulation.property_type}") do |f| %>
+  <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
+<% end %>
 
-  <dl class="detail-grid">
-    <%= editable_detail simulation, :property_type, t("simulations.property_types.#{simulation.property_type}") do |f| %>
-      <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
-    <% end %>
+<% surface = editable_word simulation, :surface, t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) do |f| %>
+  <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+<% end %>
 
-    <%= editable_detail simulation, :city, simulation.city do |f| %>
-      <%= f.text_field :city, class: "form-control", required: true %>
-    <% end %>
+<% address = editable_word simulation, :address, simulation.address.presence || t("views.simulations.show.address_not_provided") do |f| %>
+  <%= f.text_field :address, class: "form-control" %>
+<% end %>
 
-    <%= editable_detail simulation, :address, simulation.address.presence || t("views.simulations.show.not_provided") do |f| %>
-      <%= f.text_field :address, class: "form-control" %>
-    <% end %>
+<% city = editable_word simulation, :city, simulation.city do |f| %>
+  <%= f.text_field :city, class: "form-control", required: true %>
+<% end %>
 
-    <%= editable_detail simulation, :surface, t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) do |f| %>
-      <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
-    <% end %>
+<% purchase_date = editable_word simulation, :purchase_date, l(simulation.purchase_date, format: :long) do |f| %>
+  <%= f.date_field :purchase_date, class: "form-control", required: true %>
+<% end %>
 
-    <%= editable_detail simulation, :energy_rating, simulation.energy_rating.presence || t("views.simulations.show.not_provided") do |f| %>
-      <%= f.select :energy_rating, energy_rating_options,
-          { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control" %>
-    <% end %>
-
-    <%= editable_detail simulation, :condominium, t("views.simulations.show.#{simulation.condominium? ? 'answer_yes' : 'answer_no'}") do |f| %>
-      <%= f.select :condominium, answer_options, {}, class: "form-control" %>
-    <% end %>
-  </dl>
+<%# Un div et non un p : le navigateur fermerait le paragraphe au premier formulaire. %>
+<div class="summary">
+  <%= t("views.simulations.show.#{simulation.address.present? ? 'summary_html' : 'summary_without_address_html'}",
+        type: property_type, surface: surface, address: address, city: city, date: purchase_date) %>
 </div>
 
-<%# Le prix, les frais de notaire qu'il entraîne et les travaux à engager avant la première location. %>
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.purchase_detail") %></h2>
-  </div>
-
-  <dl class="detail-grid">
+<%# Le prix, les frais de notaire qu'il entraîne et les travaux s'additionnent ; DPE et copropriété se lisent à côté. %>
+<div class="columns">
+  <dl class="sum">
     <%= editable_detail simulation, :purchase_price, number_to_currency(simulation.purchase_price) do |f| %>
       <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -54,15 +43,22 @@
       <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <%= editable_detail simulation, :purchase_date, l(simulation.purchase_date, format: :long) do |f| %>
-      <%= f.date_field :purchase_date, class: "form-control", required: true %>
-    <% end %>
+    <div class="detail-item sum-total">
+      <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_investment) %></dd>
+    </div>
   </dl>
 
-  <div class="section-total">
-    <span><%= t("views.simulations.show.project_cost") %></span>
-    <span><%= number_to_currency(simulation.total_investment) %></span>
-  </div>
+  <dl class="facts">
+    <%= editable_detail simulation, :energy_rating, simulation.energy_rating.presence || t("views.simulations.show.not_provided") do |f| %>
+      <%= f.select :energy_rating, energy_rating_options,
+          { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control" %>
+    <% end %>
+
+    <%= editable_detail simulation, :condominium, t("views.simulations.show.#{simulation.condominium? ? 'answer_yes' : 'answer_no'}") do |f| %>
+      <%= f.select :condominium, answer_options, {}, class: "form-control" %>
+    <% end %>
+  </dl>
 </div>
 
 <% if simulation.credit? %>

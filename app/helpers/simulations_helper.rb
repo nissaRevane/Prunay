@@ -3,6 +3,10 @@ module SimulationsHelper
   PARAMETERS_TAB = "parameters".freeze
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
 
+  INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
+                        "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
+                        "submit->inline-edit#lock turbo:submit-end->inline-edit#release".freeze
+
   # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
   def property_type_options
     Simulation::PROPERTY_TYPES.map { |type| [t("simulations.property_types.#{type}"), type] }
@@ -37,6 +41,21 @@ module SimulationsHelper
              simulation: simulation, label: Simulation.human_attribute_name(field),
              value: value, url: url, value_class: value_class
            }, &block)
+  end
+
+  # Un mot de la phrase : le libellé au survol, et bâti sans un blanc pour que la ponctuation lui colle.
+  def editable_word(simulation, field, value, &block)
+    tag.span(class: "inline-word", data: { controller: "inline-edit" }) do
+      tag.button(value, type: "button", class: "inline-edit-display", title: Simulation.human_attribute_name(field),
+                 data: { inline_edit_target: "display", action: "inline-edit#open" }) +
+        inline_edit_form(simulation, simulation_path(simulation, tab: PARAMETERS_TAB), &block)
+    end
+  end
+
+  # Le formulaire d'une valeur corrigée d'un clic : il part seul au changement, sans bouton.
+  def inline_edit_form(simulation, url, &block)
+    form_with model: simulation, url: url, method: :patch, class: "inline-edit-form", html: { hidden: true },
+              data: { inline_edit_target: "form", action: INLINE_EDIT_ACTIONS }, &block
   end
 
   # Une explication au survol, jamais un pavé : le libellé la porte à côté de lui.

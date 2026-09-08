@@ -202,8 +202,9 @@ fr:
         tab_micro_bic: Micro-BIC
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
-        property: Le bien
-        purchase_detail: "L'achat"
+        summary_html: "%{type} de %{surface} au %{address} à %{city}. Acheté le %{date}."
+        summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}. Acheté le %{date}."
+        address_not_provided: adresse non renseignée
         credit_detail: Le crédit
         rental_detail: La location
         annual_rent_total: "Encaissé sur une année, charges comprises et vacance déduite"
