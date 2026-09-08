@@ -293,6 +293,20 @@ RSpec.describe Projection do
       expect(year.cash_flow).to eq(BigDecimal("8783.39"))
     end
 
+    # Les meubles s'achètent le jour de la signature et s'entretiennent chaque année : 2 000 €
+    # immobilisés en plus, et 200 € de charge que le nu ne connaît pas.
+    it "immobilizes the furniture and charges its upkeep to the year" do
+      furnished = build(:simulation, accounting_fees: 500, furniture: 2_000, furniture_maintenance: 200)
+      year = described_class.new(furnished, :lmnp).years[1]
+
+      expect(described_class.new(furnished, :lmnp).initial_outlay).to eq(218_612)
+      expect(described_class.new(furnished, :foncier_reel).initial_outlay).to eq(216_612)
+      expect(year.charges_excluding_provision).to eq(952)
+      expect(described_class.new(furnished, :lmnp).charge_lines(year))
+        .to eq(business_tax: BigDecimal("252"), furniture_maintenance: BigDecimal("200"),
+               accounting_fees: BigDecimal("500"))
+    end
+
     # Le plan s'éteint après vingt-cinq ans : la vingt-sixième année paie sur 9 328 €.
     it "taxes the whole result once the plan of depreciation is over" do
       expect(projection.years[25].taxes).to eq(BigDecimal("544.61"))

@@ -28,6 +28,11 @@ RSpec.describe Simulation::Step do
       expect(defaults["initial_works"]).to eq(0)
     end
 
+    # 2 000 € pour 45 m² : 50 m² en valent 2 108, arrondis à la dizaine d'euros.
+    it "proposes furniture scaled on the surface" do
+      expect(described_class.defaults("purchase", draft(surface: 50))["furniture"]).to eq(2_110)
+    end
+
     # La page de l'achat s'ouvre avant que le prix n'y soit tapé : aucun apport à proposer alors.
     it "proposes a tenth of the project cost as a down payment" do
       priced = draft(purchase_price: 200_000, initial_works: 0)
@@ -56,12 +61,12 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("rental", draft(surface: 50))["occupancy_months"]).to eq(11)
     end
 
-    # 50 m², la surface de référence : chaque charge y vaut son montant plein.
+    # 50 m² : chaque charge y vaut son montant plein, sauf l'entretien des meubles, compté sur 45 m².
     it "estimates every annual charge" do
       expect(described_class.defaults("charges", draft(surface: 50))).to eq(
         "property_tax" => 700, "insurance" => 150, "maintenance" => 1_000,
         "condominium_fees" => 1_000, "management_fees" => 0, "rent_guarantee" => 0,
-        "accounting_fees" => 500, "other_charges" => 100
+        "accounting_fees" => 500, "furniture_maintenance" => 210, "other_charges" => 100
       )
     end
   end

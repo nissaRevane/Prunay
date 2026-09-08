@@ -11,8 +11,16 @@ module Simulation::Estimate
     insurance: 150,
     maintenance: 1_000,
     condominium_fees: 1_000,
-    other_charges: 100
+    other_charges: 100,
+    furniture: 2_000,
+    furniture_maintenance: 200
   }.freeze
+
+  # Les meubles se comptent sur un logement plus petit : un T2 meublé est la référence du marché.
+  FURNISHED_REFERENCE_SURFACE = 45
+
+  REFERENCE_SURFACES = { furniture: FURNISHED_REFERENCE_SURFACE,
+                         furniture_maintenance: FURNISHED_REFERENCE_SURFACE }.freeze
 
   # Ce qui ne suit pas la surface : la provision se lit sur l'appel de charges et le comptable
   # facture au forfait, ni l'un ni l'autre sur des mètres carrés.
@@ -33,7 +41,7 @@ module Simulation::Estimate
     surface = surface.to_f
     return 0 unless surface.positive?
 
-    round(AMOUNTS.fetch(field) * Math.sqrt(surface / REFERENCE_SURFACE))
+    round(AMOUNTS.fetch(field) * Math.sqrt(surface / REFERENCE_SURFACES.fetch(field, REFERENCE_SURFACE)))
   end
 
   def down_payment(total_investment) = round(total_investment * DOWN_PAYMENT_SHARE)

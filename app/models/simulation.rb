@@ -11,13 +11,13 @@ class Simulation < ApplicationRecord
   CHARGE_GROUPS = {
     ownership: %i[property_tax insurance maintenance condominium_fees],
     letting: %i[management_fees rent_guarantee],
-    furnished: %i[accounting_fees],
+    furnished: %i[accounting_fees furniture_maintenance],
     other: %i[other_charges]
   }.freeze
 
-  # Le comptable n'est une charge que du LMNP : le régime la porte lui-même (voir Taxation::Lmnp)
-  # et elle reste hors du total que tous les autres supportent.
-  REGIME_CHARGES = %i[accounting_fees].freeze
+  # Les charges qu'un seul type de régime paie : il les porte lui-même (voir Taxation::Bic et
+  # Taxation::Lmnp) et elles restent hors du total que tous les autres supportent.
+  REGIME_CHARGES = %i[accounting_fees furniture_maintenance].freeze
 
   ANNUAL_CHARGES = (CHARGE_GROUPS.values.flatten - REGIME_CHARGES).freeze
 
@@ -49,6 +49,8 @@ class Simulation < ApplicationRecord
   validates :purchase_date, presence: true, on: [:create, :update, :purchase]
   validates :purchase_price, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :purchase]
   validates :initial_works, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :purchase]
+  validates :furniture, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :purchase]
   validates :down_payment, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :purchase]
@@ -118,6 +120,11 @@ class Simulation < ApplicationRecord
   # Le montant à financer, comptant ou à crédit — non ce qu'on immobilise : voir #initial_outlay.
   def total_investment = purchase_price + notary_fees + initial_works
 
+  # Les meubles ne s'achètent que sous un régime du meublé, et jamais à crédit : voir #initial_outlay.
+  def furniture_under(regime) = Taxation.furnished?(regime) ? furniture : 0
+
+  def total_investment_under(regime) = total_investment + furniture_under(regime)
+
   def borrowed_capital
     return 0 unless credit?
 
@@ -169,7 +176,8 @@ class Simulation < ApplicationRecord
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,
                          monthly_rent: monthly_rent, purchase_price: purchase_price,
-                         accounting_fees: accounting_fees, year: year)
+                         accounting_fees: accounting_fees, furniture_maintenance: furniture_maintenance,
+                         year: year)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
@@ -189,7 +197,9 @@ class Simulation < ApplicationRecord
   def annual_cash_flow = annual_rent - annual_charges - annual_taxes - loan.annual_payment
 
   # À crédit seuls l'apport et les frais se paient à la signature : l'emprunt, lui, se rend par les annuités.
-  def initial_outlay = credit? ? down_payment + loan.upfront_fees : total_investment
+  def initial_outlay(regime = Taxation::DEFAULT_REGIME)
+    (credit? ? down_payment + loan.upfront_fees : total_investment) + furniture_under(regime)
+  end
 
   private
 

@@ -26,6 +26,7 @@ fr:
         purchase_price: "Prix d'achat"
         notary_fees: Frais de notaire
         initial_works: Travaux
+        furniture: Meubles
         credit: "L'achat est financé par un crédit"
         down_payment: Apport
         borrowed_capital: Capital
@@ -49,6 +50,7 @@ fr:
         management_fees: Gestion
         rent_guarantee: "Loyers impayés"
         accounting_fees: Comptabilité
+        furniture_maintenance: Entretien des meubles
         other_charges: Autres frais
         rent_growth_rate: "Évolution des loyers (% par an)"
         property_growth_rate: "Évolution du prix du bien (% par an)"

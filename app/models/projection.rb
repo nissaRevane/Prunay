@@ -87,7 +87,7 @@ class Projection
 
   def occupancy_months = @simulation.occupancy_months
 
-  def initial_outlay = @simulation.initial_outlay
+  def initial_outlay = @simulation.initial_outlay(regime)
 
   # Ce que l'année a déjà rendu de l'investissement : le capital immobilisé s'en déduit.
   def cumulative_cash_flow(year) = years.take(year.number + 1).sum(&:cash_flow)
@@ -120,7 +120,7 @@ class Projection
 
   # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
   def build_years
-    outlay = @simulation.initial_outlay
+    outlay = initial_outlay
     interest = @simulation.loan.annual_interest
     insurance = @simulation.loan.annual_insurance
     principal = @simulation.loan.annual_principal
@@ -187,7 +187,7 @@ class Projection
       capital_repayment: 0,
       taxation: taxation_for(0, 0, 0, 0, 0, 0),
       gain: @simulation.capital_gain_taxation(@simulation.purchase_price, 0),
-      immobilized_capital: @simulation.initial_outlay,
+      immobilized_capital: initial_outlay,
       property_value: @simulation.purchase_price,
       remaining_loan_capital: @simulation.loan.capital,
       sale_costs: @simulation.sale_costs.total,

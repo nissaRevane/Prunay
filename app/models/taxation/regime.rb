@@ -8,7 +8,8 @@ module Taxation
                 :monthly_rent, :purchase_price, :year
 
     def initialize(rent_excluding_charges:, marginal_tax_rate:, provision_for_charges: 0, charges: 0,
-                   loan_interest: 0, monthly_rent: 0, purchase_price: 0, accounting_fees: 0, year: 0)
+                   loan_interest: 0, monthly_rent: 0, purchase_price: 0, accounting_fees: 0,
+                   furniture_maintenance: 0, year: 0)
       # Décimaux d'office, comme dans Loan : un taux entier ferait une division entière.
       @rent_excluding_charges = rent_excluding_charges.to_d
       @provision_for_charges = provision_for_charges.to_d
@@ -18,6 +19,7 @@ module Taxation
       @monthly_rent = monthly_rent.to_d
       @purchase_price = purchase_price.to_d
       @accounting_fees = accounting_fees.to_d
+      @furniture_maintenance = furniture_maintenance.to_d
       # Le rang de l'année, et non un montant : l'amortissement du LMNP s'y arrête.
       @year = year.to_i
     end
@@ -27,6 +29,9 @@ module Taxation
 
     # Le loyer saisi est celui d'un nu : le meublé le majore de sa prime, voir Taxation::Bic.
     def self.rent_premium_rate = 0
+
+    # Seul le meublé achète et entretient des meubles : voir Taxation::Bic.
+    def self.furnished? = false
 
     def taxable_income = raise NotImplementedError
 
@@ -61,8 +66,8 @@ module Taxation
 
     private
 
-    # Le montant saisi, qu'un seul régime déduit : voir Taxation::Lmnp.
-    attr_reader :accounting_fees
+    # Les montants saisis que seuls certains régimes dépensent : voir Taxation::Bic et Taxation::Lmnp.
+    attr_reader :accounting_fees, :furniture_maintenance
 
     def share(amount, rate) = (amount * rate / 100).round(2)
   end

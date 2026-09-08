@@ -11,6 +11,7 @@ RSpec.describe Simulation, type: :model do
     it { is_expected.to validate_presence_of(:purchase_date).on(:purchase) }
     it { is_expected.to validate_numericality_of(:purchase_price).is_greater_than(0).on(:purchase) }
     it { is_expected.to validate_numericality_of(:initial_works).is_greater_than_or_equal_to(0).on(:purchase) }
+    it { is_expected.to validate_numericality_of(:furniture).is_greater_than_or_equal_to(0).on(:purchase) }
 
     # Sans crédit la page n'existe pas : apport, taux et durée sont remis à zéro avant validation.
     context "of a purchase financed by a credit" do
@@ -197,6 +198,18 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  # Les meubles ne se paient que sous un régime du meublé : 231 612 € nus, 233 612 € meublés.
+  describe "#total_investment_under" do
+    subject(:simulation) { build(:simulation, purchase_price: 200_000, initial_works: 15_000, furniture: 2_000) }
+
+    it "adds the furniture to the cost of the project under the furnished regimes alone" do
+      expect(simulation.total_investment_under(:micro_foncier)).to eq(231_612)
+      expect(simulation.total_investment_under(:foncier_reel)).to eq(231_612)
+      expect(simulation.total_investment_under(:micro_bic)).to eq(233_612)
+      expect(simulation.total_investment_under(:lmnp)).to eq(233_612)
+    end
+  end
+
   describe "the credit" do
     subject(:simulation) do
       build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0, down_payment: 23_388)
@@ -232,6 +245,16 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.initial_outlay).to eq(23_388)
       expect(build(:simulation, credit: false, purchase_price: 200_000, initial_works: 0).initial_outlay)
         .to eq(216_612)
+    end
+
+    # Les meubles se paient comptant, jamais à crédit : 23 388 € d'apport et 2 000 € de meubles.
+    it "immobilizes the furniture on top, and only under a furnished regime" do
+      furnished = build(:simulation, :with_credit, purchase_price: 200_000, initial_works: 0,
+                                                   down_payment: 23_388, furniture: 2_000)
+
+      expect(furnished.initial_outlay(:micro_bic)).to eq(25_388)
+      expect(furnished.initial_outlay(:foncier_reel)).to eq(23_388)
+      expect(furnished.borrowed_capital).to eq(193_224)
     end
 
     # Ils sortent de la même poche que l'apport, le même jour : 23 388 + 3 220 + 1 932.

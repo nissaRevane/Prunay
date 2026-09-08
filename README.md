@@ -80,7 +80,9 @@ docker compose run --rm web bundle exec rspec
   the surface and rounded to the nearest ten euros — orders of magnitude to correct, not a
   calculation. Three of them do not follow the surface at all: an accountant's fee is flat,
   and a letting agent or a rent guarantee is proposed at zero because neither can be
-  assumed.
+  assumed. The furniture and its upkeep are read on 45 m² instead of 50
+  (`Estimate::FURNISHED_REFERENCE_SURFACE`), the size of the flats that are actually let
+  furnished: 2 000 € to furnish it and 200 € a year to keep it furnished.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page — proposed at a tenth of the project cost, recomputed in the browser as the price is
   typed — and the credit page asks only for a rate, a duration and the borrower's insurance
@@ -144,7 +146,14 @@ docker compose run --rm web bundle exec rspec
     is not checked. The rent, itself, is not the one entered: a furnished letting is let dearer
     than a bare one, and the two furnished regimes raise the entered rent by the 5 % premium of
     `Taxation::Bic::RENT_PREMIUM_RATE` — the receipts, the cash flow and the CFE all follow it,
-    the charges alone staying those of a bare letting.
+    the charges alone staying those of a bare letting. A furnished letting also has furniture
+    to buy and to keep: the furniture is asked for on the purchase page (`furniture`) and its
+    upkeep with the annual charges (`furniture_maintenance`, in `REGIME_CHARGES` since the
+    two foncier regimes owe neither). The furniture is paid in cash on the day of the
+    signature — never borrowed, the capital of the loan ignores it — and only under a
+    furnished regime: the cost of the project, the initial outlay and the capital immobilized
+    all carry it there and nowhere else. Its upkeep is a charge of the year like the CFE, and
+    the LMNP deducts it for real where the micro-BIC has only its allowance.
   - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
     of the micro-BIC, the 18.6 % and the CFE, but no allowance at all — the charges, the CFE
     itself, the accountant and the interest of the loan are deducted for what they cost, and
@@ -213,7 +222,7 @@ docker compose run --rm web bundle exec rspec
   nothing after. What is immobilized on day one is what actually leaves the buyer's pocket —
   the whole project when it is paid outright, the down payment alone when a credit finances
   the rest, since the capital borrowed is repaid by the annuities the projection already
-  deducts. Neither the rents nor the charges are the same on every line: the first year
+  deducts, and the furniture on top of it under a furnished regime. Neither the rents nor the charges are the same on every line: the first year
   carries the amounts as they were typed — it describes the twelve months that follow the
   purchase — and each year after compounds them by its rate. Under the table, two totals: the
   cash flow accumulated over the horizon, and what the property is then worth — the purchase
@@ -262,7 +271,8 @@ spec/
 - **Simulation** — belongs to a user, and has no name of its own: it reads as
   "Appartement à Nantes", from its type and its city.
   - *the property:* property_type, address, city, energy_rating, surface
-  - *the purchase:* purchase_price, initial_works, purchase_date
+  - *the purchase:* purchase_price, initial_works, furniture (which the furnished regimes
+    alone pay, in cash), purchase_date
   - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance —
     the capital borrowed, the monthly payment and the amortization schedule are derived from
     them, never stored (like the notary fees)
@@ -273,8 +283,9 @@ spec/
     which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):
     - *owning the property:* property_tax, insurance, maintenance, condominium_fees
     - *letting it:* management_fees, rent_guarantee
-    - *the furnished letting:* accounting_fees — the accountant of the LMNP, which
-      `REGIME_CHARGES` keeps out of `ANNUAL_CHARGES`: the regime pays it, not the property
+    - *the furnished letting:* accounting_fees — the accountant of the LMNP — and
+      furniture_maintenance, which the two furnished regimes pay; `REGIME_CHARGES` keeps both
+      out of `ANNUAL_CHARGES`: the regime pays them, not the property
     - *the rest:* other_charges
   - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
     marginal_tax_rate — the same four columns as `EconomicConditions`, copied from the user's

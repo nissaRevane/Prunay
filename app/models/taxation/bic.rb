@@ -16,6 +16,8 @@ module Taxation
     # La provision pour charges entre dans les recettes, là où le foncier l'écarte de l'assiette.
     def self.provision_in_receipts? = true
 
+    def self.furnished? = true
+
     def receipts = rent_excluding_charges + provision_for_charges
 
     def social_charges_rate = FURNISHED_SOCIAL_CHARGES_RATE
@@ -23,6 +25,6 @@ module Taxation
     # La CFE est due sur le local loué, non sur le résultat : ni le forfait ni le déficit ne l'allègent.
     def business_tax = share(monthly_rent, BUSINESS_TAX_RATE)
 
-    def own_charge_lines = { business_tax: business_tax }
+    def own_charge_lines = { business_tax: business_tax, furniture_maintenance: furniture_maintenance }
   end
 end

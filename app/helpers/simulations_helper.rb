@@ -68,6 +68,9 @@ module SimulationsHelper
 
   def regimes_without_rent_premium = Taxation::NAMES - regimes_with_rent_premium
 
+  # Les régimes qui louent meublé : eux seuls achètent les meubles et les entretiennent.
+  def regimes_furnished = Taxation::NAMES.select { |name| Taxation.furnished?(name) }
+
   # La prime du meublé telle que la fiche l'annonce, à côté du loyer qu'elle majore.
   def rent_premium_label(regime) = rate_label(Taxation.rent_premium_rate(regime))
 

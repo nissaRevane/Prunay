@@ -43,7 +43,9 @@
       "monthly_charges": 60,
       "marginal_tax_rate": 30,
       "early_repayment_fee": true,
-      "accounting_fees": 500
+      "accounting_fees": 500,
+      "furniture": 2110,
+      "furniture_maintenance": 210
     },
     {
       "purchase_date": "2024-09-01",
@@ -76,7 +78,9 @@
       "monthly_charges": 0,
       "marginal_tax_rate": 30,
       "early_repayment_fee": true,
-      "accounting_fees": 500
+      "accounting_fees": 500,
+      "furniture": 2830,
+      "furniture_maintenance": 280
     }
   ]
 }

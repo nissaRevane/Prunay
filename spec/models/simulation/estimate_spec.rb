@@ -22,6 +22,14 @@ RSpec.describe Simulation::Estimate do
       expect(described_class.for(:rent_guarantee, 200)).to eq(0)
     end
 
+    # Les meubles se comptent sur 45 m² : 180 m², quatre fois la référence, en meublent le double.
+    it "scales the furniture and its upkeep on a smaller reference surface" do
+      expect(described_class.for(:furniture, 45)).to eq(2_000)
+      expect(described_class.for(:furniture, 180)).to eq(4_000)
+      expect(described_class.for(:furniture_maintenance, 45)).to eq(200)
+      expect(described_class.for(:furniture_maintenance, 180)).to eq(400)
+    end
+
     it "has nothing to propose without a surface" do
       expect(described_class.for(:monthly_rent, nil)).to eq(0)
       expect(described_class.for(:monthly_rent, 0)).to eq(0)

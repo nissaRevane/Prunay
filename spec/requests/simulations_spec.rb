@@ -604,10 +604,31 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:furniture) => currency(0).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " ")
       )
       expect(section.at_css(".sum-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
+    end
+
+    # Les meubles ne se paient que sous un régime du meublé : la ligne et le total lui sont réservés.
+    it "reserves the furniture and the cost it adds to the furnished regimes" do
+      simulation.update!(furniture: 2_110)
+
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.purchase_detail") }
+      furniture = section.css(".detail-item").find do |item|
+        item.at_css(".detail-label").text.strip == Simulation.human_attribute_name(:furniture)
+      end
+      totals = section.css(".sum-total").to_h do |item|
+        [item["data-regimes"], item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(furniture["data-regimes"]).to eq("micro_bic lmnp")
+      expect(totals["micro_foncier"]).to eq(currency(236_612).gsub(/\s+/, " "))
+      expect(totals["lmnp"]).to eq(currency(238_722).gsub(/\s+/, " "))
     end
 
     # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.
@@ -835,6 +856,7 @@ RSpec.describe "Simulations", type: :request do
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_guarantee_fees) => currency(3_220).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:furniture) => currency(0).gsub(/\s+/, " "),
           I18n.t("views.simulations.show.initial_outlay") => currency(28_540).gsub(/\s+/, " ")
         )
       end

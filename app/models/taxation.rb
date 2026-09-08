@@ -31,5 +31,8 @@ module Taxation
   # De combien le régime majore le loyer saisi : rien au nu, la prime du meublé au BIC.
   def self.rent_premium_rate(name) = regime(name).rent_premium_rate
 
+  # Le meublé se loue meublé : lui seul achète les meubles et les entretient.
+  def self.furnished?(name) = regime(name).furnished?
+
   def self.for(name, **attributes) = regime(name).new(**attributes)
 end

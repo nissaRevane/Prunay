@@ -23,10 +23,19 @@
       <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <div class="detail-item sum-total">
-      <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.total_investment) %></dd>
-    </div>
+    <%# Les meubles ne s'achètent que sous un régime du meublé : la ligne et le total suivent
+        l'onglet fiscal, comme le loyer majoré plus loin. %>
+    <%= editable_detail simulation, :furniture, number_to_currency(simulation.furniture),
+        regimes: regimes_furnished do |f| %>
+      <%= f.number_field :furniture, step: "0.01", min: "0", class: "form-control", required: true %>
+    <% end %>
+
+    <% Taxation::NAMES.each do |regime| %>
+      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+        <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
+        <dd class="detail-value"><%= number_to_currency(simulation.total_investment_under(regime)) %></dd>
+      <% end %>
+    <% end %>
   </dl>
 </div>
 

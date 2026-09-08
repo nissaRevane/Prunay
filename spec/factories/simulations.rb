@@ -18,6 +18,8 @@ FactoryBot.define do
     management_fees { 0 }
     rent_guarantee { 0 }
     accounting_fees { 0 }
+    furniture { 0 }
+    furniture_maintenance { 0 }
     other_charges { 0 }
 
     # Une économie immobile : un test qui parle d'évolution énonce lui-même ses taux.
