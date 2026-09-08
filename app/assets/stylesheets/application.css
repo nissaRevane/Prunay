@@ -1009,12 +1009,68 @@ a.icon-btn:hover {
   text-transform: none;
 }
 
-/* Le bien se présente en une phrase : chaque mot que l'on a saisi s'y corrige à même le texte. */
+/* Le bien se présente en une phrase sous le nom de la fiche : chaque mot saisi s'y corrige. */
 .summary {
-  margin-bottom: 1.5rem;
-  font-size: 1.125rem;
-  line-height: 1.6;
+  margin-top: 0.375rem;
+  max-width: 64ch;
+  color: var(--color-text-muted);
+  line-height: 1.7;
 }
+
+/* Le nom de la fiche et l'étiquette énergie sur la même ligne. */
+.page-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* L'étiquette énergie : le sigle en petit, la lettre en gros, et le fond de sa classe. */
+.dpe {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: none;
+  border-radius: var(--radius);
+  background: var(--dpe-color, var(--color-border));
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dpe,
+.dpe:hover,
+.dpe:focus-visible {
+  color: var(--dpe-ink, var(--color-text-muted));
+}
+
+.dpe:hover,
+.dpe:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.dpe small {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+/* Seule la lettre se corrige : le trait discontinu se porte sous elle et non sous l'étiquette. */
+.dpe-letter {
+  border-bottom: 1px dashed currentColor;
+}
+
+/* Les sept classes du diagnostic ; A et G foncent d'un cran pour que la lettre blanche s'y détache. */
+.dpe-a { --dpe-color: #2a8534; --dpe-ink: #fff; }
+.dpe-b { --dpe-color: #33cc31; --dpe-ink: var(--color-text); }
+.dpe-c { --dpe-color: #cbfc34; --dpe-ink: var(--color-text); }
+.dpe-d { --dpe-color: #fbfc07; --dpe-ink: var(--color-text); }
+.dpe-e { --dpe-color: #fbcc05; --dpe-ink: var(--color-text); }
+.dpe-f { --dpe-color: #fc9935; --dpe-ink: var(--color-text); }
+.dpe-g { --dpe-color: #e00b18; --dpe-ink: #fff; }
 
 /* Le mot ouvert garde sa place dans la ligne : le champ s'y glisse au lieu de la casser. */
 .inline-word .inline-edit-form:not([hidden]) {

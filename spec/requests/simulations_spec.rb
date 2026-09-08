@@ -440,27 +440,50 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
-    # Le bien se lit en une phrase dont chaque mot saisi se clique ; DPE et copropriété se tiennent à côté du compte.
+    # L'en-tête dit le bien : une phrase dont chaque mot saisi se clique, sous le nom de la fiche.
     # HTML5 parse comme le navigateur : un formulaire dans un paragraphe le fermerait, et la phrase avec.
-    it "presents the property in a sentence, its facts beside the purchase" do
-      simulation.update!(address: "14 rue du Beau Laurier", energy_rating: "E", condominium: true)
+    it "presents the property in a sentence under the name of the simulation" do
+      simulation.update!(address: "14 rue du Beau Laurier")
 
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML5(response.body)
-      summary = doc.at_css("#panel-parameters .summary")
+      summary = doc.at_css(".page-header .summary")
       words = summary.css(".inline-word .inline-edit-display").map(&:text)
       summary.css("form").remove
 
       expect(summary.text.gsub(/\s+/, " ").strip)
         .to eq("Appartement de 50 m² au 14 rue du Beau Laurier à Nantes. Acheté le 10 mars 2025.")
       expect(words).to eq(["Appartement", "50 m²", "14 rue du Beau Laurier", "Nantes", "10 mars 2025"])
+      # La phrase se lit depuis tous les onglets : elle vit dans l'en-tête, hors des panneaux.
+      expect(doc.at_css("#panel-parameters .summary")).to be_nil
+    end
 
-      facts = doc.css("#panel-parameters .facts .detail-item").to_h do |item|
-        [item.at_css(".detail-label").text.strip, item.at_css(".inline-edit-display").text.strip]
-      end
-      expect(facts).to eq(Simulation.human_attribute_name(:energy_rating) => "E",
-                          Simulation.human_attribute_name(:condominium) => I18n.t("views.simulations.show.answer_yes"))
+    # Le DPE se lit d'un coup d'œil à côté du nom, dans la couleur de sa classe, et s'y corrige.
+    it "labels the energy rating beside the name, in the colour of its band" do
+      simulation.update!(energy_rating: "E")
+
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      badge = doc.at_css(".page-title .dpe")
+
+      expect(badge["class"].split).to include("dpe", "dpe-e")
+      expect(badge.at_css(".dpe-letter").text.strip).to eq("E")
+      expect(badge.at_css("small").text.strip).to eq(Simulation.human_attribute_name(:energy_rating))
+      expect(doc.at_css(".page-title #simulation_energy_rating")).not_to be_nil
+    end
+
+    # Un DPE non renseigné garde son étiquette, sans couleur de classe : c'est par elle qu'on le saisit.
+    it "keeps a colourless badge to click when the energy rating is unknown" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      badge = doc.at_css(".page-title .dpe")
+
+      expect(badge["class"].split).to eq(["inline-edit-display", "dpe"])
+      expect(badge.at_css(".dpe-letter").text.strip)
+        .to eq(I18n.t("views.simulations.show.energy_rating_unknown"))
     end
 
     # Sans adresse, la phrase le dit à sa place, et le mot reste à cliquer pour la renseigner.
@@ -468,7 +491,7 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML5(response.body)
-      summary = doc.at_css("#panel-parameters .summary")
+      summary = doc.at_css(".page-header .summary")
       address = summary.css(".inline-word").find { |word| word.at_css("#simulation_address") }
       summary.css("form").remove
 
@@ -494,6 +517,12 @@ RSpec.describe "Simulations", type: :request do
       )
       expect(doc.at_css("#panel-parameters .sum .sum-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
+
+      # Le DPE est monté au titre : la copropriété reste seule à côté de l'addition.
+      facts = doc.css("#panel-parameters .facts .detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.strip, item.at_css(".inline-edit-display").text.strip]
+      end
+      expect(facts).to eq(Simulation.human_attribute_name(:condominium) => I18n.t("views.simulations.show.answer_no"))
     end
 
     # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.

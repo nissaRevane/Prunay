@@ -7,6 +7,9 @@ module SimulationsHelper
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
                         "submit->inline-edit#lock turbo:submit-end->inline-edit#release".freeze
 
+  # Un mot de la phrase n'est pas un bouton : le clavier l'ouvre comme le clic.
+  WORD_ACTIONS = "click->inline-edit#open keydown.enter->inline-edit#open keydown.space->inline-edit#open".freeze
+
   # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
   def property_type_options
     Simulation::PROPERTY_TYPES.map { |type| [t("simulations.property_types.#{type}"), type] }
@@ -43,12 +46,28 @@ module SimulationsHelper
            }, &block)
   end
 
-  # Un mot de la phrase : le libellé au survol, et bâti sans un blanc pour que la ponctuation lui colle.
-  def editable_word(simulation, field, value, &block)
+  # Un mot de la phrase : bâti sans un blanc pour que la ponctuation lui colle, et un span
+  # plutôt qu'un bouton — Chrome coupe la ligne après un bouton, laissant le point orphelin.
+  def editable_word(simulation, field, value, display_class: nil, &block)
     tag.span(class: "inline-word", data: { controller: "inline-edit" }) do
-      tag.button(value, type: "button", class: "inline-edit-display", title: Simulation.human_attribute_name(field),
-                 data: { inline_edit_target: "display", action: "inline-edit#open" }) +
+      tag.span(value, class: class_names("inline-edit-display", display_class),
+               title: Simulation.human_attribute_name(field), role: "button", tabindex: 0,
+               data: { inline_edit_target: "display", action: WORD_ACTIONS }) +
         inline_edit_form(simulation, simulation_path(simulation, tab: PARAMETERS_TAB), &block)
+    end
+  end
+
+  # L'étiquette énergie à même le nom de la fiche : la couleur de la classe, et la lettre qui se corrige au clic.
+  def energy_rating_badge(simulation)
+    rating = simulation.energy_rating
+    letter = rating.presence || t("views.simulations.show.energy_rating_unknown")
+    label = safe_join([tag.small(Simulation.human_attribute_name(:energy_rating)),
+                       tag.span(letter, class: "dpe-letter")])
+
+    editable_word(simulation, :energy_rating, label,
+                  display_class: ["dpe", ("dpe-#{rating.downcase}" if rating.present?)]) do |f|
+      f.select :energy_rating, energy_rating_options,
+               { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control"
     end
   end
 

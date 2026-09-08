@@ -1,0 +1,27 @@
+<%# Le bien en une phrase, sous le nom de la simulation : chaque mot que l'on a saisi s'y
+    corrige d'un clic. Sans adresse, la phrase le dit à sa place plutôt que d'y coller un
+    « au » sans suite, et c'est un div et non un p : un formulaire fermerait le paragraphe. %>
+<% property_type = editable_word simulation, :property_type, t("simulations.property_types.#{simulation.property_type}") do |f| %>
+  <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
+<% end %>
+
+<% surface = editable_word simulation, :surface, t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) do |f| %>
+  <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+<% end %>
+
+<% address = editable_word simulation, :address, simulation.address.presence || t("views.simulations.show.address_not_provided") do |f| %>
+  <%= f.text_field :address, class: "form-control" %>
+<% end %>
+
+<% city = editable_word simulation, :city, simulation.city do |f| %>
+  <%= f.text_field :city, class: "form-control", required: true %>
+<% end %>
+
+<% purchase_date = editable_word simulation, :purchase_date, l(simulation.purchase_date, format: :long) do |f| %>
+  <%= f.date_field :purchase_date, class: "form-control", required: true %>
+<% end %>
+
+<div class="summary">
+  <%= t("views.simulations.show.#{simulation.address.present? ? 'summary_html' : 'summary_without_address_html'}",
+        type: property_type, surface: surface, address: address, city: city, date: purchase_date) %>
+</div>

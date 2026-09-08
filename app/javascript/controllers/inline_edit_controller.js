@@ -5,7 +5,9 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["display", "form"]
 
-  open() {
+  // Un mot de la phrase s'ouvre aussi au clavier : la barre d'espace ne déroule pas la page.
+  open(event) {
+    event?.preventDefault()
     this.displayTarget.hidden = true
     this.formTarget.hidden = false
     this.field?.focus()
@@ -31,7 +33,19 @@ export default class extends Controller {
 
   // requestSubmit refuse de partir sur un champ invalide : la contrainte HTML fait le premier tri.
   save() {
+    this.syncTab()
     this.formTarget.requestSubmit()
+  }
+
+  // L'onglet ouvert vit dans l'URL : la fiche renvoyée rouvre celui-là, non celui du rendu.
+  syncTab() {
+    const tab = new URL(window.location).searchParams.get("tab")
+    if (!tab) return
+
+    const action = new URL(this.formTarget.action)
+
+    action.searchParams.set("tab", tab)
+    this.formTarget.action = action.toString()
   }
 
   lock() {

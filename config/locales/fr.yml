@@ -193,7 +193,6 @@ fr:
       edit:
         title: Modifier la simulation
       show:
-        subtitle: "Acquisition prévue le %{date}"
         project_cost: Coût du projet
         initial_outlay: Investissement initial
         tab_parameters: Paramètres
@@ -205,6 +204,7 @@ fr:
         summary_html: "%{type} de %{surface} au %{address} à %{city}. Acheté le %{date}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}. Acheté le %{date}."
         address_not_provided: adresse non renseignée
+        energy_rating_unknown: "?"
         credit_detail: Le crédit
         rental_detail: La location
         annual_rent_total: "Encaissé sur une année, charges comprises et vacance déduite"

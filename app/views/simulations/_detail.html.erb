@@ -2,8 +2,12 @@
     onglet en refait plusieurs ailleurs. Le serveur la renvoie donc d'un bloc. %>
 <div class="page-header">
   <div>
-    <h1><%= simulation.name %></h1>
-    <p class="page-header-hint"><%= t("views.simulations.show.subtitle", date: l(simulation.purchase_date, format: :long)) %></p>
+    <div class="page-title">
+      <h1><%= simulation.name %></h1>
+      <%= energy_rating_badge(simulation) %>
+    </div>
+
+    <%= render "simulations/summary", simulation: simulation %>
   </div>
 </div>
 
