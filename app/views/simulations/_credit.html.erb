@@ -1,16 +1,12 @@
-<%# Le crédit tel que la fiche le résume : ce qui est emprunté, à quelles conditions, et ce
-    que cela coûte — les frais de la signature, puis les intérêts et l'assurance emprunteur
-    que la banque prélève ensemble. Le détail échéance par échéance a son propre onglet. %>
+<%# Le crédit : le capital et les conditions auxquelles la banque le prête, puis l'addition de
+    ce que la signature coûte de la poche de l'acheteur. Le capital, lui, n'y entre pas — il se
+    rend par les échéances, que leur propre onglet détaille. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.credit_detail") %></h2>
   </div>
 
   <dl class="detail-grid">
-    <%= editable_detail simulation, :down_payment, number_to_currency(simulation.down_payment) do |f| %>
-      <%= f.number_field :down_payment, step: "0.01", min: "0", class: "form-control", required: true %>
-    <% end %>
-
     <div class="detail-item">
       <dt class="detail-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></dt>
       <dd class="detail-value"><%= number_to_currency(simulation.borrowed_capital) %></dd>
@@ -34,6 +30,21 @@
       <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_monthly_payment) %></dd>
+    </div>
+
+    <%= editable_detail simulation, :early_repayment_fee, t("views.simulations.show.#{simulation.early_repayment_fee? ? 'answer_yes' : 'answer_no'}") do |f| %>
+      <%= f.select :early_repayment_fee, answer_options, {}, class: "form-control" %>
+    <% end %>
+  </dl>
+
+  <dl class="sum">
+    <%= editable_detail simulation, :down_payment, number_to_currency(simulation.down_payment) do |f| %>
+      <%= f.number_field :down_payment, step: "0.01", min: "0", class: "form-control", required: true %>
+    <% end %>
+
     <%= editable_detail simulation, :loan_guarantee_fees, number_to_currency(simulation.loan_guarantee_fees) do |f| %>
       <%= f.number_field :loan_guarantee_fees, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -42,44 +53,9 @@
       <%= f.number_field :loan_application_fees, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_monthly_payment) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_monthly_payment) %></dd>
+    <div class="detail-item sum-total">
+      <dt class="detail-label"><%= t("views.simulations.show.initial_outlay") %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.initial_outlay) %></dd>
     </div>
-
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:annual_loan_payment) %></dt>
-      <dd class="detail-value text-danger"><%= number_to_currency(simulation.loan.annual_payment) %></dd>
-    </div>
-
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_interest) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_interest) %></dd>
-    </div>
-
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_insurance) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_insurance) %></dd>
-    </div>
-
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:total_loan_cost) %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.loan.total_cost) %></dd>
-    </div>
-
-    <div class="detail-item">
-      <dt class="detail-label"><%= Simulation.human_attribute_name(:loan_first_payment_on) %></dt>
-      <dd class="detail-value"><%= l(simulation.loan.first_payment_on, format: :long) %></dd>
-    </div>
-
-    <%= editable_detail simulation, :early_repayment_fee, t("views.simulations.show.#{simulation.early_repayment_fee? ? 'answer_yes' : 'answer_no'}") do |f| %>
-      <%= f.select :early_repayment_fee, answer_options, {}, class: "form-control" %>
-    <% end %>
   </dl>
-
-  <%# Ce que l'acheteur sort de sa poche à la signature ; le capital emprunté, lui, se rend par les annuités. %>
-  <div class="section-total">
-    <span><%= t("views.simulations.show.initial_outlay") %></span>
-    <span><%= number_to_currency(simulation.initial_outlay) %></span>
-  </div>
 </div>

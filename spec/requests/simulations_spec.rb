@@ -693,8 +693,17 @@ RSpec.describe "Simulations", type: :request do
           Simulation.human_attribute_name(:total_monthly_payment) =>
             currency(on_credit.loan.total_monthly_payment).gsub(/\s+/, " ")
         )
-        # 23 388 d'apport, 3 220 de cautionnement et 1 932 de frais de dossier.
-        expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(28_540).gsub(/\s+/, " "))
+        # 23 388 d'apport, 3 220 de cautionnement et 1 932 de frais de dossier : le capital, lui, reste dehors.
+        outlay = section.at_css(".sum").css(".detail-item").to_h do |item|
+          [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+        end
+
+        expect(outlay).to eq(
+          Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:loan_guarantee_fees) => currency(3_220).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.initial_outlay") => currency(28_540).gsub(/\s+/, " ")
+        )
       end
     end
 

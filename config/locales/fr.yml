@@ -37,11 +37,8 @@ fr:
         early_repayment_fee: "IRA si revente"
         monthly_payment: Mensualité
         total_monthly_payment: "Avec assurance"
-        annual_loan_payment: Annuité
         total_loan_interest: Intérêts
-        total_loan_insurance: "Total assurance"
         total_loan_cost: "Coût du crédit"
-        loan_first_payment_on: "1re échéance"
         monthly_rent: Loyer mensuel
         monthly_charges: "Charges/mois"
         occupancy_months: "Mois loués"

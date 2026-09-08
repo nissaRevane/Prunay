@@ -1087,6 +1087,11 @@ a.icon-btn:hover {
   max-width: 28rem;
 }
 
+/* L'addition du crédit suit les conditions du prêt : elle a besoin de respirer. */
+.detail-grid + .sum {
+  margin-top: 1.5rem;
+}
+
 .sum .detail-item {
   flex-direction: row;
   justify-content: space-between;
