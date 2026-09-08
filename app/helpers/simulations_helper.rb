@@ -32,11 +32,11 @@ module SimulationsHelper
     tabs << ECONOMIC_CONDITIONS_TAB
   end
 
-  # Une valeur modifiable au clic : le libellé vient du modèle, le champ du bloc.
+  # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),
-                      value_class: nil, &block)
+                      label: Simulation.human_attribute_name(field), note: nil, value_class: nil, &block)
     render(layout: "simulations/editable", locals: {
-             simulation: simulation, label: Simulation.human_attribute_name(field),
+             simulation: simulation, label: label, note: note,
              value: value, url: url, value_class: value_class
            }, &block)
   end

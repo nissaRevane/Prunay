@@ -9,5 +9,9 @@
     <%= inline_edit_form(simulation, url) do |f| %>
       <%= yield f %>
     <% end %>
+
+    <% if note %>
+      <span class="detail-note"><%= note %></span>
+    <% end %>
   </dd>
 </div>

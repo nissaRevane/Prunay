@@ -1,13 +1,15 @@
-<%# Les hypothèses de la simulation : ce que la signature du bien coûte et ce qu'il dépense
-    chaque année — le bien lui-même se lit dans l'en-tête de la fiche. Le prix, les frais de
-    notaire et les travaux s'additionnent. Chaque valeur saisie se corrige d'un clic ; ce qui
-    se calcule, lui, ne se clique pas. %>
+<%# Les hypothèses de la simulation, sur deux colonnes : à gauche l'opération — ce que la
+    signature du bien coûte et comment elle se finance —, à droite l'année — ce que le bien
+    rapporte et ce qu'il dépense. Le bien lui-même se lit dans l'en-tête de la fiche. Chaque
+    valeur saisie se corrige d'un clic ; ce qui se calcule, lui, ne se clique pas. %>
+<div class="parameters">
+<div>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.purchase_detail") %></h2>
   </div>
 
-  <dl class="sum">
+  <dl class="rows sum">
     <%= editable_detail simulation, :purchase_price, number_to_currency(simulation.purchase_price) do |f| %>
       <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -31,14 +33,16 @@
 <% if simulation.credit? %>
   <%= render "credit", simulation: simulation %>
 <% end %>
+</div>
 
+<div>
 <%# Le loyer est saisi au mois, comme un bail l'énonce : hors charges d'un côté, provision de l'autre. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
   </div>
 
-  <dl class="detail-grid">
+  <dl class="rows sum">
     <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), value_class: "text-success" do |f| %>
       <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -51,12 +55,15 @@
       <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR,
           class: "form-control", required: true %>
     <% end %>
-  </dl>
 
-  <div class="section-total">
-    <span><%= t("views.simulations.show.annual_rent_total") %></span>
-    <span><%= number_to_currency(simulation.annual_rent) %></span>
-  </div>
+    <div class="detail-item sum-total">
+      <dt class="detail-label">
+        <%= t("views.simulations.show.annual_rent_total") %>
+        <span class="detail-note"><%= t("views.simulations.show.annual_rent_total_hint") %></span>
+      </dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.annual_rent) %></dd>
+    </div>
+  </dl>
 </div>
 
 <div class="section">
@@ -64,14 +71,14 @@
     <h2><%= t("views.simulations.show.charges_detail") %></h2>
   </div>
 
-  <dl class="detail-grid">
+  <dl class="rows sum">
     <% Simulation::ANNUAL_CHARGES.each do |charge| %>
       <%= editable_detail simulation, charge, number_to_currency(simulation.public_send(charge)) do |f| %>
         <%= f.number_field charge, step: "0.01", min: "0", class: "form-control", required: true %>
       <% end %>
     <% end %>
 
-    <%# La CFE ne se saisit pas et ne vaut que meublé : la note le dit à même le libellé. %>
+    <%# La CFE ne se saisit pas et ne vaut que meublé : la note le dit sous le libellé. %>
     <div class="detail-item">
       <dt class="detail-label">
         <%= t("views.simulations.show.business_tax") %>
@@ -79,10 +86,12 @@
       </dt>
       <dd class="detail-value"><%= number_to_currency(simulation.annual_business_tax) %></dd>
     </div>
-  </dl>
 
-  <div class="section-total">
-    <span><%= t("views.simulations.show.annual_charges_total") %></span>
-    <span><%= number_to_currency(simulation.annual_charges) %></span>
-  </div>
+    <div class="detail-item sum-total">
+      <dt class="detail-label"><%= t("views.simulations.show.annual_charges_total") %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.annual_charges) %></dd>
+    </div>
+  </dl>
+</div>
+</div>
 </div>

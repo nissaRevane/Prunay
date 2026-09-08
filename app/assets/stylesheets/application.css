@@ -1082,17 +1082,39 @@ a.icon-btn:hover {
   font-size: inherit;
 }
 
-/* Une addition : le montant à droite de chaque ligne, et le total sous un trait. */
-.sum {
-  max-width: 28rem;
+/* Les paramètres se lisent sur deux colonnes dès que la largeur le permet : l'opération à
+   gauche, l'année à droite. */
+.parameters {
+  display: grid;
+  gap: 0 2rem;
+  align-items: start;
 }
 
-/* L'addition du crédit suit les conditions du prêt : elle a besoin de respirer. */
-.detail-grid + .sum {
-  margin-top: 1.5rem;
+@media (min-width: 900px) {
+  .parameters {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.sum .detail-item {
+/* Des lignes libellé / valeur dans un cadre, la valeur à droite : la lecture d'une fiche, pas d'un tableau. */
+.rows {
+  flex: 1 1 20rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.25rem;
+}
+
+/* Deux cadres côte à côte tant que la largeur le permet, l'un sous l'autre sinon. */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.rows .detail-item {
   flex-direction: row;
   justify-content: space-between;
   align-items: baseline;
@@ -1100,23 +1122,32 @@ a.icon-btn:hover {
   padding: 0.25rem 0;
 }
 
-.sum .detail-label {
+.rows .detail-label {
   font-size: inherit;
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
 }
 
-.sum .detail-value {
+.rows .detail-value {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
-.sum .form-control {
+/* Une réserve sous le libellé ou sous le montant : elle explique sans peser sur la ligne. */
+.rows .detail-note {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.rows .form-control {
   width: 9rem;
   text-align: right;
 }
 
+/* Une addition : des lignes, et le total sous un trait. */
 .sum-total {
   margin-top: 0.375rem;
   border-top: 2px solid var(--color-text);

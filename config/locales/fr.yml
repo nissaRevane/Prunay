@@ -205,13 +205,15 @@ fr:
         energy_rating_unknown: "?"
         purchase_detail: L'achat
         credit_detail: Le crédit
+        insurance_included: "dont %{amount} d'assurance"
         rental_detail: La location
-        annual_rent_total: "Encaissé sur une année, charges comprises et vacance déduite"
+        annual_rent_total: Encaissé sur une année
+        annual_rent_total_hint: charges comprises, vacance déduite
         charges_detail: Les charges annuelles
         economic_conditions_detail: Les conditions économiques
         annual_charges_total: Total des charges annuelles
         business_tax: CFE
-        business_tax_hint: "(meublé seulement)"
+        business_tax_hint: meublé seulement
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
         not_provided: Non renseigné

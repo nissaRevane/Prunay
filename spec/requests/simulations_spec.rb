@@ -521,7 +521,8 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
-      lines = doc.css("#panel-parameters .sum .detail-item").to_h do |item|
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.purchase_detail") }
+      lines = section.css(".sum .detail-item").to_h do |item|
         [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
@@ -531,7 +532,7 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " ")
       )
-      expect(doc.at_css("#panel-parameters .sum .sum-total .detail-label").text.strip)
+      expect(section.at_css(".sum-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
     end
 
@@ -551,7 +552,7 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:occupancy_months) => I18n.t("views.simulations.show.occupancy_value", months: 11)
       )
       # Onze mois loués, et non douze : la vacance se paie.
-      expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
+      expect(section.at_css(".sum-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
     it "details every annual charge" do
@@ -575,7 +576,7 @@ RSpec.describe "Simulations", type: :request do
       expect(item.at_css(".detail-label").children.first.text.strip).to eq(I18n.t("views.simulations.show.business_tax"))
       expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
       expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.business_tax_hint"))
-      expect(section.at_css(".section-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
+      expect(section.at_css(".sum-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
     end
 
     # On corrige un chiffre là où on le lit : pas de bouton Modifier, pas de bouton Enregistrer.
@@ -686,12 +687,12 @@ RSpec.describe "Simulations", type: :request do
         expect(amounts).to include(
           Simulation.human_attribute_name(:borrowed_capital) => currency(193_224).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
-          Simulation.human_attribute_name(:monthly_payment) => currency(on_credit.loan.monthly_payment).gsub(/\s+/, " "),
-          Simulation.human_attribute_name(:loan_insurance) => currency(19.32).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_guarantee_fees) => currency(3_220).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
-          Simulation.human_attribute_name(:total_monthly_payment) =>
-            currency(on_credit.loan.total_monthly_payment).gsub(/\s+/, " ")
+          # 1 071,62 d'échéance et 19,32 d'assurance se lisent d'un bloc.
+          Simulation.human_attribute_name(:monthly_payment) =>
+            "#{currency(1_090.94)} #{I18n.t('views.simulations.show.insurance_included',
+                                            amount: currency(19.32))}".gsub(/\s+/, " ")
         )
         # 23 388 d'apport, 3 220 de cautionnement et 1 932 de frais de dossier : le capital, lui, reste dehors.
         outlay = section.at_css(".sum").css(".detail-item").to_h do |item|
