@@ -219,7 +219,7 @@ RSpec.describe Projection do
     it "counts the business tax with the charges of the year and not with the tax" do
       year = projection.years[1]
 
-      expect(year.business_tax).to eq(300)
+      expect(year.taxation.business_tax).to eq(300)
       expect(year.charges_excluding_provision).to eq(2_300)
       expect(year.pre_tax_result).to eq(8_700)
       expect(year.cash_flow).to eq(7_677)
@@ -230,8 +230,8 @@ RSpec.describe Projection do
       growing = described_class.new(build(:simulation, monthly_rent: 800, occupancy_months: 12,
                                                        rent_growth_rate: 2), :micro_bic)
 
-      expect(growing.years[1].business_tax).to eq(240)
-      expect(growing.years[2].business_tax).to eq(BigDecimal("244.80"))
+      expect(growing.years[1].taxation.business_tax).to eq(240)
+      expect(growing.years[2].taxation.business_tax).to eq(BigDecimal("244.80"))
     end
 
     # 1 200 € de provision comptés en recettes : 600 € d'assiette de plus, et 111,60 € d'impôt.
@@ -266,6 +266,42 @@ RSpec.describe Projection do
 
       expect(year.provision_for_charges).to eq(1_236)
       expect(year.taxes).to eq(BigDecimal("1007.75"))
+    end
+  end
+
+  # Le meublé déclaré au réel : la CFE et le comptable pèsent sur l'année, l'amortissement sur
+  # l'assiette seule — il ne coûte rien et ne sort jamais du cash-flow.
+  describe "under the LMNP regime" do
+    subject(:projection) { described_class.new(build(:simulation, accounting_fees: 500), :lmnp) }
+
+    # 9 600 € de loyers, 240 € de CFE, 500 € de comptable et 6 400 € d'amortissement : 2 460 € imposables.
+    it "deducts the depreciation of the building from the assessment and nothing else" do
+      year = projection.years[1]
+
+      expect(year.taxation.depreciation).to eq(6_400)
+      expect(year.taxation.taxable_income).to eq(2_460)
+      expect(year.taxes).to eq(BigDecimal("457.56"))
+    end
+
+    # 740 € de charges que personne d'autre ne paie, et un cash-flow que l'amortissement ne touche pas.
+    it "pays the accountant and the business tax out of the year, the depreciation costing nothing" do
+      year = projection.years[1]
+
+      expect(projection.charge_lines(year)).to eq(business_tax: BigDecimal("240"), accounting_fees: BigDecimal("500"))
+      expect(year.charges_excluding_provision).to eq(740)
+      expect(year.pre_tax_result).to eq(8_860)
+      expect(year.cash_flow).to eq(BigDecimal("8402.44"))
+    end
+
+    # Le plan s'éteint après vingt-cinq ans : la vingt-sixième année paie sur 8 860 €.
+    it "taxes the whole result once the plan of depreciation is over" do
+      expect(projection.years[25].taxes).to eq(BigDecimal("457.56"))
+      expect(projection.years[26].taxes).to eq(BigDecimal("1647.96"))
+    end
+
+    # Le forfait du micro-BIC laisse 4 800 € imposables là où le réel amorti n'en laisse que 2 460 €.
+    it "taxes less than the micro-BIC on the same year, the depreciation making the difference" do
+      expect(described_class.new(build(:simulation), :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
     end
   end
 

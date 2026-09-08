@@ -48,6 +48,7 @@ fr:
         condominium_fees: Copropriété
         management_fees: Gestion
         rent_guarantee: "Loyers impayés"
+        accounting_fees: Comptabilité
         other_charges: Autres frais
         rent_growth_rate: "Évolution des loyers (% par an)"
         property_growth_rate: "Évolution du prix du bien (% par an)"
@@ -167,6 +168,8 @@ fr:
             title: La détention du bien
           letting:
             title: "L'exploitation locative"
+          furnished:
+            title: "La location meublée"
           other:
             title: Divers
       steps:
@@ -195,6 +198,7 @@ fr:
         tab_micro_foncier: Micro-foncier
         tab_foncier_reel: Foncier réel
         tab_micro_bic: Micro-BIC
+        tab_lmnp: LMNP
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
         regimes_menu: Régimes fiscaux
@@ -215,6 +219,7 @@ fr:
         annual_charges_total: Total des charges annuelles
         business_tax: CFE
         business_tax_hint: meublé seulement
+        accounting_fees_hint: LMNP seulement
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
         not_provided: Non renseigné
@@ -258,7 +263,7 @@ fr:
         hint_annual_rent_column: "Le loyer seul, hors provision pour charges, sur les mois effectivement loués."
         hint_annual_rent_including_charges_column: "Le meublé déclare la provision avec le loyer, puis la déduit."
         hint_charges_excluded: "Les charges indexées par l'inflation, la provision remboursée déduite."
-        hint_charges_included: "Les charges saisies, indexées par l'inflation, la CFE du meublé comprise."
+        hint_charges_included: "Les charges saisies et indexées, la CFE du meublé comprise, et le comptable au LMNP."
         hint_loan_interest_column: "Ce que le crédit coûte sans rien rendre : intérêts et assurance."
         hint_income_tax_column: "Votre tranche marginale et les prélèvements sociaux, sur la même assiette."
         hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
@@ -276,6 +281,7 @@ fr:
         detail_loan_insurance: Assurance emprunteur
         detail_receipts: Recettes déclarées
         detail_allowance: "Abattement forfaitaire de %{rate}"
+        detail_depreciation: "Amortissement du bâti"
         detail_taxable_income: Revenu imposable
         detail_income_tax: "Impôt sur le revenu (%{rate})"
         detail_social_charges: "Prélèvements sociaux (%{rate})"

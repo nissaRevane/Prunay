@@ -63,7 +63,7 @@ module Simulation::Step
   end
 
   def charge_defaults(simulation)
-    Simulation::ANNUAL_CHARGES.to_h { |field| [field.to_s, simulation.estimate(field)] }
+    (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
   end
 
   # Zéro tant qu'aucun prix n'a été tapé : un dixième de rien ne veut rien dire.

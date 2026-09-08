@@ -15,7 +15,7 @@ module Taxation
   DEFAULT_MARGINAL_TAX_RATE = 30
 
   # Dans l'ordre où la simulation les présente : chaque nom est sa classe, son onglet et sa traduction.
-  NAMES = %i[micro_foncier foncier_reel micro_bic].freeze
+  NAMES = %i[micro_foncier foncier_reel micro_bic lmnp].freeze
 
   DEFAULT_REGIME = NAMES.first
 

@@ -241,6 +241,37 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
+    # Le LMNP se lit dans son détail : ce qu'il paie vraiment, puis l'amortissement qui n'est
+    # qu'une écriture — il n'apparaît nulle part ailleurs dans le compte de l'année.
+    it "shows the accountant among the charges of the LMNP and its depreciation in the tax alone" do
+      furnished = create(:simulation, user: user, monthly_rent: 1_000, occupancy_months: 12,
+                                      purchase_price: 200_000, accounting_fees: 500, property_tax: 800,
+                                      marginal_tax_rate: 30)
+
+      get simulation_path(furnished)
+
+      doc = Nokogiri::HTML(response.body)
+      result = doc.at_css("#panel-lmnp dialog#lmnp-year-1-statement #lmnp-year-1-result")
+      lines = result.css(".statement-detail-line").map do |line|
+        [line.at_css(".statement-detail-label").text.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      # 12 000 € de recettes, 1 600 € de charges CFE et comptable compris, 6 400 € d'amortissement.
+      expect(lines).to eq([
+        [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_000), months: "12"),
+         currency(12_000).gsub(/\s+/, " ")],
+        [Simulation.human_attribute_name(:property_tax), currency(-800).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.business_tax"), currency(-300).gsub(/\s+/, " ")],
+        [Simulation.human_attribute_name(:accounting_fees), currency(-500).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_depreciation"), currency(-6_400).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(4_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)), currency(-1_200).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_social_charges", rate: percentage(BigDecimal("18.6"))),
+         currency(-744).gsub(/\s+/, " ")]
+      ])
+    end
+
     # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
     it "carries a hover explanation beside the labels that need one" do
       get simulation_path(simulation)
@@ -586,12 +617,26 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
-      item = section.css(".detail-item").find { |node| node.at_css(".detail-note") }
+      item = section.css(".detail-item").find do |node|
+        node.at_css(".detail-label").children.first.text.strip == I18n.t("views.simulations.show.business_tax")
+      end
 
-      expect(item.at_css(".detail-label").children.first.text.strip).to eq(I18n.t("views.simulations.show.business_tax"))
       expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
       expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.business_tax_hint"))
       expect(section.at_css(".sum-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
+    end
+
+    # Le comptable se saisit, lui, mais une réserve dit qu'un seul régime le paie.
+    it "shows the accounting fees among the charges, told apart by a note" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      item = doc.css("#panel-parameters .detail-item").find do |node|
+        node.at_css(".detail-label")&.text&.strip == Simulation.human_attribute_name(:accounting_fees)
+      end
+
+      expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.accounting_fees_hint"))
+      expect(item.at_css("form")).not_to be_nil
     end
 
     # On corrige un chiffre là où on le lit : pas de bouton Modifier, pas de bouton Enregistrer.

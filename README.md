@@ -5,8 +5,8 @@ investment.
 
 > **Status:** first simulator. A simulation describes a property, its purchase, how it is
 > financed — outright or on credit — its letting, its annual charges and the tax the rents
-> cost, projected over thirty years, under three tax regimes read side by side: the
-> micro-foncier, the foncier réel and the micro-BIC.
+> cost, projected over thirty years, under four tax regimes read side by side: the
+> micro-foncier, the foncier réel, the micro-BIC and the LMNP.
 
 ## Tech Stack
 
@@ -111,14 +111,15 @@ docker compose run --rm web bundle exec rspec
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, one rate at a time like
   every other value, and the page comes back on that tab (`?tab=economic_conditions`).
-- **The taxation** (`Taxation`): three regimes, each a tab of the simulation page and a
+- **The taxation** (`Taxation`): four regimes, each a tab of the simulation page and a
   projection of its own — the same property, the same rents, the same charges, and the tax
   alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of
   the household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation,
   30 % by default) and the social charges, which no bracket governs — a household the scale
   does not reach still owes them — what `#total` names is that income tax and nothing else.
-  Only the assessment, the allowance, the social rate and the business tax are each regime's
-  own.
+  Only the assessment, the allowance, the social rate and the charges the regime pays of its
+  own — `#own_charge_lines`, which the projection adds to the charges of the year — are each
+  regime's own. What the two furnished regimes share sits on `Taxation::Bic`.
   - **The micro-foncier** (`Taxation::MicroFoncier`), for a bare letting: the assessment is
     the year's rent excluding charges — the provision for charges the tenant repays is
     collected with the rent but is not a revenue, it settles an expense — reduced by the flat
@@ -142,10 +143,24 @@ docker compose run --rm web bundle exec rspec
     is not asked of the user. The 77 700 € ceiling of receipts above which the regime closes
     is not checked, and a furnished letting is supposed to bring the same rent and cost the
     same charges as a bare one — what the tabs compare is the tax, not the letting.
+  - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
+    of the micro-BIC, the 18.6 % and the CFE, but no allowance at all — the charges, the CFE
+    itself, the accountant and the interest of the loan are deducted for what they cost, and
+    on top of them the depreciation of the building, the only expense the taxman admits without
+    a payment. Prunay depreciates 80 % of the price paid — the land does not wear out — over 25
+    years, from the first year let to the twenty-fifth: a flat plan where the taxman expects one
+    per component, and the works and the notary fees, which really are depreciated too, are left
+    out. Neither the deficit nor the excess of depreciation is carried forward: a year that
+    gained nothing owes nothing, and nothing passes to the next — the real regime defers the
+    excess indefinitely, which is precisely what makes the LMNP pay no tax for years. The
+    accountant is the one charge a single regime pays: it is asked of the user like the others
+    (500 € by default, `accounting_fees`), kept out of `ANNUAL_CHARGES` since no other regime
+    owes it (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone.
 
-  The parameters tab lists the CFE with the annual charges, noted as the furnished letting's
-  own and left out of their total, and details the calculation line by line; the tax weighs on
-  the cash flow of every year of the projection.
+  The parameters tab lists the CFE and the accountant with the annual charges, each noted as
+  the regime's own and left out of their total, and details the calculation line by line; the
+  tax weighs on the cash flow of every year of the projection. The depreciation appears
+  nowhere but in the detail of the tax: it lowers the assessment and never the cash flow.
   The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
   individuals: the gain is what the price of that year gets above the fiscal value of the
   property — the price paid, the notary fees, and from the sixth year the flat 15 % of works
@@ -175,7 +190,7 @@ docker compose run --rm web bundle exec rspec
   reads to decide is not a table that explains itself. The rent column and the year's statement
   read the way the regime declares: excluding charges under the two foncier regimes, where the
   provision the tenant repays is neither a revenue nor a deductible charge, and charges included
-  under the micro-BIC, which declares it and deducts the whole charges in return — either reading
+  under the two furnished regimes, which declare it and deduct the whole charges in return — either reading
   leaves the same pre-tax result, the provision moving on both sides at once.
   The statement is read twice over: a summary of one line per amount, and, behind the Détail
   button of its header, the calculation of each of those lines folded under it — the rent at the
@@ -241,7 +256,8 @@ spec/
     which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):
     - *owning the property:* property_tax, insurance, maintenance, condominium_fees
     - *letting it:* management_fees, rent_guarantee
-    - *the furnished regime:* business_tax, accounting_fees
+    - *the furnished letting:* accounting_fees — the accountant of the LMNP, which
+      `REGIME_CHARGES` keeps out of `ANNUAL_CHARGES`: the regime pays it, not the property
     - *the rest:* other_charges
   - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
     marginal_tax_rate — the same four columns as `EconomicConditions`, copied from the user's

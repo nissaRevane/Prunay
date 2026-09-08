@@ -42,7 +42,8 @@
       "loan_application_fees": 900,
       "monthly_charges": 60,
       "marginal_tax_rate": 30,
-      "early_repayment_fee": true
+      "early_repayment_fee": true,
+      "accounting_fees": 500
     },
     {
       "purchase_date": "2024-09-01",
@@ -74,7 +75,8 @@
       "loan_application_fees": 0,
       "monthly_charges": 0,
       "marginal_tax_rate": 30,
-      "early_repayment_fee": true
+      "early_repayment_fee": true,
+      "accounting_fees": 500
     }
   ]
 }

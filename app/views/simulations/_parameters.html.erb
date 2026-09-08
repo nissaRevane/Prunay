@@ -78,7 +78,14 @@
       <% end %>
     <% end %>
 
-    <%# La CFE ne se saisit pas et ne vaut que meublé : la note le dit sous le libellé. %>
+    <%# Le comptable ne vaut que LMNP, et la CFE ne se saisit même pas : les notes le disent. %>
+    <% Simulation::REGIME_CHARGES.each do |charge| %>
+      <%= editable_detail simulation, charge, number_to_currency(simulation.public_send(charge)),
+          note: t("views.simulations.show.accounting_fees_hint") do |f| %>
+        <%= f.number_field charge, step: "0.01", min: "0", class: "form-control", required: true %>
+      <% end %>
+    <% end %>
+
     <div class="detail-item">
       <dt class="detail-label">
         <%= t("views.simulations.show.business_tax") %>

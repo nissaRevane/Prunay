@@ -11,10 +11,15 @@ class Simulation < ApplicationRecord
   CHARGE_GROUPS = {
     ownership: %i[property_tax insurance maintenance condominium_fees],
     letting: %i[management_fees rent_guarantee],
+    furnished: %i[accounting_fees],
     other: %i[other_charges]
   }.freeze
 
-  ANNUAL_CHARGES = CHARGE_GROUPS.values.flatten.freeze
+  # Le comptable n'est une charge que du LMNP : le régime la porte lui-même (voir Taxation::Lmnp)
+  # et elle reste hors du total que tous les autres supportent.
+  REGIME_CHARGES = %i[accounting_fees].freeze
+
+  ANNUAL_CHARGES = (CHARGE_GROUPS.values.flatten - REGIME_CHARGES).freeze
 
   # Droits, émoluments et débours suivent le prix d'assez près pour qu'une droite en tienne lieu.
   NOTARY_FEES_RATE = BigDecimal("0.0742")
@@ -73,7 +78,7 @@ class Simulation < ApplicationRecord
             numericality: { greater_than: 0, less_than_or_equal_to: MONTHS_PER_YEAR },
             on: [:create, :update, :rental]
 
-  validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
+  validates(*ANNUAL_CHARGES, *REGIME_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
   # Héritées de l'utilisateur à la création : aucune page du parcours ne les demande.
@@ -151,11 +156,12 @@ class Simulation < ApplicationRecord
   def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
                provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0),
-               monthly_rent: self.monthly_rent)
+               monthly_rent: self.monthly_rent, year: 1)
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,
-                         monthly_rent: monthly_rent)
+                         monthly_rent: monthly_rent, purchase_price: purchase_price,
+                         accounting_fees: accounting_fees, year: year)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total

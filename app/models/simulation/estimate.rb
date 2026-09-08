@@ -14,8 +14,9 @@ module Simulation::Estimate
     other_charges: 100
   }.freeze
 
-  # Ce qui ne suit pas la surface : la provision se lit sur l'appel de charges, pas sur des mètres carrés.
-  FIXED_AMOUNTS = { monthly_charges: 0, management_fees: 0, rent_guarantee: 0 }.freeze
+  # Ce qui ne suit pas la surface : la provision se lit sur l'appel de charges et le comptable
+  # facture au forfait, ni l'un ni l'autre sur des mètres carrés.
+  FIXED_AMOUNTS = { monthly_charges: 0, management_fees: 0, rent_guarantee: 0, accounting_fees: 500 }.freeze
 
   # L'apport qu'une banque attend pour couvrir les frais de notaire sans les financer.
   DOWN_PAYMENT_SHARE = BigDecimal("0.10")

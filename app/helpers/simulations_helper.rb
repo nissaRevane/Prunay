@@ -104,7 +104,9 @@ module SimulationsHelper
     return {} if year.number.zero?
 
     rent = monthly_label(:rent_excluding_charges, projection.monthly_rent_of(year), projection)
-    return { rent => year.rent_excluding_charges } unless projection.provision_in_receipts?
+    unless projection.provision_in_receipts? && year.provision_for_charges.positive?
+      return { rent => year.rent_excluding_charges }
+    end
 
     provision = monthly_label(:provision_for_charges, projection.monthly_provision_of(year), projection)
 
@@ -127,12 +129,14 @@ module SimulationsHelper
       statement_label(:loan_insurance) => -year.loan_insurance }
   end
 
-  # Le chemin de l'impôt : ce qui se déclare, ce que l'abattement en ôte, et les deux taux qui frappent.
+  # Le chemin de l'impôt : ce qui se déclare, ce que l'abattement ou l'amortissement en ôte, et
+  # les deux taux qui frappent. L'amortissement se montre même quand il ne laisse rien à imposer :
+  # c'est là tout ce que le LMNP a à dire.
   def tax_detail_lines(year)
     taxation = year.taxation
-    return {} unless taxation.taxable_income.positive?
+    return {} unless taxation.taxable_income.positive? || taxation.depreciation.positive?
 
-    allowance_lines(taxation).merge(
+    allowance_lines(taxation).merge(depreciation_lines(taxation)).merge(
       statement_label(:taxable_income) => taxation.taxable_income,
       statement_label(:income_tax, rate: rate_label(taxation.marginal_tax_rate)) => -taxation.income_tax,
       statement_label(:social_charges, rate: rate_label(taxation.social_charges_rate)) => -taxation.social_charges
@@ -178,6 +182,13 @@ module SimulationsHelper
     return t("views.simulations.show.business_tax") if field == :business_tax
 
     Simulation.human_attribute_name(field)
+  end
+
+  # L'assiette du LMNP part des recettes : les charges se lisent déjà plus haut, l'amortissement non.
+  def depreciation_lines(taxation)
+    return {} unless taxation.depreciation.positive?
+
+    { statement_label(:depreciation) => -taxation.depreciation }
   end
 
   def allowance_lines(taxation)

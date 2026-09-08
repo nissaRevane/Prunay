@@ -12,7 +12,7 @@ module Simulations
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees, :early_repayment_fee],
       "rental" => [:monthly_rent, :monthly_charges, :occupancy_months],
-      "charges" => Simulation::ANNUAL_CHARGES
+      "charges" => Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES
     }.freeze
 
     DRAFT_KEY = :simulation_draft

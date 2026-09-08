@@ -29,7 +29,7 @@ RSpec.describe Taxation do
 
   # L'ordre est celui des onglets de la fiche, et le premier est celui que la liste suppose.
   it "names the regimes in the order the simulation presents them" do
-    expect(described_class::NAMES).to eq([:micro_foncier, :foncier_reel, :micro_bic])
+    expect(described_class::NAMES).to eq([:micro_foncier, :foncier_reel, :micro_bic, :lmnp])
     expect(described_class::DEFAULT_REGIME).to eq(:micro_foncier)
   end
 

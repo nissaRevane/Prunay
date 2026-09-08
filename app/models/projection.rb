@@ -19,8 +19,6 @@ class Projection
                     :remaining_loan_capital, :sale_costs, :early_repayment_fee, keyword_init: true) do
     def taxes = taxation.total
 
-    def business_tax = taxation.business_tax
-
     def capital_gain = gain.amount
 
     def capital_gain_tax = gain.total
@@ -99,7 +97,7 @@ class Projection
 
   def monthly_provision_of(year) = indexed(@simulation.monthly_charges, @simulation.inflation_rate, year)
 
-  # Chaque poste de charge tel que l'inflation l'a porté, et la CFE que le meublé y ajoute.
+  # Chaque poste de charge tel que l'inflation l'a porté, et ce que le régime y ajoute de lui-même.
   def charge_lines(year)
     return {} if year.number.zero?
 
@@ -107,7 +105,7 @@ class Projection
       indexed(@simulation.public_send(field), @simulation.inflation_rate, year)
     end
 
-    without_zeros(lines.merge(business_tax: year.business_tax))
+    without_zeros(lines.merge(year.taxation.own_charge_lines))
   end
 
   # Les frais de revente suivent l'inflation depuis la signature, l'année de vente comprise.
@@ -138,13 +136,13 @@ class Projection
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
       gain = @simulation.capital_gain_taxation(property_value, number)
-      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent)
+      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number)
 
       year = Year.new(
         number: number,
         date: @simulation.purchase_date + number.years,
         rent_excluding_charges: rent,
-        charges_excluding_provision: charges + taxation.business_tax,
+        charges_excluding_provision: charges + taxation.own_charges,
         provision_for_charges: provision,
         loan_interest: loan_interest,
         loan_insurance: insurance.fetch(number, 0),
@@ -164,11 +162,12 @@ class Projection
   end
 
   # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
-  # La CFE qu'il rend ne lui est pas repassée : seul un régime réel déduirait ses charges, et le
-  # meublé n'a que son forfait, qui tient déjà lieu de toutes.
-  def taxation_for(rent, provision, charges, loan_interest, monthly_rent)
+  # Les charges qu'il ajoute lui-même ne lui sont pas repassées : il les connaît déjà, et les déduit
+  # ou non selon qu'il est au réel ou au forfait.
+  def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number)
     @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
-                                 charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent)
+                                 charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent,
+                                 year: number)
   end
 
   # Le jour de l'achat : rien n'a couru, la ligne est là pour le capital immobilisé et le prix payé.
@@ -182,7 +181,7 @@ class Projection
       loan_interest: 0,
       loan_insurance: 0,
       capital_repayment: 0,
-      taxation: taxation_for(0, 0, 0, 0, 0),
+      taxation: taxation_for(0, 0, 0, 0, 0, 0),
       gain: @simulation.capital_gain_taxation(@simulation.purchase_price, 0),
       immobilized_capital: @simulation.initial_outlay,
       property_value: @simulation.purchase_price,
