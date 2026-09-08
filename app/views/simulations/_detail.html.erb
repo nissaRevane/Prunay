@@ -15,7 +15,7 @@
 <% panels = simulation_panels(schedule) %>
 <% opened = panels.include?(tab) ? tab : panels.first %>
 
-<div data-controller="tabs" data-tabs-name-value="<%= opened %>"
+<div data-controller="tabs" data-tabs-name-value="<%= opened %>" data-tabs-regime-value="<%= opened_regime(opened) %>"
      data-action="click@window->tabs#closeOutside keydown.esc->tabs#closeOptions">
   <div class="tabs simulation-tabs" role="tablist">
     <% simulation_tabs(schedule).each do |name| %>

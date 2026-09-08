@@ -611,23 +611,22 @@ RSpec.describe "Simulations", type: :request do
       expect(labels).to include(*Simulation::ANNUAL_CHARGES.map { |charge| Simulation.human_attribute_name(charge) })
     end
 
-    # La CFE ne se saisit pas : une réserve au libellé dit qu'elle attend le meublé.
-    it "shows the business tax among the charges, told apart by a note" do
+    # La CFE ne se saisit pas et ne pèse que sur le meublé : sa ligne n'appartient qu'à ces régimes.
+    it "shows the business tax among the charges, kept for the furnished regimes" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
       item = section.css(".detail-item").find do |node|
-        node.at_css(".detail-label").children.first.text.strip == I18n.t("views.simulations.show.business_tax")
+        node.at_css(".detail-label").text.strip == I18n.t("views.simulations.show.business_tax")
       end
 
       expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
-      expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.business_tax_hint"))
-      expect(section.at_css(".sum-total").text).to include(currency(simulation.annual_charges).gsub(/\s+/, " "))
+      expect(item["data-regimes"]).to eq("micro_bic lmnp")
     end
 
-    # Le comptable se saisit, lui, mais une réserve dit qu'un seul régime le paie.
-    it "shows the accounting fees among the charges, told apart by a note" do
+    # Le comptable se saisit, lui, mais un seul régime le paie.
+    it "shows the accounting fees among the charges, kept for the LMNP regime" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -635,8 +634,27 @@ RSpec.describe "Simulations", type: :request do
         node.at_css(".detail-label")&.text&.strip == Simulation.human_attribute_name(:accounting_fees)
       end
 
-      expect(item.at_css(".detail-note").text.strip).to eq(I18n.t("views.simulations.show.accounting_fees_hint"))
+      expect(item["data-regimes"]).to eq("lmnp")
       expect(item.at_css("form")).not_to be_nil
+    end
+
+    # Le total suit le régime ouvert : le micro-BIC y ajoute la CFE, le LMNP le comptable en plus.
+    it "totals the charges once per regime" do
+      simulation.update!(accounting_fees: 500)
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
+      totals = section.css(".sum-total").to_h do |node|
+        [node["data-regimes"], node.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(totals).to eq(
+        "micro_foncier" => currency(2_000).gsub(/\s+/, " "),
+        "foncier_reel" => currency(2_000).gsub(/\s+/, " "),
+        "micro_bic" => currency(2_300).gsub(/\s+/, " "),
+        "lmnp" => currency(2_800).gsub(/\s+/, " ")
+      )
     end
 
     # On corrige un chiffre là où on le lit : pas de bouton Modifier, pas de bouton Enregistrer.

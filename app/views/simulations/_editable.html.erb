@@ -1,6 +1,7 @@
 <%# Une ligne de la fiche que le clic ouvre : le texte s'efface, le champ prend sa place et
     son changement part seul. Aucun bouton — la valeur revenue du serveur est la confirmation. %>
-<div class="detail-item" data-controller="inline-edit">
+<%= tag.div class: "detail-item", hidden: regimes.present?,
+            data: { controller: "inline-edit" }.merge(regimes ? regime_scope(regimes) : {}) do %>
   <dt class="detail-label"><%= label %></dt>
   <dd class="<%= class_names("detail-value", value_class) %>">
     <button type="button" class="inline-edit-display" data-inline-edit-target="display"
@@ -14,4 +15,4 @@
       <span class="detail-note"><%= note %></span>
     <% end %>
   </dd>
-</div>
+<% end %>

@@ -78,26 +78,26 @@
       <% end %>
     <% end %>
 
-    <%# Le comptable ne vaut que LMNP, et la CFE ne se saisit même pas : les notes le disent. %>
+    <%# Le comptable et la CFE ne pèsent que sur les régimes qui les paient : le serveur rend les
+        deux lignes et l'onglet fiscal n'ouvre que celles du régime choisi, total compris. %>
     <% Simulation::REGIME_CHARGES.each do |charge| %>
       <%= editable_detail simulation, charge, number_to_currency(simulation.public_send(charge)),
-          note: t("views.simulations.show.accounting_fees_hint") do |f| %>
+          regimes: regimes_paying(simulation, charge) do |f| %>
         <%= f.number_field charge, step: "0.01", min: "0", class: "form-control", required: true %>
       <% end %>
     <% end %>
 
-    <div class="detail-item">
-      <dt class="detail-label">
-        <%= t("views.simulations.show.business_tax") %>
-        <span class="detail-note"><%= t("views.simulations.show.business_tax_hint") %></span>
-      </dt>
+    <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regimes_paying(simulation, :business_tax)) do %>
+      <dt class="detail-label"><%= t("views.simulations.show.business_tax") %></dt>
       <dd class="detail-value"><%= number_to_currency(simulation.annual_business_tax) %></dd>
-    </div>
+    <% end %>
 
-    <div class="detail-item sum-total">
-      <dt class="detail-label"><%= t("views.simulations.show.annual_charges_total") %></dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.annual_charges) %></dd>
-    </div>
+    <% Taxation::NAMES.each do |regime| %>
+      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+        <dt class="detail-label"><%= t("views.simulations.show.annual_charges_total") %></dt>
+        <dd class="detail-value"><%= number_to_currency(annual_charges_under(simulation, regime)) %></dd>
+      <% end %>
+    <% end %>
   </dl>
 </div>
 </div>

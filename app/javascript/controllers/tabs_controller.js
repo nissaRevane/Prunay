@@ -2,10 +2,11 @@ import { Controller } from "@hotwired/stimulus"
 
 // Les panneaux d'une simulation sont tous rendus par le serveur — l'onglet ne fait que choisir
 // lequel se montre, sans aller-retour. Les régimes fiscaux partagent un onglet, et sa liste
-// déroulante les départage : le nom du régime choisi devient celui de l'onglet.
+// déroulante les départage : le nom du régime choisi devient celui de l'onglet, et les lignes
+// qu'un seul régime concerne ne s'ouvrent que sous le sien.
 export default class extends Controller {
-  static targets = ["tab", "panel", "regimeToggle", "regimeLabel", "options", "option"]
-  static values = { name: String }
+  static targets = ["tab", "panel", "regimeToggle", "regimeLabel", "options", "option", "regimeScoped"]
+  static values = { name: String, regime: String }
 
   connect() {
     this.render()
@@ -17,6 +18,7 @@ export default class extends Controller {
     if (this.isRegimeToggle(event.currentTarget) && name === this.nameValue) return this.toggleOptions()
 
     this.closeOptions()
+    if (this.isRegime(name)) this.regimeValue = name
     this.nameValue = name
     this.rememberTab(name)
   }
@@ -52,24 +54,40 @@ export default class extends Controller {
     this.render()
   }
 
+  regimeValueChanged() {
+    this.render()
+  }
+
   render() {
     this.showRegime()
     this.showPanel()
+    this.showRegimeScoped()
   }
 
   // L'onglet fiscal prend le nom, le libellé et le panneau du régime choisi.
   showRegime() {
     if (!this.hasRegimeToggleTarget) return
 
-    const chosen = this.optionTargets.find((option) => option.dataset.tabName === this.nameValue)
+    const chosen = this.optionTargets.find((option) => option.dataset.tabName === this.regimeValue)
 
     this.optionTargets.forEach((option) => option.setAttribute("aria-checked", option === chosen))
     if (!chosen) return
 
-    this.regimeToggleTarget.dataset.tabName = this.nameValue
-    this.regimeToggleTarget.id = `tab-${this.nameValue}`
-    this.regimeToggleTarget.setAttribute("aria-controls", `panel-${this.nameValue}`)
+    this.regimeToggleTarget.dataset.tabName = this.regimeValue
+    this.regimeToggleTarget.id = `tab-${this.regimeValue}`
+    this.regimeToggleTarget.setAttribute("aria-controls", `panel-${this.regimeValue}`)
     this.regimeLabelTarget.textContent = chosen.textContent.trim()
+  }
+
+  // Une ligne dit à quels régimes elle appartient ; le serveur les ferme toutes, le régime en ouvre.
+  showRegimeScoped() {
+    this.regimeScopedTargets.forEach((line) => {
+      line.hidden = !line.dataset.regimes.split(" ").includes(this.regimeValue)
+    })
+  }
+
+  isRegime(name) {
+    return this.optionTargets.some((option) => option.dataset.tabName === name)
   }
 
   showPanel() {

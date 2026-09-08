@@ -56,6 +56,17 @@ module SimulationsHelper
   # Le panneau d'un régime est titré par son entrée dans la liste déroulante, les autres par leur onglet.
   def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"
 
+  # Les régimes qu'un poste de charge concerne : la CFE ne vaut qu'au meublé, le comptable qu'au LMNP.
+  def regimes_paying(simulation, charge)
+    Taxation::NAMES.select { |name| simulation.taxation(name).own_charge_lines.key?(charge) }
+  end
+
+  # Une ligne que le régime ouvert seul mérite : le serveur les rend toutes, l'onglet fiscal choisit.
+  def regime_scope(regimes) = { tabs_target: "regimeScoped", regimes: Array(regimes).join(" ") }
+
+  # Ce que le régime paie en plus des charges que tous supportent : son total de l'année.
+  def annual_charges_under(simulation, regime) = simulation.annual_charges + simulation.taxation(regime).own_charges
+
   # Une courbe par régime sur la même mesure : les quatre projections sont déjà là, il n'y a
   # qu'à leur demander l'année après l'année.
   def comparison_chart(projections, measure)
@@ -67,10 +78,11 @@ module SimulationsHelper
 
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),
-                      label: Simulation.human_attribute_name(field), note: nil, value_class: nil, &block)
+                      label: Simulation.human_attribute_name(field), note: nil, value_class: nil,
+                      regimes: nil, &block)
     render(layout: "simulations/editable", locals: {
              simulation: simulation, label: label, note: note,
-             value: value, url: url, value_class: value_class
+             value: value, url: url, value_class: value_class, regimes: regimes
            }, &block)
   end
 

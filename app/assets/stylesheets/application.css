@@ -1147,6 +1147,11 @@ a.icon-btn:hover {
   text-align: right;
 }
 
+/* Une ligne qu'un seul régime fiscal concerne : l'onglet ouvert la referme. */
+.detail-item[hidden] {
+  display: none;
+}
+
 /* Une addition : des lignes, et le total sous un trait. */
 .sum-total {
   margin-top: 0.375rem;

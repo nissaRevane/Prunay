@@ -228,8 +228,6 @@ fr:
         economic_conditions_detail: Les conditions économiques
         annual_charges_total: Total des charges annuelles
         business_tax: CFE
-        business_tax_hint: meublé seulement
-        accounting_fees_hint: LMNP seulement
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
         not_provided: Non renseigné
