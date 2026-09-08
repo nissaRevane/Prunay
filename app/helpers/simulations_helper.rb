@@ -1,7 +1,11 @@
 module SimulationsHelper
   # Le nom sert de partiel, de traduction, d'identifiant de panneau et de paramètre `tab`.
   PARAMETERS_TAB = "parameters".freeze
+  AMORTIZATION_TAB = "amortization".freeze
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
+
+  # L'onglet fiscal n'a pas de panneau à lui : il ouvre celui du régime choisi dans sa liste.
+  TAXATION_TAB = "taxation".freeze
 
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
@@ -24,13 +28,28 @@ module SimulationsHelper
     [[t("views.simulations.show.answer_yes"), true], [t("views.simulations.show.answer_no"), false]]
   end
 
-  # Une projection par régime, et l'amortissement pour la seule simulation qui porte un crédit.
+  # La barre des onglets : un seul pour la fiscalité, et l'amortissement pour qui porte un crédit.
   def simulation_tabs(schedule)
-    tabs = [PARAMETERS_TAB] + Taxation::NAMES.map(&:to_s)
-    tabs << "amortization" if schedule
+    tabs = [PARAMETERS_TAB, TAXATION_TAB]
+    tabs << AMORTIZATION_TAB if schedule
 
     tabs << ECONOMIC_CONDITIONS_TAB
   end
+
+  # Un panneau par régime derrière l'onglet fiscal : le serveur les rend tous, un seul se montre.
+  def simulation_panels(schedule)
+    simulation_tabs(schedule).flat_map { |name| taxation_tab?(name) ? Taxation::NAMES.map(&:to_s) : name }
+  end
+
+  def taxation_tab?(name) = name == TAXATION_TAB
+
+  def taxation_regime?(name) = Taxation::NAMES.include?(name.to_sym)
+
+  # Le régime que l'onglet fiscal présente : celui d'où l'on revient, le réel à défaut.
+  def opened_regime(tab) = taxation_regime?(tab) ? tab.to_s : Taxation::REVIEW_REGIME.to_s
+
+  # Le panneau d'un régime est titré par son entrée dans la liste déroulante, les autres par leur onglet.
+  def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"
 
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),

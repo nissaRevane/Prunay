@@ -361,7 +361,7 @@ RSpec.describe "Simulations", type: :request do
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      expect(doc.at_css("#tab-micro_bic")).not_to be_nil
+      expect(doc.at_css("#regime-micro_bic")).not_to be_nil
       expect(cells).to eq([
         "1",
         "mar.-2026",
@@ -427,6 +427,21 @@ RSpec.describe "Simulations", type: :request do
         I18n.t("views.simulations.show.net_result") => currency(BigDecimal("2429.44")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("-4731.21")).gsub(/\s+/, " ")
       )
+    end
+
+    # La barre ne porte qu'un onglet fiscal, sur le foncier réel ; les autres régimes sont dans sa liste.
+    it "carries a single taxation tab, on the real regime, and the others in its dropdown" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      toggle = doc.at_css(".tabs .tab-select .tab")
+
+      expect(toggle["id"]).to eq("tab-foncier_reel")
+      expect(toggle.text.strip).to eq(I18n.t("views.simulations.show.tab_foncier_reel"))
+      expect(doc.css(".tab-select .tab-option").map { |option| option["data-tab-name"] })
+        .to eq(Taxation::NAMES.map(&:to_s))
+      expect(doc.at_css(".tab-select .tab-options")["hidden"]).not_to be_nil
+      expect(doc.at_css("#regime-foncier_reel")["aria-checked"]).to eq("true")
     end
 
     # `tab` rouvre l'onglet d'où l'on revient : son panneau est le seul que le serveur montre.
@@ -612,8 +627,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      # Les paramètres, un onglet par régime fiscal, et le contexte.
-      expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(Taxation::NAMES.size + 2)
+      # Les paramètres, la fiscalité et le contexte : les régimes n'en font qu'un.
+      expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(3)
     end
 
     describe "of a purchase financed by a credit" do
@@ -629,7 +644,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css("[data-controller=tabs] > .tabs > .tab").size).to eq(Taxation::NAMES.size + 3)
+        expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(4)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # La mensualité de la ligne est ce que la banque prélève, prime comprise.

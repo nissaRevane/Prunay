@@ -1,0 +1,21 @@
+<%# Un seul onglet pour la fiscalité : son libellé dit le régime ouvert, sa liste mène aux autres. %>
+<div class="tab-select">
+  <button type="button" class="tab" role="tab" id="tab-<%= regime %>"
+          aria-controls="panel-<%= regime %>" aria-selected="<%= regime == opened %>"
+          aria-haspopup="menu" aria-expanded="false"
+          data-tabs-target="tab regimeToggle" data-tab-name="<%= regime %>" data-action="click->tabs#select">
+    <span data-tabs-target="regimeLabel"><%= t("views.simulations.show.tab_#{regime}") %></span>
+    <span class="tab-caret" aria-hidden="true"></span>
+  </button>
+
+  <div class="tab-options" role="menu" aria-label="<%= t("views.simulations.show.regimes_menu") %>"
+       data-tabs-target="options" hidden>
+    <% Taxation::NAMES.each do |name| %>
+      <button type="button" class="tab-option" role="menuitemradio" id="regime-<%= name %>"
+              aria-checked="<%= name.to_s == regime %>"
+              data-tabs-target="option" data-tab-name="<%= name %>" data-action="click->tabs#select">
+        <%= t("views.simulations.show.tab_#{name}") %>
+      </button>
+    <% end %>
+  </div>
+</div>

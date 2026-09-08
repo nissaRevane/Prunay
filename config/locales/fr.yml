@@ -197,6 +197,7 @@ fr:
         tab_micro_bic: Micro-BIC
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
+        regimes_menu: Régimes fiscaux
         summary_html: "%{type} de %{surface} au %{address} à %{city}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
         purchase_past_html: "Acheté le %{date}."

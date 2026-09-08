@@ -1279,3 +1279,66 @@ a.icon-btn:hover {
 .tab-panel[hidden] {
   display: none;
 }
+
+/* La barre de la fiche porte une liste déroulante : elle ne peut pas se rogner. */
+.simulation-tabs {
+  overflow: visible;
+  flex-wrap: wrap;
+}
+
+.tab-select {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tab-select .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+}
+
+.tab-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 0.3125rem solid currentColor;
+  border-right: 0.25rem solid transparent;
+  border-left: 0.25rem solid transparent;
+}
+
+.tab-options {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  min-width: 100%;
+  padding: 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.tab-option {
+  display: block;
+  width: 100%;
+  padding: 0.4375rem 0.75rem;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  background: none;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab-option:hover {
+  background: var(--color-bg);
+}
+
+.tab-option[aria-checked="true"] {
+  color: var(--color-primary);
+}

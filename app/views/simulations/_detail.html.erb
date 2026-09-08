@@ -12,23 +12,29 @@
 </div>
 
 <%# Tous les panneaux sont rendus par le serveur ; `tab` dit lequel s'ouvre au chargement. %>
-<% tabs = simulation_tabs(schedule) %>
-<% opened = tabs.index(tab) || 0 %>
+<% panels = simulation_panels(schedule) %>
+<% opened = panels.include?(tab) ? tab : panels.first %>
 
-<div data-controller="tabs" data-tabs-index-value="<%= opened %>">
-  <div class="tabs" role="tablist">
-    <% tabs.each_with_index do |name, index| %>
-      <button type="button" class="tab" role="tab" id="tab-<%= name %>"
-              aria-controls="panel-<%= name %>" aria-selected="<%= index == opened %>"
-              data-tabs-target="tab" data-tabs-name-param="<%= name %>" data-action="click->tabs#select">
-        <%= t("views.simulations.show.tab_#{name}") %>
-      </button>
+<div data-controller="tabs" data-tabs-name-value="<%= opened %>"
+     data-action="click@window->tabs#closeOutside keydown.esc->tabs#closeOptions">
+  <div class="tabs simulation-tabs" role="tablist">
+    <% simulation_tabs(schedule).each do |name| %>
+      <% if taxation_tab?(name) %>
+        <%= render "simulations/regime_tab", regime: opened_regime(opened), opened: opened %>
+      <% else %>
+        <button type="button" class="tab" role="tab" id="tab-<%= name %>"
+                aria-controls="panel-<%= name %>" aria-selected="<%= name == opened %>"
+                data-tabs-target="tab" data-tab-name="<%= name %>" data-action="click->tabs#select">
+          <%= t("views.simulations.show.tab_#{name}") %>
+        </button>
+      <% end %>
     <% end %>
   </div>
 
-  <% tabs.each_with_index do |name, index| %>
-    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{name}", aria: { labelledby: "tab-#{name}" },
-                data: { tabs_target: "panel" }, hidden: index != opened do %>
+  <% panels.each do |name| %>
+    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{name}",
+                aria: { labelledby: panel_label_id(name) },
+                data: { tabs_target: "panel", tab_name: name }, hidden: name != opened do %>
       <%= render "simulations/#{name}", simulation: simulation, projections: projections, schedule: schedule %>
     <% end %>
   <% end %>
