@@ -2,25 +2,31 @@
     chaque année — le bien lui-même se lit dans l'en-tête de la fiche. Le prix, les frais de
     notaire et les travaux s'additionnent. Chaque valeur saisie se corrige d'un clic ; ce qui
     se calcule, lui, ne se clique pas. %>
-<dl class="sum">
-  <%= editable_detail simulation, :purchase_price, number_to_currency(simulation.purchase_price) do |f| %>
-    <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
-  <% end %>
-
-  <div class="detail-item">
-    <dt class="detail-label"><%= Simulation.human_attribute_name(:notary_fees) %></dt>
-    <dd class="detail-value"><%= number_to_currency(simulation.notary_fees) %></dd>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.purchase_detail") %></h2>
   </div>
 
-  <%= editable_detail simulation, :initial_works, number_to_currency(simulation.initial_works) do |f| %>
-    <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
-  <% end %>
+  <dl class="sum">
+    <%= editable_detail simulation, :purchase_price, number_to_currency(simulation.purchase_price) do |f| %>
+      <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
+    <% end %>
 
-  <div class="detail-item sum-total">
-    <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
-    <dd class="detail-value"><%= number_to_currency(simulation.total_investment) %></dd>
-  </div>
-</dl>
+    <div class="detail-item">
+      <dt class="detail-label"><%= Simulation.human_attribute_name(:notary_fees) %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.notary_fees) %></dd>
+    </div>
+
+    <%= editable_detail simulation, :initial_works, number_to_currency(simulation.initial_works) do |f| %>
+      <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
+    <% end %>
+
+    <div class="detail-item sum-total">
+      <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
+      <dd class="detail-value"><%= number_to_currency(simulation.total_investment) %></dd>
+    </div>
+  </dl>
+</div>
 
 <% if simulation.credit? %>
   <%= render "credit", simulation: simulation %>

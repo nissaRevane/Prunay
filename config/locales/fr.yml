@@ -206,6 +206,7 @@ fr:
         purchase_future_html: "Achat prévu le %{date}."
         address_not_provided: adresse non renseignée
         energy_rating_unknown: "?"
+        purchase_detail: L'achat
         credit_detail: Le crédit
         rental_detail: La location
         annual_rent_total: "Encaissé sur une année, charges comprises et vacance déduite"

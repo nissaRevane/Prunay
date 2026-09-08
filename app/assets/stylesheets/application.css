@@ -1085,7 +1085,6 @@ a.icon-btn:hover {
 /* Une addition : le montant à droite de chaque ligne, et le total sous un trait. */
 .sum {
   max-width: 28rem;
-  margin-bottom: 2rem;
 }
 
 .sum .detail-item {
