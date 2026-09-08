@@ -303,7 +303,6 @@ RSpec.describe Projection do
       expect(projection.years.first.property_value).to eq(200_000)
       expect(projection.years[1].property_value).to eq(202_000)
       expect(projection.years[2].property_value).to eq(204_020)
-      expect(projection.final_property_value).to eq(projection.years.last.property_value)
     end
 
     it "adds up what the years actually collected and paid" do
@@ -454,13 +453,6 @@ RSpec.describe Projection do
   describe "#final_immobilized_capital" do
     it "is what the last line shows" do
       expect(projection.final_immobilized_capital).to eq(projection.years.last.immobilized_capital)
-    end
-  end
-
-  # Un crédit qui s'éteint avant l'horizon rend les années inégales : le cumul se lit sur les lignes.
-  describe "#total_cash_flow" do
-    it "adds up every line" do
-      expect(projection.total_cash_flow).to eq(BigDecimal("7675.60") * 30)
     end
   end
 end

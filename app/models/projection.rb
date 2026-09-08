@@ -82,12 +82,8 @@ class Projection
 
   def total_taxes = years.sum(&:taxes)
 
-  def total_cash_flow = years.sum(&:cash_flow)
-
   # Négatif, l'investissement est récupéré.
   def final_immobilized_capital = years.last.immobilized_capital
-
-  def final_property_value = years.last.property_value
 
   def purchase_price = @simulation.purchase_price
 

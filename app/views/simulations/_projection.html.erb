@@ -35,16 +35,6 @@
     </table>
   </div>
 
-  <div class="section-total">
-    <span><%= t("views.simulations.show.total_cash_flow", years: Projection::HORIZON_YEARS) %></span>
-    <span><%= number_to_currency(projection.total_cash_flow) %></span>
-  </div>
-
-  <div class="section-total">
-    <span><%= t("views.simulations.show.final_property_value", years: Projection::HORIZON_YEARS) %></span>
-    <span><%= number_to_currency(projection.final_property_value) %></span>
-  </div>
-
   <%# Une fiche par année, sous deux angles : son compte de résultat et la revente qu'elle permettrait. %>
   <% projection.years.each do |year| %>
     <dialog class="statement" id="<%= projection.regime %>-year-<%= year.number %>-statement" data-projection-target="statement"
