@@ -7,7 +7,7 @@ module Simulations
   class StepsController < ApplicationController
     # Ce que chaque page a le droit de demander, et ce que le brouillon garde d'elle.
     STEP_ATTRIBUTES = {
-      "property" => [:property_type, :address, :city, :energy_rating, :surface, :condominium],
+      "property" => [:property_type, :address, :city, :energy_rating, :surface],
       "purchase" => [:purchase_price, :initial_works, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees, :early_repayment_fee],

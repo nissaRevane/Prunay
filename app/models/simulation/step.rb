@@ -23,10 +23,9 @@ module Simulation::Step
     condition.nil? || simulation.public_send(condition)
   end
 
-  # Ils se déduisent des réponses déjà données, y compris de celle que la page porte elle-même.
+  # Ils se déduisent des réponses déjà données : la première page n'en propose donc aucun.
   def defaults(name, simulation)
     case name.to_s
-    when "property" then property_defaults(simulation)
     when "purchase" then purchase_defaults(simulation)
     when "credit" then credit_defaults(simulation)
     when "rental" then rental_defaults(simulation)
@@ -34,9 +33,6 @@ module Simulation::Step
     else {}
     end
   end
-
-  # Un appartement est presque toujours en copropriété, une maison presque jamais.
-  def property_defaults(simulation) = { "condominium" => simulation.apartment? }
 
   def purchase_defaults(simulation)
     {
@@ -67,7 +63,7 @@ module Simulation::Step
   end
 
   def charge_defaults(simulation)
-    simulation.applicable_charges.to_h { |field| [field.to_s, simulation.estimate(field)] }
+    Simulation::ANNUAL_CHARGES.to_h { |field| [field.to_s, simulation.estimate(field)] }
   end
 
   # Zéro tant qu'aucun prix n'a été tapé : un dixième de rien ne veut rien dire.

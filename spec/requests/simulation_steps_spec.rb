@@ -15,18 +15,7 @@ RSpec.describe "Simulation steps", type: :request do
     Nokogiri::HTML(response.body).at_css("##{name}")["value"]
   end
 
-  # Un champ qu'aucune condition ne justifie reste dans la page, masqué et désactivé.
-  def asked_for?(name)
-    field = Nokogiri::HTML(response.body).at_css("##{name}")
-
-    !field.nil? && field["disabled"].nil?
-  end
-
-  def checked?(name)
-    !Nokogiri::HTML(response.body).at_css("##{name}")["checked"].nil?
-  end
-
-  PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50", condominium: "1" }.freeze
+  PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50" }.freeze
   # Un achat comptant : sans crédit, la page du crédit ne s'ouvre pas.
   PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
                credit: "0", down_payment: "0" }.freeze
@@ -35,7 +24,6 @@ RSpec.describe "Simulation steps", type: :request do
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
   # Le loyer se détaille : 1 000 € hors charges, et 150 € de provision par-dessus.
   RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11" }.freeze
-  # Le bien de PROPERTY est en copropriété : la page des charges lui demande celles de copro.
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
               management_fees: "0", rent_guarantee: "0", other_charges: "150" }.freeze
 
@@ -75,7 +63,7 @@ RSpec.describe "Simulation steps", type: :request do
       simulation = Simulation.last
       expect(response).to redirect_to(simulation)
       expect(simulation).to have_attributes(
-        user: user, property_type: "apartment", city: "Nantes", surface: 50, condominium: true,
+        user: user, property_type: "apartment", city: "Nantes", surface: 50,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
         monthly_rent: 1_000, monthly_charges: 150, occupancy_months: 11,
         property_tax: 700, insurance: 150, maintenance: 1_000, condominium_fees: 1_200,
@@ -186,23 +174,6 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
-  # Un appartement est presque toujours en copropriété : la case se propose cochée, sans obliger.
-  describe "the condominium the property page supposes" do
-    it "pre-checks the box for the apartment it opens on" do
-      get new_simulation_step_path(step: "property")
-
-      expect(checked?("simulation_condominium")).to be(true)
-    end
-
-    it "leaves an answer already given rather than proposing it again" do
-      submit("property", PROPERTY.merge(condominium: "0"))
-
-      get new_simulation_step_path(step: "property")
-
-      expect(checked?("simulation_condominium")).to be(false)
-    end
-  end
-
   describe "the amounts a page proposes" do
     before { submit("property", PROPERTY.merge(surface: "200")) }
 
@@ -224,7 +195,8 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_occupancy_months")).to eq("11")
     end
 
-    it "estimates every charge the property is asked for" do
+    # 200 m², quatre fois la référence : la racine carrée n'en double que les montants.
+    it "estimates every annual charge from the surface" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL)
 
@@ -246,18 +218,6 @@ RSpec.describe "Simulation steps", type: :request do
 
       expect(field_value("simulation_management_fees")).to eq("0")
       expect(field_value("simulation_rent_guarantee")).to eq("0")
-    end
-
-    # Hors copropriété, façade, toiture et communs n'incombent qu'au propriétaire : l'entretien double.
-    it "asks a property outside any condominium to carry its own maintenance" do
-      submit("property", PROPERTY.merge(surface: "200", condominium: "0"))
-      submit("purchase", PURCHASE)
-      submit("rental", RENTAL)
-
-      get new_simulation_step_path(step: "charges")
-
-      expect(field_value("simulation_maintenance")).to eq("4000")
-      expect(asked_for?("simulation_condominium_fees")).to be(false)
     end
 
     # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix.

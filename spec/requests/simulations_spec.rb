@@ -210,7 +210,7 @@ RSpec.describe "Simulations", type: :request do
     # Le détail se demande : replié sous chaque ligne, il en porte le calcul poste par poste.
     it "folds the calculation of each line under it, hidden until the detail is asked for" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
-                                    condominium: true, condominium_fees: 1_500, property_tax: 800,
+                                    condominium_fees: 1_500, property_tax: 800,
                                     marginal_tax_rate: 30)
 
       get simulation_path(let_out)
@@ -281,7 +281,7 @@ RSpec.describe "Simulations", type: :request do
     # Le tableau ne montre que le loyer hors charges, et la fiche des charges allégées d'autant.
     it "shows the rent excluding charges and says discreetly what the provision took off them" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
-                                    occupancy_months: 12, condominium: true, condominium_fees: 1_500)
+                                    occupancy_months: 12, condominium_fees: 1_500)
 
       get simulation_path(let_out)
 
@@ -299,7 +299,7 @@ RSpec.describe "Simulations", type: :request do
     # Le meublé déclare les 13 200 € encaissés et déduit ses 1 800 € de charges, sans note : il déduit tout.
     it "shows the rent charges included and the whole charges under the micro-BIC" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
-                                    occupancy_months: 12, condominium: true, condominium_fees: 1_500)
+                                    occupancy_months: 12, condominium_fees: 1_500)
 
       get simulation_path(let_out)
 
@@ -533,12 +533,6 @@ RSpec.describe "Simulations", type: :request do
       )
       expect(doc.at_css("#panel-parameters .sum .sum-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
-
-      # Le DPE est monté au titre : la copropriété reste seule à côté de l'addition.
-      facts = doc.css("#panel-parameters .facts .detail-item").to_h do |item|
-        [item.at_css(".detail-label").text.strip, item.at_css(".inline-edit-display").text.strip]
-      end
-      expect(facts).to eq(Simulation.human_attribute_name(:condominium) => I18n.t("views.simulations.show.answer_no"))
     end
 
     # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.
@@ -560,18 +554,14 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".section-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
-    # Une ligne à zéro se lirait comme une charge oubliée : seules les charges demandées s'affichent.
-    it "details only the charges the property is asked for" do
-      sole_owner = create(:simulation, user: user, condominium: false, property_tax: 700)
-
-      get simulation_path(sole_owner)
+    it "details every annual charge" do
+      get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
       labels = section.css(".detail-label").map { |label| label.text.strip }
 
-      expect(labels).to include(Simulation.human_attribute_name(:property_tax))
-      expect(labels).not_to include(Simulation.human_attribute_name(:condominium_fees))
+      expect(labels).to include(*Simulation::ANNUAL_CHARGES.map { |charge| Simulation.human_attribute_name(charge) })
     end
 
     # La CFE ne se saisit pas : une réserve au libellé dit qu'elle attend le meublé.

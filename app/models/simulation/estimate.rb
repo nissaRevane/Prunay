@@ -9,12 +9,10 @@ module Simulation::Estimate
     monthly_rent: 650,
     property_tax: 700,
     insurance: 150,
+    maintenance: 1_000,
     condominium_fees: 1_000,
     other_charges: 100
   }.freeze
-
-  # En copropriété les charges de copro portent déjà façade, toiture et communs — d'où le double.
-  MAINTENANCE_AMOUNTS = { condominium: 1_000, sole_owner: 2_000 }.freeze
 
   # Ce qui ne suit pas la surface : la provision se lit sur l'appel de charges, pas sur des mètres carrés.
   FIXED_AMOUNTS = { monthly_charges: 0, management_fees: 0, rent_guarantee: 0 }.freeze
@@ -28,22 +26,16 @@ module Simulation::Estimate
   module_function
 
   # La racine carrée, et non la proportion : un logement double ne se loue pas au double du prix.
-  def for(field, surface, condominium: false)
+  def for(field, surface)
     return FIXED_AMOUNTS.fetch(field) if FIXED_AMOUNTS.key?(field)
 
     surface = surface.to_f
     return 0 unless surface.positive?
 
-    round(reference(field, condominium: condominium) * Math.sqrt(surface / REFERENCE_SURFACE))
+    round(AMOUNTS.fetch(field) * Math.sqrt(surface / REFERENCE_SURFACE))
   end
 
   def down_payment(total_investment) = round(total_investment * DOWN_PAYMENT_SHARE)
 
   def round(amount) = (amount / ROUNDING).round * ROUNDING
-
-  def reference(field, condominium: false)
-    return MAINTENANCE_AMOUNTS.fetch(condominium ? :condominium : :sole_owner) if field == :maintenance
-
-    AMOUNTS.fetch(field)
-  end
 end

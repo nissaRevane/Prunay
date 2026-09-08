@@ -174,7 +174,7 @@ RSpec.describe Projection do
     # La provision rembourse une dépense : ni l'une ni l'autre ne se déclarent.
     it "deducts neither the provision for charges nor what it reimburses" do
       with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                              occupancy_months: 12, condominium: true,
+                                                              occupancy_months: 12,
                                                               condominium_fees: 1_200), :foncier_reel)
       year = with_provision.years[1]
 
@@ -237,7 +237,7 @@ RSpec.describe Projection do
     # 1 200 € de provision comptés en recettes : 600 € d'assiette de plus, et 111,60 € d'impôt.
     it "taxes the provision for charges that the foncier leaves out of the assessment" do
       with_provision = build(:simulation, monthly_rent: 800, monthly_charges: 100, occupancy_months: 12,
-                                          condominium: true, condominium_fees: 1_200)
+                                          condominium_fees: 1_200)
       rent_only = build(:simulation, monthly_rent: 800, occupancy_months: 12)
 
       expect(described_class.new(with_provision, :micro_bic).years[1].taxes).to eq(BigDecimal("1004.40"))
@@ -247,7 +247,7 @@ RSpec.describe Projection do
     # Ce que le meublé déclare : 10 800 € encaissés et 1 740 € de charges, CFE de 240 € comprise.
     it "reads the year charges included, the provision on both sides" do
       furnished = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                        occupancy_months: 12, condominium: true,
+                                                        occupancy_months: 12,
                                                         condominium_fees: 1_500), :micro_bic)
       year = furnished.years[1]
 
@@ -322,7 +322,7 @@ RSpec.describe Projection do
   # Le loyer déclaré ne compte pas la provision, et les charges déclarées la retranchent.
   it "declares neither the provision for charges nor what it reimburses" do
     with_provision = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
-                                                            occupancy_months: 12, condominium: true,
+                                                            occupancy_months: 12,
                                                             condominium_fees: 1_500), :micro_foncier)
     year = with_provision.years[1]
 
@@ -341,7 +341,7 @@ RSpec.describe Projection do
   end
 
   # Comptant, pas de banque à solder : le jour de l'achat les 236 612 € engagés dépassent de 36 612 € un bien à 200 000.
-  # 50 m² hors copropriété : 400 € de diagnostics et 500 € de remise en état s'y ajoutent.
+  # 50 m² : 400 € de diagnostics et 500 € de remise en état s'y ajoutent.
   describe "a sale simulated from a year" do
     it "owes nothing to a bank when the purchase was paid in cash" do
       origin = projection.years.first
@@ -386,13 +386,6 @@ RSpec.describe Projection do
       expect(inflating.years[10].sale_costs).to eq(BigDecimal("1097.09"))
     end
 
-    # L'état daté, que le syndic facture au vendeur, s'ajoute aux 900 € des autres frais.
-    it "adds the condominium statement to the costs of an apartment in a condominium" do
-      condominium = described_class.new(build(:simulation, condominium: true), :micro_foncier)
-
-      expect(condominium.years.first.sale_costs).to eq(1_280)
-    end
-
     # Trente ans de détention : l'abattement a tout effacé, barème comme prélèvements sociaux.
     it "taxes nothing of a gain the thirty years held have entirely abated" do
       growing = described_class.new(build(:simulation, purchase_price: 200_000, property_growth_rate: 3),
@@ -435,12 +428,11 @@ RSpec.describe Projection do
     end
 
     it "splits the sale costs, each inflated like the year that would sell" do
-      inflating = described_class.new(build(:simulation, condominium: true, inflation_rate: 2), :micro_foncier)
+      inflating = described_class.new(build(:simulation, inflation_rate: 2), :micro_foncier)
 
-      # 400 € de diagnostics, 500 € de remise en état pour 50 m² et 380 € d'état daté, 2 % une fois.
+      # 400 € de diagnostics et 500 € de remise en état pour 50 m², 2 % une fois.
       expect(inflating.sale_cost_lines(inflating.year(1)))
-        .to eq(diagnostics: BigDecimal("408"), refurbishment: BigDecimal("510"),
-               condominium_statement: BigDecimal("387.60"))
+        .to eq(diagnostics: BigDecimal("408"), refurbishment: BigDecimal("510"))
     end
 
     it "separates the insurance premium from the interest the annuity charges with it" do

@@ -89,9 +89,6 @@ class Projection
 
   def final_property_value = years.last.property_value
 
-  # L'état daté n'est dû qu'en copropriété : la fiche le dit dans la note des frais de revente.
-  def condominium? = @simulation.condominium?
-
   def purchase_price = @simulation.purchase_price
 
   def occupancy_months = @simulation.occupancy_months
@@ -110,7 +107,7 @@ class Projection
   def charge_lines(year)
     return {} if year.number.zero?
 
-    lines = @simulation.applicable_charges.index_with do |field|
+    lines = Simulation::ANNUAL_CHARGES.index_with do |field|
       indexed(@simulation.public_send(field), @simulation.inflation_rate, year)
     end
 
@@ -120,8 +117,7 @@ class Projection
   # Les frais de revente suivent l'inflation depuis la signature, l'année de vente comprise.
   def sale_cost_lines(year)
     costs = @simulation.sale_costs
-    lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment,
-              condominium_statement: costs.condominium_statement }
+    lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment }
 
     without_zeros(lines.transform_values { |amount| compound(amount, @simulation.inflation_rate, year.number) })
   end

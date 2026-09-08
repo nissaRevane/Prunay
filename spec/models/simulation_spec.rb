@@ -139,21 +139,12 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#annual_charges" do
-    it "adds up the charges the property is asked for" do
-      simulation = build(:simulation, condominium: true,
-                                      property_tax: 700, insurance: 150, maintenance: 1_000,
+    it "adds up every charge the property carries" do
+      simulation = build(:simulation, property_tax: 700, insurance: 150, maintenance: 1_000,
                                       condominium_fees: 1_200, management_fees: 600, rent_guarantee: 300,
                                       other_charges: 100)
 
       expect(simulation.annual_charges).to eq(4_050)
-    end
-
-    # Une charge qu'aucune condition ne justifie est ramenée à zéro avant l'enregistrement.
-    it "ignores what the property is not asked for" do
-      simulation = create(:simulation, condominium: false, property_tax: 700, condominium_fees: 1_200)
-
-      expect(simulation.annual_charges).to eq(700)
-      expect(simulation).to have_attributes(condominium_fees: 0)
     end
   end
 
@@ -164,23 +155,6 @@ RSpec.describe Simulation, type: :model do
 
       expect(simulation.annual_business_tax).to eq(240)
       expect(simulation.annual_charges).to eq(700)
-    end
-  end
-
-  # Les charges de copropriété ne se demandent qu'à un bien en copropriété.
-  describe "the charges a condition governs" do
-    it "asks a condominium for its fees, and a property outside one for nothing of the sort" do
-      expect(build(:simulation, condominium: true).applicable_charges).to include(:condominium_fees)
-      expect(build(:simulation, condominium: false).applicable_charges).not_to include(:condominium_fees)
-    end
-
-    # Un montant que le formulaire ne montre plus ne doit pas continuer de peser sur la projection.
-    it "clears an amount its condition no longer justifies" do
-      simulation = create(:simulation, condominium: true, condominium_fees: 1_200)
-
-      simulation.update(condominium: false)
-
-      expect(simulation.reload.condominium_fees).to eq(0)
     end
   end
 
@@ -270,7 +244,7 @@ RSpec.describe Simulation, type: :model do
   # La provision n'est pas un revenu et la dépense qu'elle rembourse n'est pas déductible.
   describe "#annual_charges_excluding_provision" do
     it "takes the provision the tenant reimburses out of the charges" do
-      let_out = build(:simulation, monthly_charges: 100, occupancy_months: 12, condominium: true,
+      let_out = build(:simulation, monthly_charges: 100, occupancy_months: 12,
                                    property_tax: 700, condominium_fees: 1_500)
 
       expect(let_out.annual_provision_for_charges).to eq(1_200)
@@ -279,7 +253,7 @@ RSpec.describe Simulation, type: :model do
 
     it "is what the foncier réel deducts from the rent excluding charges" do
       let_out = build(:simulation, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
-                                   condominium: true, condominium_fees: 1_500)
+                                   condominium_fees: 1_500)
 
       expect(let_out.taxation(:foncier_reel).taxable_income).to eq(12_000 - 300)
     end

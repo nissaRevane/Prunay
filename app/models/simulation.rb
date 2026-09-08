@@ -7,9 +7,6 @@ class Simulation < ApplicationRecord
   PROPERTY_TYPES = %w[apartment house parking building].freeze
   ENERGY_RATINGS = %w[A B C D E F G].freeze
 
-  # Le seul type de bien que l'on suppose en copropriété.
-  APARTMENT = "apartment"
-
   # Les charges annuelles, groupées comme le formulaire les demande : l'ordre est le sien.
   CHARGE_GROUPS = {
     ownership: %i[property_tax insurance maintenance condominium_fees],
@@ -18,9 +15,6 @@ class Simulation < ApplicationRecord
   }.freeze
 
   ANNUAL_CHARGES = CHARGE_GROUPS.values.flatten.freeze
-
-  # Une maison n'a pas de charges de copropriété : c'est la seule charge qu'une condition gouverne.
-  CHARGE_CONDITIONS = { condominium_fees: :condominium? }.freeze
 
   # Droits, émoluments et débours suivent le prix d'assez près pour qu'une droite en tienne lieu.
   NOTARY_FEES_RATE = BigDecimal("0.0742")
@@ -36,7 +30,6 @@ class Simulation < ApplicationRecord
   belongs_to :user
 
   # Un montant que le formulaire ne montre plus ne doit pas continuer de peser sur la projection.
-  before_validation :clear_inapplicable_charges
   before_validation :clear_loan_without_credit
 
   # Un crédit abandonné ne doit pas survivre à la case qui le déclarait.
@@ -80,7 +73,6 @@ class Simulation < ApplicationRecord
             numericality: { greater_than: 0, less_than_or_equal_to: MONTHS_PER_YEAR },
             on: [:create, :update, :rental]
 
-  # Toutes sont exigées : `clear_inapplicable_charges` a déjà ramené à zéro celles qu'on masque.
   validates(*ANNUAL_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
@@ -99,17 +91,7 @@ class Simulation < ApplicationRecord
 
   def defaults_for(step) = Step.defaults(step, self)
 
-  def estimate(field) = Estimate.for(field, surface, condominium: condominium?)
-
-  def apartment? = property_type == APARTMENT
-
-  def applicable_charges = ANNUAL_CHARGES.select { |field| charge_applicable?(field) }
-
-  def charge_applicable?(field)
-    condition = CHARGE_CONDITIONS[field.to_sym]
-
-    condition.nil? || public_send(condition)
-  end
+  def estimate(field) = Estimate.for(field, surface)
 
   # Rien à saisir, rien à stocker : le bien se nomme par son type, sa ville et sa surface.
   def name
@@ -157,8 +139,7 @@ class Simulation < ApplicationRecord
   # La provision que le locataire rembourse par-dessus le loyer, et que la copropriété reprend.
   def annual_provision_for_charges = monthly_charges * occupancy_months
 
-  # Les autres sont à zéro de toute façon, mais les exclure dit mieux ce que le total recouvre.
-  def annual_charges = applicable_charges.sum { |field| public_send(field) }
+  def annual_charges = ANNUAL_CHARGES.sum { |field| public_send(field) }
 
   # La provision remboursée est ôtée : les dépenses qu'elle couvre ne se déclarent pas plus qu'elle.
   def annual_charges_excluding_provision = annual_charges - annual_provision_for_charges
@@ -179,8 +160,8 @@ class Simulation < ApplicationRecord
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
 
-  # Diagnostics, remise en état, état daté : ce que la revente coûte avant même la plus-value.
-  def sale_costs = SaleCosts.new(surface: surface, condominium: condominium?)
+  # Diagnostics et remise en état : ce que la revente coûte avant même la plus-value.
+  def sale_costs = SaleCosts.new(surface: surface)
 
   # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la détention.
   def capital_gain_taxation(sale_price, held_years)
@@ -197,8 +178,6 @@ class Simulation < ApplicationRecord
   private
 
   def short_city = city.to_s.strip.first(NAME_CITY_LENGTH)
-
-  def clear_inapplicable_charges = (ANNUAL_CHARGES - applicable_charges).each { |field| self[field] = 0 }
 
   def clear_loan_without_credit
     return if credit?

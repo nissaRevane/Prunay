@@ -22,7 +22,6 @@ fr:
         city: Ville
         energy_rating: DPE
         surface: "Surface (m²)"
-        condominium: Copropriété
         purchase_date: "Date d'achat"
         purchase_price: "Prix d'achat"
         notary_fees: Frais de notaire
@@ -283,7 +282,6 @@ fr:
         detail_property_growth: "Revalorisation depuis l'achat"
         detail_diagnostics: Diagnostics
         detail_refurbishment: Remise en état
-        detail_condominium_statement: État daté
         detail_fiscal_value: Valeur fiscale du bien
         detail_capital_gain: Plus-value brute
         detail_capital_gain_income_tax: "Impôt (%{rate}, abattement de %{allowance})"
@@ -293,7 +291,6 @@ fr:
         sale_property_value: Valeur du bien
         sale_costs: Frais de revente
         sale_costs_note: "diagnostics et remise en état"
-        sale_costs_note_condominium: "diagnostics, remise en état et état daté"
         sale_early_repayment_fee: "Indemnité de remboursement anticipé"
         sale_capital_gain_tax: Impôt sur la plus-value
         sale_capital_gain_note: "plus-value de %{amount}"

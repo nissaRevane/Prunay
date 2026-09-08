@@ -32,11 +32,6 @@ module SimulationsHelper
     tabs << ECONOMIC_CONDITIONS_TAB
   end
 
-  # Le prédicat du modèle sans son point d'interrogation ; nil quand rien ne conditionne la charge.
-  def charge_condition_name(field)
-    Simulation::CHARGE_CONDITIONS[field]&.to_s&.delete("?")
-  end
-
   # Une valeur modifiable au clic : le libellé vient du modèle, le champ du bloc.
   def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),
                       value_class: nil, &block)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000015) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000016) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,7 +37,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000015) do
     t.string "city", default: "", null: false
     t.string "energy_rating"
     t.decimal "surface", precision: 8, scale: 2, null: false
-    t.boolean "condominium", default: false, null: false
     t.decimal "initial_works", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
     t.decimal "property_tax", precision: 12, scale: 2, default: "0.0", null: false

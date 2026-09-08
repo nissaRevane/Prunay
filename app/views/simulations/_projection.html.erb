@@ -159,7 +159,7 @@
           <span class="statement-label">
             <%= t("views.simulations.show.sale_costs") %>
             <span class="statement-note">
-              <%= t("views.simulations.show.sale_costs_note#{"_condominium" if projection.condominium?}") %>
+              <%= t("views.simulations.show.sale_costs_note") %>
             </span>
           </span>
           <span class="statement-amount"><%= number_to_currency(-year.sale_costs) %></span>

@@ -16,11 +16,9 @@ RSpec.describe Simulation::Step do
   end
 
   describe ".defaults" do
-    # La page du bien ne propose que ce que son type lui dicte : le reste est ce qu'elle demande.
-    it "supposes an apartment is in a condominium, and no other property" do
-      expect(described_class.defaults("property", draft(surface: 50))).to eq("condominium" => true)
-      expect(described_class.defaults("property", draft(property_type: "house")))
-        .to eq("condominium" => false)
+    # La première page n'a aucune réponse derrière elle : rien à en déduire.
+    it "proposes nothing on the property page" do
+      expect(described_class.defaults("property", draft(surface: 50))).to eq({})
     end
 
     it "dates the purchase three months out and assumes no works" do
@@ -58,21 +56,13 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("rental", draft(surface: 50))["occupancy_months"]).to eq(11)
     end
 
-    # Un bien hors copropriété : pas de charges de copro, et un entretien doublé.
-    it "estimates every charge the property is asked for" do
-      sole_owner = draft(surface: 50, condominium: false)
-
-      expect(described_class.defaults("charges", sole_owner)).to eq(
-        "property_tax" => 700, "insurance" => 150, "maintenance" => 2_000,
-        "management_fees" => 0, "rent_guarantee" => 0,
+    # 50 m², la surface de référence : chaque charge y vaut son montant plein.
+    it "estimates every annual charge" do
+      expect(described_class.defaults("charges", draft(surface: 50))).to eq(
+        "property_tax" => 700, "insurance" => 150, "maintenance" => 1_000,
+        "condominium_fees" => 1_000, "management_fees" => 0, "rent_guarantee" => 0,
         "other_charges" => 100
       )
-    end
-
-    it "asks a condominium for its fees, and halves the maintenance it no longer carries alone" do
-      defaults = described_class.defaults("charges", draft(surface: 50, condominium: true))
-
-      expect(defaults).to include("condominium_fees" => 1_000, "maintenance" => 1_000)
     end
   end
 end

@@ -11,14 +11,9 @@ RSpec.describe Simulation::Estimate do
     it "rounds to the nearest ten euros" do
       expect(described_class.for(:property_tax, 30)).to eq(540)
       expect(described_class.for(:insurance, 30)).to eq(120)
+      expect(described_class.for(:maintenance, 30)).to eq(770)
       expect(described_class.for(:condominium_fees, 30)).to eq(770)
       expect(described_class.for(:other_charges, 30)).to eq(80)
-    end
-
-    # La copropriété porte déjà façade, toiture et communs ; le propriétaire seul les porte toutes.
-    it "doubles the maintenance of a property no condominium looks after" do
-      expect(described_class.for(:maintenance, 50, condominium: true)).to eq(1_000)
-      expect(described_class.for(:maintenance, 50)).to eq(2_000)
     end
 
     # Ni gestion déléguée ni garantie des loyers impayés ne se supposent : on les propose à zéro.

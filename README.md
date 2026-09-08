@@ -80,14 +80,7 @@ docker compose run --rm web bundle exec rspec
   the surface and rounded to the nearest ten euros — orders of magnitude to correct, not a
   calculation. Three of them do not follow the surface at all: an accountant's fee is flat,
   and a letting agent or a rent guarantee is proposed at zero because neither can be
-  assumed. Maintenance reads two references instead of one: doubled when no condominium
-  already carries the façade, the roof and the common parts.
-- **Charges asked for under a condition:** the condominium fees are only asked of a
-  property in a condominium, and the business tax (CFE) and the accountant only of a
-  furnished letting (`Simulation::CHARGE_CONDITIONS`). A charge whose condition falls away
-  goes back to zero before the record is saved, so an amount the form no longer shows never
-  weighs on the projection — and the simulation page details only the charges the property
-  is actually asked for.
+  assumed.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page — proposed at a tenth of the project cost, recomputed in the browser as the price is
   typed — and the credit page asks only for a rate, a duration and the borrower's insurance
@@ -165,8 +158,7 @@ docker compose run --rm web bundle exec rspec
   property, before the bank is cleared.
   Selling costs something before it is taxed (`SaleCosts`): the mandatory diagnostics, a flat
   400 € whatever the property, putting it back in order, 500 € for 50 m² and the square root of
-  the surface from there — twice the surface is not twice the work — and, in a condominium
-  alone, the 380 € the syndic charges the seller for the état daté. No agency: the property is
+  the surface from there — twice the surface is not twice the work. No agency: the property is
   supposed to be sold between individuals. The costs are deducted from the price in the sale
   view, above the capital gain tax, and they inflate year by year like every other expense of
   the projection. They do not lower the taxable gain: only an agency commission would, and
@@ -238,7 +230,7 @@ spec/
   `EconomicConditions.for` stands in for it until then.
 - **Simulation** — belongs to a user, and has no name of its own: it reads as
   "Appartement à Nantes", from its type and its city.
-  - *the property:* property_type, address, city, energy_rating, surface, condominium
+  - *the property:* property_type, address, city, energy_rating, surface
   - *the purchase:* purchase_price, initial_works, purchase_date
   - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance —
     the capital borrowed, the monthly payment and the amortization schedule are derived from

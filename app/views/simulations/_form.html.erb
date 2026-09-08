@@ -2,21 +2,19 @@
     seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
     l'assistant. %>
 <%= form_with(model: simulation, class: "form",
-                  data: { controller: "charges credit",
+                  data: { controller: "credit",
                           credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f,
                           credit_base_value: Simulation::NOTARY_FEES_BASE,
                           credit_share_value: Simulation::Estimate::DOWN_PAYMENT_SHARE.to_f,
                           credit_rounding_value: Simulation::Estimate::ROUNDING }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
-  <fieldset class="form-fieldset" data-controller="condominium"
-            data-condominium-type-value="<%= Simulation::APARTMENT %>">
+  <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.property.title") %></legend>
 
     <div class="form-group">
       <%= f.label :property_type %>
-      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true,
-          data: { condominium_target: "propertyType", action: "change->condominium#suggest" } %>
+      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true %>
     </div>
 
     <div class="form-row">
@@ -41,12 +39,6 @@
         <%= f.label :energy_rating %>
         <%= f.select :energy_rating, energy_rating_options, { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control" %>
       </div>
-    </div>
-
-    <div class="form-group form-check">
-      <%= f.check_box :condominium, data: { charges_target: "condominium", condominium_target: "checkbox",
-                                            action: "change->charges#refresh" } %>
-      <%= f.label :condominium %>
     </div>
   </fieldset>
 

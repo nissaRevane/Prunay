@@ -3,12 +3,6 @@ import { application } from "controllers/application"
 import AlertController from "controllers/alert_controller"
 application.register("alert", AlertController)
 
-import ChargesController from "controllers/charges_controller"
-application.register("charges", ChargesController)
-
-import CondominiumController from "controllers/condominium_controller"
-application.register("condominium", CondominiumController)
-
 import CreditController from "controllers/credit_controller"
 application.register("credit", CreditController)
 

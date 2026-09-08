@@ -1082,19 +1082,10 @@ a.icon-btn:hover {
   font-size: inherit;
 }
 
-/* Le compte et les caractéristiques côte à côte tant que l'écran le permet, l'un sous l'autre sinon. */
-.columns {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1.5rem 4rem;
-  margin-bottom: 2rem;
-}
-
 /* Une addition : le montant à droite de chaque ligne, et le total sous un trait. */
 .sum {
-  flex: 1 1 20rem;
   max-width: 28rem;
+  margin-bottom: 2rem;
 }
 
 .sum .detail-item {
@@ -1130,12 +1121,6 @@ a.icon-btn:hover {
 
 .sum-total .detail-label {
   color: var(--color-text);
-}
-
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 2.5rem;
 }
 
 /* Responsive */
