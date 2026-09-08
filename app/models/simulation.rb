@@ -146,6 +146,8 @@ class Simulation < ApplicationRecord
 
   def annual_rent_excluding_charges_under(regime) = monthly_rent_under(regime) * occupancy_months
 
+  def annual_rent_under(regime) = annual_rent_excluding_charges_under(regime) + annual_provision_for_charges
+
   # La provision que le locataire rembourse par-dessus le loyer, et que la copropriété reprend.
   def annual_provision_for_charges = monthly_charges * occupancy_months
 

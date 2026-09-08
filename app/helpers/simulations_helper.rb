@@ -61,6 +61,12 @@ module SimulationsHelper
     Taxation::NAMES.select { |name| simulation.taxation(name).own_charge_lines.key?(charge) }
   end
 
+  # Les régimes qui majorent le loyer saisi : le meublé se loue plus cher que le nu.
+  def regimes_with_rent_premium = Taxation::NAMES.select { |name| Taxation.rent_premium_rate(name).positive? }
+
+  # La prime du meublé telle que la fiche l'annonce, à côté du loyer qu'elle majore.
+  def rent_premium_label(regime) = rate_label(Taxation.rent_premium_rate(regime))
+
   # Une ligne que le régime ouvert seul mérite : le serveur les rend toutes, l'onglet fiscal choisit.
   def regime_scope(regimes) = { tabs_target: "regimeScoped", regimes: Array(regimes).join(" ") }
 

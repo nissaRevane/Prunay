@@ -222,6 +222,8 @@ fr:
         credit_detail: Le crédit
         insurance_included: "dont %{amount} d'assurance"
         rental_detail: La location
+        furnished_rent: Loyer meublé
+        furnished_rent_hint: prime de %{rate} sur le nu
         annual_rent_total: Encaissé sur une année
         annual_rent_total_hint: charges comprises, vacance déduite
         charges_detail: Les charges annuelles

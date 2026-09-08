@@ -605,6 +605,29 @@ RSpec.describe "Simulations", type: :request do
       expect(section.at_css(".sum-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
+    # Le loyer saisi est celui d'un nu : le meublé lit le sien, majoré, sous ses deux régimes.
+    it "reads the rent raised by the premium under the furnished regimes" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.rental_detail") }
+      premiums = section.css(".detail-item").select { |node| node.at_css(".detail-label").text.include?(I18n.t("views.simulations.show.furnished_rent")) }
+      totals = section.css(".sum-total").to_h do |node|
+        [node["data-regimes"], node.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      # 1 000 € majorés de 5 % font 1 050 €, et onze mois loués 11 550 €.
+      expect(premiums.map { |node| node["data-regimes"] }).to eq(["micro_bic", "lmnp"])
+      expect(premiums.map { |node| node.at_css(".detail-value").text.gsub(/\s+/, " ").strip })
+        .to eq([currency(1_050).gsub(/\s+/, " ")] * 2)
+      expect(totals).to eq(
+        "micro_foncier" => currency(11_000).gsub(/\s+/, " "),
+        "foncier_reel" => currency(11_000).gsub(/\s+/, " "),
+        "micro_bic" => currency(11_550).gsub(/\s+/, " "),
+        "lmnp" => currency(11_550).gsub(/\s+/, " ")
+      )
+    end
+
     it "details every annual charge" do
       get simulation_path(simulation)
 

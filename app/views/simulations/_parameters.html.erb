@@ -47,6 +47,17 @@
       <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
+    <%# Le loyer se saisit nu : les régimes du meublé le relisent majoré de leur prime. %>
+    <% regimes_with_rent_premium.each do |regime| %>
+      <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regime) do %>
+        <dt class="detail-label">
+          <%= t("views.simulations.show.furnished_rent") %>
+          <span class="detail-note"><%= t("views.simulations.show.furnished_rent_hint", rate: rent_premium_label(regime)) %></span>
+        </dt>
+        <dd class="detail-value text-success"><%= number_to_currency(simulation.monthly_rent_under(regime)) %></dd>
+      <% end %>
+    <% end %>
+
     <%= editable_detail simulation, :monthly_charges, number_to_currency(simulation.monthly_charges) do |f| %>
       <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -56,13 +67,15 @@
           class: "form-control", required: true %>
     <% end %>
 
-    <div class="detail-item sum-total">
-      <dt class="detail-label">
-        <%= t("views.simulations.show.annual_rent_total") %>
-        <span class="detail-note"><%= t("views.simulations.show.annual_rent_total_hint") %></span>
-      </dt>
-      <dd class="detail-value"><%= number_to_currency(simulation.annual_rent) %></dd>
-    </div>
+    <% Taxation::NAMES.each do |regime| %>
+      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+        <dt class="detail-label">
+          <%= t("views.simulations.show.annual_rent_total") %>
+          <span class="detail-note"><%= t("views.simulations.show.annual_rent_total_hint") %></span>
+        </dt>
+        <dd class="detail-value"><%= number_to_currency(simulation.annual_rent_under(regime)) %></dd>
+      <% end %>
+    <% end %>
   </dl>
 </div>
 
