@@ -48,10 +48,12 @@ module SimulationsHelper
 
   def taxation_tab?(name) = name == TAXATION_TAB
 
-  def taxation_regime?(name) = Taxation::NAMES.include?(name.to_sym)
+  def taxation_regime?(name) = Taxation::NAMES.include?(name.to_s.to_sym)
 
-  # Le régime que l'onglet fiscal présente : celui d'où l'on revient, le réel à défaut.
-  def opened_regime(tab) = taxation_regime?(tab) ? tab.to_s : Taxation::REVIEW_REGIME.to_s
+  # Le régime que l'onglet fiscal présente : celui de l'onglet ouvert, celui d'où l'on revient, le réel à défaut.
+  def opened_regime(tab, regime)
+    [tab, regime].find { |name| taxation_regime?(name) }&.to_s || Taxation::REVIEW_REGIME.to_s
+  end
 
   # Le panneau d'un régime est titré par son entrée dans la liste déroulante, les autres par leur onglet.
   def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"
@@ -85,7 +87,7 @@ module SimulationsHelper
   end
 
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
-  def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),
+  def editable_detail(simulation, field, value, url: parameters_url(simulation),
                       label: Simulation.human_attribute_name(field), note: nil, value_class: nil,
                       regimes: nil, &block)
     render(layout: "simulations/editable", locals: {
@@ -101,7 +103,7 @@ module SimulationsHelper
       tag.span(value, class: class_names("inline-edit-display", display_class),
                title: Simulation.human_attribute_name(field), role: "button", tabindex: 0,
                data: { inline_edit_target: "display", action: WORD_ACTIONS }) +
-        inline_edit_form(simulation, simulation_path(simulation, tab: PARAMETERS_TAB), &block)
+        inline_edit_form(simulation, parameters_url(simulation), &block)
     end
   end
 
@@ -118,6 +120,9 @@ module SimulationsHelper
                { include_blank: t("views.simulations.steps.property.energy_rating_blank") }, class: "form-control"
     end
   end
+
+  # Une correction rouvre la fiche sur ses paramètres, et l'onglet fiscal sur le régime d'où elle part.
+  def parameters_url(simulation) = simulation_path(simulation, tab: PARAMETERS_TAB, regime: params[:regime])
 
   # Le formulaire d'une valeur corrigée d'un clic : il part seul au changement, sans bouton.
   def inline_edit_form(simulation, url, &block)

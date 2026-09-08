@@ -15,12 +15,14 @@
 <% panels = simulation_panels(schedule) %>
 <% opened = panels.include?(tab) ? tab : panels.first %>
 
-<div data-controller="tabs" data-tabs-name-value="<%= opened %>" data-tabs-regime-value="<%= opened_regime(opened) %>"
+<% shown_regime = opened_regime(opened, regime) %>
+
+<div data-controller="tabs" data-tabs-name-value="<%= opened %>" data-tabs-regime-value="<%= shown_regime %>"
      data-action="click@window->tabs#closeOutside keydown.esc->tabs#closeOptions">
   <div class="tabs simulation-tabs" role="tablist">
     <% simulation_tabs(schedule).each do |name| %>
       <% if taxation_tab?(name) %>
-        <%= render "simulations/regime_tab", regime: opened_regime(opened), opened: opened %>
+        <%= render "simulations/regime_tab", regime: shown_regime, opened: opened %>
       <% else %>
         <button type="button" class="tab" role="tab" id="tab-<%= name %>"
                 aria-controls="panel-<%= name %>" aria-selected="<%= name == opened %>"

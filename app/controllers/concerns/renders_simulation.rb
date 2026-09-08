@@ -4,14 +4,15 @@
 module RendersSimulation
   private
 
-  def assign_detail(tab = params[:tab])
+  def assign_detail(tab = params[:tab], regime = params[:regime])
     @tab = tab
+    @regime = regime
     @projections = @simulation.projections
     @schedule = @simulation.loan.schedule
   end
 
-  def render_detail(tab = params[:tab])
-    assign_detail(tab)
+  def render_detail(tab = params[:tab], regime = params[:regime])
+    assign_detail(tab, regime)
 
     render "simulations/update"
   end

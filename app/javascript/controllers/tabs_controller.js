@@ -20,14 +20,15 @@ export default class extends Controller {
     this.closeOptions()
     if (this.isRegime(name)) this.regimeValue = name
     this.nameValue = name
-    this.rememberTab(name)
+    this.remember()
   }
 
-  // L'onglet ouvert vit dans l'URL : recharger la page rouvre le même.
-  rememberTab(name) {
+  // L'onglet ouvert et le régime choisi vivent dans l'URL : recharger la page les rouvre.
+  remember() {
     const url = new URL(window.location)
 
-    url.searchParams.set("tab", name)
+    url.searchParams.set("tab", this.nameValue)
+    if (this.hasRegimeToggleTarget) url.searchParams.set("regime", this.regimeValue)
     history.replaceState(history.state, "", url)
   }
 

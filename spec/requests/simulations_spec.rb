@@ -490,6 +490,30 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
+    # `regime` rouvre l'onglet fiscal sur le régime choisi, même depuis un autre onglet.
+    it "opens the taxation tab on the regime that regime names" do
+      get simulation_path(simulation, tab: "parameters", regime: "lmnp")
+
+      doc = Nokogiri::HTML(response.body)
+      toggle = doc.at_css(".tabs .tab-select .tab")
+
+      expect(toggle["id"]).to eq("tab-lmnp")
+      expect(toggle.text.strip).to eq(I18n.t("views.simulations.show.tab_lmnp"))
+      expect(doc.at_css("#regime-lmnp")["aria-checked"]).to eq("true")
+      # Le panneau ouvert reste celui de l'onglet : le régime n'en change pas.
+      expect(doc.at_css("#panel-parameters")["hidden"]).to be_nil
+    end
+
+    # Une valeur corrigée revient sur les paramètres sans perdre le régime d'où elle part.
+    it "carries the opened regime in the url of an editable value" do
+      get simulation_path(simulation, tab: "parameters", regime: "lmnp")
+
+      doc = Nokogiri::HTML5(response.body)
+      form = doc.at_css("#panel-parameters .inline-edit-form")
+
+      expect(form["action"]).to eq(simulation_path(simulation, tab: "parameters", regime: "lmnp"))
+    end
+
     # L'en-tête dit le bien : une phrase dont chaque mot saisi se clique, sous le nom de la fiche.
     # HTML5 parse comme le navigateur : un formulaire dans un paragraphe le fermerait, et la phrase avec.
     it "presents the property in a sentence under the name of the simulation" do

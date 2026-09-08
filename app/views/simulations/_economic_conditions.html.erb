@@ -6,7 +6,7 @@
     <h2><%= t("views.simulations.show.economic_conditions_detail") %></h2>
   </div>
 
-  <% url = simulation_economic_conditions_path(simulation) %>
+  <% url = simulation_economic_conditions_path(simulation, regime: params[:regime]) %>
 
   <dl class="detail-grid">
     <% EconomicConditions::RATES.each do |rate| %>
