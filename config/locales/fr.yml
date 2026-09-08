@@ -201,8 +201,10 @@ fr:
         tab_micro_bic: Micro-BIC
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
-        summary_html: "%{type} de %{surface} au %{address} à %{city}. Acheté le %{date}."
-        summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}. Acheté le %{date}."
+        summary_html: "%{type} de %{surface} au %{address} à %{city}."
+        summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
+        purchase_past_html: "Acheté le %{date}."
+        purchase_future_html: "Achat prévu le %{date}."
         address_not_provided: adresse non renseignée
         energy_rating_unknown: "?"
         credit_detail: Le crédit

@@ -459,6 +459,22 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#panel-parameters .summary")).to be_nil
     end
 
+    # Un achat à venir ne s'annonce pas au passé : seul le verbe change, la phrase tient.
+    it "announces a purchase still to come in the future" do
+      date = Date.current.next_year
+      simulation.update!(purchase_date: date, address: "14 rue du Beau Laurier")
+
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      summary = doc.at_css(".page-header .summary")
+      summary.css("form").remove
+
+      expect(summary.text.gsub(/\s+/, " ").strip)
+        .to eq("Appartement de 50 m² au 14 rue du Beau Laurier à Nantes. " \
+               "Achat prévu le #{I18n.l(date, format: :long)}.")
+    end
+
     # Le DPE se lit d'un coup d'œil à côté du nom, dans la couleur de sa classe, et s'y corrige.
     it "labels the energy rating beside the name, in the colour of its band" do
       simulation.update!(energy_rating: "E")

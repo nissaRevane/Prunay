@@ -1,6 +1,7 @@
 <%# Le bien en une phrase, sous le nom de la simulation : chaque mot que l'on a saisi s'y
     corrige d'un clic. Sans adresse, la phrase le dit à sa place plutôt que d'y coller un
-    « au » sans suite, et c'est un div et non un p : un formulaire fermerait le paragraphe. %>
+    « au » sans suite ; une date à venir s'annonce au futur, le parcours de création en
+    proposant une. Un div et non un p : un formulaire fermerait le paragraphe. %>
 <% property_type = editable_word simulation, :property_type, t("simulations.property_types.#{simulation.property_type}") do |f| %>
   <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
 <% end %>
@@ -23,5 +24,7 @@
 
 <div class="summary">
   <%= t("views.simulations.show.#{simulation.address.present? ? 'summary_html' : 'summary_without_address_html'}",
-        type: property_type, surface: surface, address: address, city: city, date: purchase_date) %>
+        type: property_type, surface: surface, address: address, city: city) %>
+  <%= t("views.simulations.show.#{simulation.purchase_date.future? ? 'purchase_future_html' : 'purchase_past_html'}",
+        date: purchase_date) %>
 </div>
