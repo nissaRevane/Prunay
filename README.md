@@ -217,6 +217,14 @@ docker compose run --rm web bundle exec rspec
   cash flow accumulated over the horizon, and what the property is then worth — the purchase
   price alone compounded, since neither the notary fees nor the works are resold.
 
+- **The comparison:** a tab of its own where the four regimes are read on the same axes rather
+  than one panel at a time. Two charts, thirty-one points each, drawn server-side as plain SVG:
+  the capital still immobilized year after year, which crosses zero the year the operation has
+  paid itself back, and the profit a resale that year would leave, once the loan is cleared and
+  the costs, the capital gain tax and the capital still engaged are taken off. Both scales
+  always span zero — it is that crossing one comes to read — and a legend closes each curve on
+  its thirtieth year.
+
 ## Project Structure
 
 ```
@@ -225,7 +233,7 @@ app/
 │                       # Simulations::Steps (the four-page creation), EconomicConditions and
 │                       # Simulations::EconomicConditions, Users::Registrations
 ├── models/             # User, Simulation, EconomicConditions, Loan, Projection,
-│                       # AmortizationSchedule, Taxation
+│                       # AmortizationSchedule, Taxation, LineChart
 ├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
 └── assets/             # CSS design system

@@ -1342,3 +1342,92 @@ a.icon-btn:hover {
 .tab-option[aria-checked="true"] {
   color: var(--color-primary);
 }
+
+/* Charts */
+.chart {
+  padding: 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.chart-zero {
+  stroke: var(--color-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.chart-label {
+  fill: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.chart-label-y {
+  text-anchor: end;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--chart-color);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.chart-micro_foncier {
+  --chart-color: #2563eb;
+}
+
+.chart-foncier_reel {
+  --chart-color: #16a34a;
+}
+
+.chart-micro_bic {
+  --chart-color: #d97706;
+}
+
+.chart-lmnp {
+  --chart-color: #7c3aed;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1rem;
+  list-style: none;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.chart-swatch {
+  width: 0.75rem;
+  height: 0.25rem;
+  border-radius: 2px;
+  background: var(--chart-color);
+}
+
+.chart-legend-value {
+  font-weight: 600;
+}
+
+.chart-caption {
+  margin-top: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}

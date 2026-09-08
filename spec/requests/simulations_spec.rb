@@ -672,8 +672,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      # Les paramètres, la fiscalité et le contexte : les régimes n'en font qu'un.
-      expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(3)
+      # Les paramètres, la fiscalité, la comparaison et le contexte : les régimes n'en font qu'un.
+      expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(4)
     end
 
     describe "of a purchase financed by a credit" do
@@ -689,7 +689,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(on_credit)
 
         doc = Nokogiri::HTML(response.body)
-        expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(4)
+        expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(5)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
         # La mensualité de la ligne est ce que la banque prélève, prime comprise.
@@ -765,6 +765,37 @@ RSpec.describe "Simulations", type: :request do
           Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
           I18n.t("views.simulations.show.initial_outlay") => currency(28_540).gsub(/\s+/, " ")
         )
+      end
+    end
+
+    # Un onglet met les quatre régimes sur les mêmes axes : le capital encore engagé, et ce que
+    # revendre cette année-là laisserait.
+    context "the comparison tab" do
+      let(:neutral) { create(:simulation, user: user) }
+
+      it "draws one curve per regime on each of the two charts" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        charts = doc.css("#panel-comparison .chart")
+
+        expect(doc.at_css("#tab-comparison")).not_to be_nil
+        expect(charts.size).to eq(2)
+        expect(charts.map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4])
+        expect(charts.first.css(".chart-legend-item").map { |item| item.at_css(".chart-legend-label").text.strip })
+          .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
+      end
+
+      # 216 612 € engagés et 8 444,16 € de cash-flow par an au micro-foncier : la trentième année
+      # en a rendu 36 712,80 € de plus, et revendre à 200 000 € moins 900 € de frais les ajoute.
+      it "closes each curve on the thirtieth year of its regime" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        values = doc.css("#panel-comparison .chart .chart-micro_foncier .chart-legend-value")
+                    .map { |value| value.text.gsub(/\s+/, " ").strip }
+
+        expect(values).to eq([currency(-36_712.80).gsub(/\s+/, " "), currency(235_812.80).gsub(/\s+/, " ")])
       end
     end
 

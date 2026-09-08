@@ -199,9 +199,19 @@ fr:
         tab_foncier_reel: Foncier réel
         tab_micro_bic: Micro-BIC
         tab_lmnp: LMNP
+        tab_comparison: Comparaison
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
         regimes_menu: Régimes fiscaux
+        comparison_immobilized_capital: Le capital engagé
+        comparison_immobilized_capital_hint: >-
+          Ce qu'il reste à récupérer de l'investissement initial, les cash-flows déjà encaissés
+          déduits. Sous le zéro, l'opération s'est remboursée.
+        comparison_sale_profit: Le bénéfice de l'opération
+        comparison_sale_profit_hint: >-
+          Ce que revendre cette année-là laisserait, une fois le crédit soldé, les frais et
+          l'impôt sur la plus-value payés, et le capital encore engagé repris.
+        chart_caption: "En abscisse, l'année de l'opération ; à droite, la %{year}ᵉ."
         summary_html: "%{type} de %{surface} au %{address} à %{city}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
         purchase_past_html: "Acheté le %{date}."

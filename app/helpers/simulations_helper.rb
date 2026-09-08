@@ -4,8 +4,13 @@ module SimulationsHelper
   AMORTIZATION_TAB = "amortization".freeze
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
 
+  COMPARISON_TAB = "comparison".freeze
+
   # L'onglet fiscal n'a pas de panneau à lui : il ouvre celui du régime choisi dans sa liste.
   TAXATION_TAB = "taxation".freeze
+
+  # Ce que l'onglet de comparaison met côte à côte : une année d'un régime se lit sur les deux.
+  COMPARISON_MEASURES = %i[immobilized_capital sale_profit].freeze
 
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
@@ -30,7 +35,7 @@ module SimulationsHelper
 
   # La barre des onglets : un seul pour la fiscalité, et l'amortissement pour qui porte un crédit.
   def simulation_tabs(schedule)
-    tabs = [PARAMETERS_TAB, TAXATION_TAB]
+    tabs = [PARAMETERS_TAB, TAXATION_TAB, COMPARISON_TAB]
     tabs << AMORTIZATION_TAB if schedule
 
     tabs << ECONOMIC_CONDITIONS_TAB
@@ -50,6 +55,15 @@ module SimulationsHelper
 
   # Le panneau d'un régime est titré par son entrée dans la liste déroulante, les autres par leur onglet.
   def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"
+
+  # Une courbe par régime sur la même mesure : les quatre projections sont déjà là, il n'y a
+  # qu'à leur demander l'année après l'année.
+  def comparison_chart(projections, measure)
+    LineChart.new(projections.map do |regime, projection|
+      LineChart::Series.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
+                            values: projection.years.map(&measure))
+    end)
+  end
 
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: simulation_path(simulation, tab: PARAMETERS_TAB),

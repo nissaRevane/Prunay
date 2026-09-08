@@ -1,0 +1,39 @@
+<%# Le graphique est rendu par le serveur, sans bibliothèque : une polyligne par régime sur une
+    grille en montants ronds, et la ligne du zéro appuyée — c'est elle qu'on cherche. %>
+<div class="chart">
+  <svg class="chart-svg" viewBox="0 0 <%= LineChart::WIDTH %> <%= LineChart::HEIGHT %>"
+       role="img" aria-label="<%= title %>">
+    <% chart.y_ticks.each do |value| %>
+      <line class="chart-grid" x1="<%= LineChart::MARGIN[:left] %>" x2="<%= chart.right %>"
+            y1="<%= chart.y(value) %>" y2="<%= chart.y(value) %>" />
+      <text class="chart-label chart-label-y" x="<%= LineChart::MARGIN[:left] - 8 %>"
+            y="<%= chart.y(value) + 4 %>"><%= number_to_currency(value, precision: 0) %></text>
+    <% end %>
+
+    <line class="chart-zero" x1="<%= LineChart::MARGIN[:left] %>" x2="<%= chart.right %>"
+          y1="<%= chart.zero_y %>" y2="<%= chart.zero_y %>" />
+
+    <% chart.x_ticks.each do |index| %>
+      <text class="chart-label" x="<%= chart.x(index) %>" y="<%= chart.bottom + 20 %>"
+            text-anchor="middle"><%= index %></text>
+    <% end %>
+
+    <% chart.series.each do |series| %>
+      <polyline class="chart-line chart-<%= series.name %>" points="<%= chart.points(series) %>" />
+    <% end %>
+  </svg>
+
+  <ul class="chart-legend">
+    <% chart.series.each do |series| %>
+      <li class="chart-legend-item chart-<%= series.name %>">
+        <span class="chart-swatch" aria-hidden="true"></span>
+        <span class="chart-legend-label"><%= series.label %></span>
+        <span class="chart-legend-value <%= series.last.negative? ? 'text-danger' : 'text-success' %>">
+          <%= number_to_currency(series.last) %>
+        </span>
+      </li>
+    <% end %>
+  </ul>
+
+  <p class="chart-caption"><%= t("views.simulations.show.chart_caption", year: Projection::HORIZON_YEARS) %></p>
+</div>
