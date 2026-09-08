@@ -17,6 +17,9 @@ Prunay::Application.routes.draw do
   get   "simulations/new/:step", to: "simulations/steps#show",   as: :new_simulation_step
   patch "simulations/new/:step", to: "simulations/steps#update"
 
+  # Tout le compte dans un fichier JSON, que db/seeds.rb sait relire.
+  resource :export, only: [:show]
+
   # Le seul réglage général, et la seule page qui justifie une entrée de menu.
   resource :economic_conditions, only: [:edit, :update], path: "conditions-economiques"
 

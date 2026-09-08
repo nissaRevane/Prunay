@@ -48,4 +48,15 @@
       </div>
     <% end %>
   </section>
+
+  <section class="section account-panel">
+    <div class="section-header">
+      <h2><%= t("views.account.show.data") %></h2>
+    </div>
+
+    <p class="section-hint"><%= t("views.account.show.export_hint") %></p>
+
+    <%# Turbo Drive avalerait la réponse : on laisse le navigateur prendre le fichier. %>
+    <%= link_to t("views.account.show.export"), export_path, class: "btn btn-outline", data: { turbo: false } %>
+  </section>
 </div>

@@ -138,6 +138,9 @@ fr:
         security: Sécurité
         new_password: Nouveau mot de passe
         update_password: Changer mon mot de passe
+        data: Mes données
+        export_hint: Téléchargez l'intégralité de votre compte (vos conditions économiques et vos simulations) dans un fichier JSON réutilisable pour ré-alimenter Prunay.
+        export: Exporter mes données
     economic_conditions:
       edit:
         title: Conditions économiques

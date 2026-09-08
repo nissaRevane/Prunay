@@ -48,7 +48,10 @@ docker compose run --rm web bundle exec rspec
 - **Authentication:** sign up, sign in, sign out, forgotten password, "remember me".
   Every controller is behind `authenticate_user!` by default (`ApplicationController`);
   the public landing page is the single explicit opt-out.
-- **Account page** (`/mon-compte`): identity and password change.
+- **Account page** (`/mon-compte`): identity, password change, and the JSON export of the
+  whole account (`/export`) — the economic conditions and every simulation, written in the
+  exact shape `db/seeds.rb` reads back, so an export can re-feed a database. The password is
+  never exported: Devise only keeps a digest, and a random one takes its place.
 - **Landing page:** the public shop window, for visitors.
 - **Simulations** (`/simulations`, and the home page of a signed-in user): the full CRUD,
   grouped by purchase year in the same accordion Milly uses for its bilans. There is no
@@ -219,7 +222,8 @@ config/
 └── database.yml        # Database configuration
 db/
 ├── migrate/            # Database migrations
-└── seeds.rb            # Demo account
+├── seed_data.json      # The demo account, in the export format
+└── seeds.rb            # Reads seed_data.json, idempotent
 spec/
 ├── models/             # Model unit tests
 ├── requests/           # Request/integration tests

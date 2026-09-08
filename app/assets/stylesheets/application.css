@@ -707,6 +707,12 @@ a.icon-btn:hover {
   font-size: 1.25rem;
 }
 
+.section-hint {
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .section-total {
   display: flex;
   justify-content: space-between;
