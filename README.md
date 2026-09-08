@@ -155,7 +155,9 @@ docker compose run --rm web bundle exec rspec
     excess indefinitely, which is precisely what makes the LMNP pay no tax for years. The
     accountant is the one charge a single regime pays: it is asked of the user like the others
     (500 € by default, `accounting_fees`), kept out of `ANNUAL_CHARGES` since no other regime
-    owes it (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone.
+    owes it (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone. What the
+    depreciation spares of the tax is not spared for good: the resale gives it back, see the
+    capital gain below.
 
   The parameters tab lists the CFE and the accountant with the annual charges, each noted as
   the regime's own and left out of their total, and details the calculation line by line; the
@@ -165,7 +167,11 @@ docker compose run --rm web bundle exec rspec
   individuals: the gain is what the price of that year gets above the fiscal value of the
   property — the price paid, the notary fees, and from the sixth year the flat 15 % of works
   the taxman assumes without an invoice, the real works being the other, exclusive option that
-  Prunay does not simulate. It bears 19 % of income tax and 17.2 % of social charges, each on
+  Prunay does not simulate. Under the LMNP, everything depreciated up to that year is taken
+  back out of that value: the 2025 finance act reintegrates the depreciation into the gain, and
+  it is the price of the years that owed no tax on the rents. The sale view of that regime
+  names it on a line of its own, under the acquisition value that would otherwise be the whole
+  fiscal value; every other regime depreciates nothing and has nothing to give back. It bears 19 % of income tax and 17.2 % of social charges, each on
   what its own allowance for the years held leaves it: nothing for five years, then 6 % a year
   until the gain escapes the income tax after twenty-two, and 1.65 % then 9 % a year until it
   escapes the social charges after thirty. The surtax on gains above 50 000 € is not

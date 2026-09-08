@@ -155,17 +155,21 @@ module SimulationsHelper
     projection.sale_cost_lines(year).to_h { |field, amount| [statement_label(field), -amount] }
   end
 
-  # La plus-value ne se lit pas sur le prix payé mais sur la valeur fiscale, et chaque taux a son abattement.
+  # La plus-value ne se lit pas sur le prix payé mais sur la valeur fiscale, que les amortissements
+  # du LMNP creusent, et chaque taux a son abattement.
   def capital_gain_detail_lines(year)
     gain = year.gain
     return {} unless gain.amount.positive?
 
-    { statement_label(:fiscal_value) => gain.fiscal_value,
+    taxes = {
       statement_label(:capital_gain) => gain.amount,
       statement_label(:capital_gain_income_tax, rate: rate_label(Taxation::CapitalGain::INCOME_TAX_RATE),
                       allowance: rate_label(gain.income_tax_allowance_rate)) => -gain.income_tax,
       statement_label(:capital_gain_social_charges, rate: rate_label(Taxation::SOCIAL_CHARGES_RATE),
-                      allowance: rate_label(gain.social_charges_allowance_rate)) => -gain.social_charges }
+                      allowance: rate_label(gain.social_charges_allowance_rate)) => -gain.social_charges
+    }
+
+    { statement_label(:fiscal_value) => gain.acquisition_value }.merge(reintegration_lines(gain)).merge(taxes)
   end
 
   # Ce qui reste engagé : l'investissement du premier jour, moins les cash-flows déjà encaissés.
@@ -182,6 +186,13 @@ module SimulationsHelper
     return t("views.simulations.show.business_tax") if field == :business_tax
 
     Simulation.human_attribute_name(field)
+  end
+
+  # Ce que le LMNP a amorti année après année, que la revente lui reprend.
+  def reintegration_lines(gain)
+    return {} unless gain.depreciation.positive?
+
+    { statement_label(:reintegrated_depreciation) => -gain.depreciation }
   end
 
   # L'assiette du LMNP part des recettes : les charges se lisent déjà plus haut, l'amortissement non.

@@ -303,6 +303,25 @@ RSpec.describe Projection do
     it "taxes less than the micro-BIC on the same year, the depreciation making the difference" do
       expect(described_class.new(build(:simulation), :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
     end
+
+    # Ce que l'amortissement a fait gagner chaque année, la revente le reprend : 216 612 € de valeur
+    # fiscale amputés de cinq ans d'amortissement, et un bien vendu à son prix dégage 15 388 €.
+    it "gives the depreciation back to the capital gain of the year it sells" do
+      year = projection.years[5]
+
+      expect(year.gain.acquisition_value).to eq(216_612)
+      expect(year.gain.depreciation).to eq(32_000)
+      expect(year.capital_gain).to eq(15_388)
+      expect(year.capital_gain_tax).to eq(BigDecimal("5570.46"))
+      # Le foncier réel n'amortit rien : le même bien revendu au même prix ne doit rien.
+      expect(described_class.new(build(:simulation), :foncier_reel).years[5].capital_gain).to eq(0)
+    end
+
+    # Le plan éteint, la réintégration ne grossit plus : 160 000 € une fois pour toutes.
+    it "reintegrates no more than the plan of depreciation ever deducted" do
+      expect(projection.years[25].gain.depreciation).to eq(160_000)
+      expect(projection.years[26].gain.depreciation).to eq(160_000)
+    end
   end
 
   # Les loyers progressent, les charges suivent l'inflation, et le bien prend de la valeur.

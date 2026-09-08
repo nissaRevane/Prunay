@@ -4,9 +4,9 @@ require "rails_helper"
 # la durée de détention lui vaut, puis 19 % de barème et 17,2 % de prélèvements sociaux.
 RSpec.describe Taxation::CapitalGain do
   # Les frais de notaire d'un bien à 200 000 € : 16 612 €, comme partout ailleurs.
-  def gain(sale_price:, held_years:)
-    described_class.new(sale_price: sale_price, purchase_price: 200_000,
-                        acquisition_fees: 16_612, held_years: held_years)
+  def gain(sale_price:, held_years:, depreciation: 0)
+    described_class.new(sale_price: sale_price, purchase_price: 200_000, acquisition_fees: 16_612,
+                        held_years: held_years, depreciation: depreciation)
   end
 
   # Les frais d'acquisition s'ajoutent au prix payé, et passé cinq ans, 15 % de travaux forfaitaires.
@@ -23,6 +23,15 @@ RSpec.describe Taxation::CapitalGain do
     it "adds 15 per cent of the price paid once the sixth year is reached" do
       expect(gain(sale_price: 250_000, held_years: 6).assumed_works).to eq(30_000)
       expect(gain(sale_price: 250_000, held_years: 6).fiscal_value).to eq(246_612)
+    end
+
+    # La loi de finances 2025 reprend au LMNP ce qu'il a amorti : 32 000 € de moins à opposer au prix.
+    it "gives back the depreciation a real furnished regime has already deducted" do
+      reintegrated = gain(sale_price: 250_000, held_years: 5, depreciation: 32_000)
+
+      expect(reintegrated.acquisition_value).to eq(216_612)
+      expect(reintegrated.fiscal_value).to eq(184_612)
+      expect(reintegrated.amount).to eq(65_388)
     end
   end
 

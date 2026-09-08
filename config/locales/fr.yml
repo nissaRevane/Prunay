@@ -269,7 +269,7 @@ fr:
         hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
         hint_cash_flow: "Ce qui reste en poche une fois l'année écoulée, échéances et impôt payés."
         hint_sale_property_value: "Le prix d'achat revalorisé ; ni les frais ni les travaux ne se revendent."
-        hint_sale_capital_gain_tax: "19 % et 17,2 %, chacun après son abattement pour durée de détention."
+        hint_sale_capital_gain_tax: "19 % et 17,2 % après abattement pour durée de détention ; au LMNP, les amortissements déduits y reviennent."
         hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
         hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
         hint_immobilized_capital: "L'investissement du premier jour, diminué des cash-flows déjà encaissés."
@@ -290,6 +290,7 @@ fr:
         detail_diagnostics: Diagnostics
         detail_refurbishment: Remise en état
         detail_fiscal_value: Valeur fiscale du bien
+        detail_reintegrated_depreciation: "Amortissements réintégrés"
         detail_capital_gain: Plus-value brute
         detail_capital_gain_income_tax: "Impôt (%{rate}, abattement de %{allowance})"
         detail_capital_gain_social_charges: "Prélèvements sociaux (%{rate}, abattement de %{allowance})"

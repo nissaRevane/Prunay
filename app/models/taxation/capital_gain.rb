@@ -1,7 +1,8 @@
 module Taxation
   # L'impôt qu'une revente coûte au particulier : la plus-value se compte sur la valeur fiscale
   # du bien — le prix payé, ses frais d'acquisition et, passé cinq ans, les travaux que le fisc
-  # suppose — puis s'efface avec la durée de détention (voir #income_tax et #social_charges).
+  # suppose, moins les amortissements que le LMNP a déduits — puis s'efface avec la durée de
+  # détention (voir #income_tax et #social_charges).
   class CapitalGain
     # Le taux propre à la plus-value immobilière : le barème du foyer n'y est pour rien.
     INCOME_TAX_RATE = BigDecimal("19")
@@ -17,18 +18,23 @@ module Taxation
     SOCIAL_CHARGES_ALLOWANCE = { (6..21) => BigDecimal("1.65"), (22..22) => BigDecimal("1.60"),
                                  (23..30) => BigDecimal("9") }.freeze
 
-    attr_reader :sale_price, :purchase_price, :acquisition_fees, :held_years
+    attr_reader :sale_price, :purchase_price, :acquisition_fees, :held_years, :depreciation
 
-    def initialize(sale_price:, purchase_price:, acquisition_fees:, held_years:)
+    def initialize(sale_price:, purchase_price:, acquisition_fees:, held_years:, depreciation: 0)
       # Décimaux d'office, comme partout ailleurs : un taux entier ferait une division entière.
       @sale_price = sale_price.to_d
       @purchase_price = purchase_price.to_d
       @acquisition_fees = acquisition_fees.to_d
       @held_years = held_years.to_i
+      # Ce que le régime a déjà amorti à cette date : zéro partout ailleurs qu'au LMNP.
+      @depreciation = depreciation.to_d
     end
 
-    # Ce que le bien vaut aux yeux du fisc : le prix d'achat n'est jamais seul.
-    def fiscal_value = purchase_price + acquisition_fees + assumed_works
+    # Ce que l'achat a coûté aux yeux du fisc : le prix payé n'est jamais seul.
+    def acquisition_value = purchase_price + acquisition_fees + assumed_works
+
+    # La loi de finances 2025 reprend au LMNP, le jour de la revente, ce qu'il a amorti chaque année.
+    def fiscal_value = acquisition_value - depreciation
 
     def assumed_works
       return 0 if held_years <= ASSUMED_WORKS_AFTER_YEARS

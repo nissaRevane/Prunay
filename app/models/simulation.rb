@@ -169,10 +169,12 @@ class Simulation < ApplicationRecord
   # Diagnostics et remise en état : ce que la revente coûte avant même la plus-value.
   def sale_costs = SaleCosts.new(surface: surface)
 
-  # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la détention.
-  def capital_gain_taxation(sale_price, held_years)
+  # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la
+  # détention ; les amortissements déjà déduits, eux, la creusent.
+  def capital_gain_taxation(sale_price, held_years, depreciation: 0)
     Taxation::CapitalGain.new(sale_price: sale_price, purchase_price: purchase_price,
-                              acquisition_fees: notary_fees, held_years: held_years)
+                              acquisition_fees: notary_fees, held_years: held_years,
+                              depreciation: depreciation)
   end
 
   # Une année pleine : la projection, elle, lit l'annuité par année et voit le crédit s'éteindre.

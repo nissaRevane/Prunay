@@ -126,6 +126,7 @@ class Projection
     principal = @simulation.loan.annual_principal
     remaining = @simulation.loan.annual_remaining_capital
     cumulative_cash_flow = 0
+    cumulative_depreciation = 0
     sale_costs = @simulation.sale_costs.total
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
@@ -135,8 +136,10 @@ class Projection
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
-      gain = @simulation.capital_gain_taxation(property_value, number)
       taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number)
+      # Revendre reprend les amortissements déduits jusque-là : l'année en cours en fait partie.
+      cumulative_depreciation += taxation.depreciation
+      gain = @simulation.capital_gain_taxation(property_value, number, depreciation: cumulative_depreciation)
 
       year = Year.new(
         number: number,
