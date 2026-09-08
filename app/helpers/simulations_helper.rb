@@ -64,6 +64,8 @@ module SimulationsHelper
   # Les régimes qui majorent le loyer saisi : le meublé se loue plus cher que le nu.
   def regimes_with_rent_premium = Taxation::NAMES.select { |name| Taxation.rent_premium_rate(name).positive? }
 
+  def regimes_without_rent_premium = Taxation::NAMES - regimes_with_rent_premium
+
   # La prime du meublé telle que la fiche l'annonce, à côté du loyer qu'elle majore.
   def rent_premium_label(regime) = rate_label(Taxation.rent_premium_rate(regime))
 

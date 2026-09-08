@@ -43,11 +43,13 @@
   </div>
 
   <dl class="rows sum">
-    <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), value_class: "text-success" do |f| %>
+    <%# Le loyer se saisit nu, et c'est ainsi que les régimes du nu le lisent ; le meublé lui
+        substitue le sien, majoré de sa prime, et ne se corrige que sous un régime nu. %>
+    <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent),
+        value_class: "text-success", regimes: regimes_without_rent_premium do |f| %>
       <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <%# Le loyer se saisit nu : les régimes du meublé le relisent majoré de leur prime. %>
     <% regimes_with_rent_premium.each do |regime| %>
       <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label">

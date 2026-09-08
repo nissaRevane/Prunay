@@ -618,6 +618,9 @@ RSpec.describe "Simulations", type: :request do
 
       # 1 000 € majorés de 5 % font 1 050 €, et onze mois loués 11 550 €.
       expect(premiums.map { |node| node["data-regimes"] }).to eq(["micro_bic", "lmnp"])
+      # Le loyer saisi cède la place au loyer meublé au lieu de se lire à côté de lui.
+      expect(section.css(".detail-item").find { |node| node.at_css(".detail-label").text.strip == Simulation.human_attribute_name(:monthly_rent) }["data-regimes"])
+        .to eq("micro_foncier foncier_reel")
       expect(premiums.map { |node| node.at_css(".detail-value").text.gsub(/\s+/, " ").strip })
         .to eq([currency(1_050).gsub(/\s+/, " ")] * 2)
       expect(totals).to eq(
