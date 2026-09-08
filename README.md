@@ -141,8 +141,10 @@ docker compose run --rm web bundle exec rspec
     follows its growth. A real regime would deduct it from its assessment; the micro-BIC has
     only its flat allowance, which already stands in for every charge, the CFE included. It
     is not asked of the user. The 77 700 € ceiling of receipts above which the regime closes
-    is not checked, and a furnished letting is supposed to bring the same rent and cost the
-    same charges as a bare one — what the tabs compare is the tax, not the letting.
+    is not checked. The rent, itself, is not the one entered: a furnished letting is let dearer
+    than a bare one, and the two furnished regimes raise the entered rent by the 5 % premium of
+    `Taxation::Bic::RENT_PREMIUM_RATE` — the receipts, the cash flow and the CFE all follow it,
+    the charges alone staying those of a bare letting.
   - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
     of the micro-BIC, the 18.6 % and the CFE, but no allowance at all — the charges, the CFE
     itself, the accountant and the interest of the loan are deducted for what they cost, and
@@ -264,7 +266,8 @@ spec/
   - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance —
     the capital borrowed, the monthly payment and the amortization schedule are derived from
     them, never stored (like the notary fees)
-  - *the letting:* monthly_rent (excluding charges, the only taxable part), monthly_charges
+  - *the letting:* monthly_rent (excluding charges, the only taxable part, and that of a bare
+    letting — the furnished regimes add their premium to it), monthly_charges
     (the provision the tenant repays on top of it) and occupancy_months
   - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
     which `ANNUAL_CHARGES` derives — a charge is added to a group and nowhere else):

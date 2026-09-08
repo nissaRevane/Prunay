@@ -257,18 +257,20 @@ RSpec.describe "Simulations", type: :request do
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      # 12 000 € de recettes, 1 600 € de charges CFE et comptable compris, 6 400 € d'amortissement.
+      # 12 600 € de recettes prime de meublé comprise, 1 615 € de charges CFE et comptable compris,
+      # 6 400 € d'amortissement.
       expect(lines).to eq([
-        [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_000), months: "12"),
-         currency(12_000).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_050), months: "12"),
+         currency(12_600).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:property_tax), currency(-800).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.business_tax"), currency(-300).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.business_tax"), currency(-315).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:accounting_fees), currency(-500).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_depreciation"), currency(-6_400).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_taxable_income"), currency(4_000).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)), currency(-1_200).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(4_585).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)),
+         currency(BigDecimal("-1375.50")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_social_charges", rate: percentage(BigDecimal("18.6"))),
-         currency(-744).gsub(/\s+/, " ")]
+         currency(BigDecimal("-852.81")).gsub(/\s+/, " ")]
       ])
     end
 
@@ -327,7 +329,8 @@ RSpec.describe "Simulations", type: :request do
         .to eq(currency(-300).gsub(/\s+/, " "))
     end
 
-    # Le meublé déclare les 13 200 € encaissés et déduit ses 1 800 € de charges, sans note : il déduit tout.
+    # Le meublé déclare les 13 800 € encaissés, prime comprise, et déduit ses 1 815 € de charges, sans
+    # note : il déduit tout.
     it "shows the rent charges included and the whole charges under the micro-BIC" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
                                     occupancy_months: 12, condominium_fees: 1_500)
@@ -340,10 +343,10 @@ RSpec.describe "Simulations", type: :request do
 
       expect(doc.at_css("#panel-micro_bic thead th:nth-child(3)").text.strip)
         .to eq(I18n.t("views.simulations.show.annual_rent_including_charges_column"))
-      expect(rent.at_css(".statement-amount").text.gsub(/\s+/, " ").strip).to eq(currency(13_200).gsub(/\s+/, " "))
+      expect(rent.at_css(".statement-amount").text.gsub(/\s+/, " ").strip).to eq(currency(13_800).gsub(/\s+/, " "))
       expect(charges.at_css(".statement-note")).to be_nil
       expect(charges.at_css(".statement-amount").text.gsub(/\s+/, " ").strip)
-        .to eq(currency(-1_800).gsub(/\s+/, " "))
+        .to eq(currency(-1_815).gsub(/\s+/, " "))
     end
 
     # Deux lectures d'une seule et même projection : même horizon, régime à part.
@@ -381,7 +384,7 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Moitié des recettes imposée à 18,6 % : 1 023 € d'impôt, et 300 € de CFE parmi les charges.
+    # 11 550 € de loyer prime comprise, moitié imposée à 18,6 % : 1 074,15 € d'impôt, et 315 € de CFE.
     it "opens a tab of its own on the micro-BIC projection, half the receipts taxed" do
       get simulation_path(simulation)
 
@@ -396,18 +399,18 @@ RSpec.describe "Simulations", type: :request do
       expect(cells).to eq([
         "1",
         "mar.-2026",
-        currency(11_000).gsub(/\s+/, " "),
-        currency(7_677).gsub(/\s+/, " "),
-        currency(228_935).gsub(/\s+/, " ")
+        currency(11_550).gsub(/\s+/, " "),
+        currency(BigDecimal("8160.85")).gsub(/\s+/, " "),
+        currency(BigDecimal("228451.15")).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
-        I18n.t("views.simulations.show.income_tax_column") => currency(-1_023).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.cash_flow") => currency(7_677).gsub(/\s+/, " ")
+        I18n.t("views.simulations.show.income_tax_column") => currency(BigDecimal("-1074.15")).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.cash_flow") => currency(BigDecimal("8160.85")).gsub(/\s+/, " ")
       )
     end
 
-    # La même année et les mêmes loyers : seuls l'impôt et la CFE du meublé séparent les régimes.
-    it "renders the same year under every regime, the tax apart" do
+    # La même année sous quatre régimes : le meublé y met sa prime de loyer, sa CFE et son impôt.
+    it "renders the same year under every regime, the furnished rent and the tax apart" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -424,8 +427,9 @@ RSpec.describe "Simulations", type: :request do
       own = taxed + ["annual_charges_column", "pre_tax_result", "annual_rent_column",
                      "annual_rent_including_charges_column"].map { |key| I18n.t("views.simulations.show.#{key}") }
 
-      # Sans provision pour charges, tous déclarent le même loyer : seul son intitulé les sépare.
-      expect(statements.values.map { |lines| lines.values.first }.uniq).to eq([currency(11_000).gsub(/\s+/, " ")])
+      # Deux loyers seulement : 11 000 € au nu, et 5 % de plus au meublé.
+      expect(statements.values.map { |lines| lines.values.first })
+        .to eq([11_000, 11_000, 11_550, 11_550].map { |amount| currency(amount).gsub(/\s+/, " ") })
       expect(statements.values.map { |lines| lines.except(*own) }.uniq.size).to eq(1)
       expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end
@@ -621,7 +625,7 @@ RSpec.describe "Simulations", type: :request do
         node.at_css(".detail-label").text.strip == I18n.t("views.simulations.show.business_tax")
       end
 
-      expect(item.at_css(".detail-value").text).to include(currency(300).gsub(/\s+/, " "))
+      expect(item.at_css(".detail-value").text).to include(currency(315).gsub(/\s+/, " "))
       expect(item["data-regimes"]).to eq("micro_bic lmnp")
     end
 
@@ -652,8 +656,8 @@ RSpec.describe "Simulations", type: :request do
       expect(totals).to eq(
         "micro_foncier" => currency(2_000).gsub(/\s+/, " "),
         "foncier_reel" => currency(2_000).gsub(/\s+/, " "),
-        "micro_bic" => currency(2_300).gsub(/\s+/, " "),
-        "lmnp" => currency(2_800).gsub(/\s+/, " ")
+        "micro_bic" => currency(2_315).gsub(/\s+/, " "),
+        "lmnp" => currency(2_815).gsub(/\s+/, " ")
       )
     end
 

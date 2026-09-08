@@ -210,28 +210,28 @@ RSpec.describe Projection do
   describe "under the micro-BIC regime" do
     subject(:projection) { described_class.new(simulation, :micro_bic) }
 
-    # 5 500 € imposables à 18,6 % font 1 023 € : l'impôt de l'année, la CFE mise à part.
+    # Le loyer meublé porte 11 000 € à 11 550 € : 5 775 € imposables à 18,6 % font 1 074,15 €.
     it "taxes half of the receipts, where the micro-foncier left seventy per cent of the rent" do
-      expect(projection.years[1].taxes).to eq(1_023)
+      expect(projection.years[1].taxes).to eq(BigDecimal("1074.15"))
     end
 
-    # 300 € de CFE, qui pèsent sur les charges et non sur l'impôt : 2 000 € de charges deviennent 2 300 €.
+    # 315 € de CFE, qui pèsent sur les charges et non sur l'impôt : 2 000 € de charges deviennent 2 315 €.
     it "counts the business tax with the charges of the year and not with the tax" do
       year = projection.years[1]
 
-      expect(year.taxation.business_tax).to eq(300)
-      expect(year.charges_excluding_provision).to eq(2_300)
-      expect(year.pre_tax_result).to eq(8_700)
-      expect(year.cash_flow).to eq(7_677)
+      expect(year.taxation.business_tax).to eq(315)
+      expect(year.charges_excluding_provision).to eq(2_315)
+      expect(year.pre_tax_result).to eq(9_235)
+      expect(year.cash_flow).to eq(BigDecimal("8160.85"))
     end
 
-    # 30 % d'un loyer mensuel qui progresse comme lui : 240 € la première année, 244,80 € la seconde.
+    # 30 % d'un loyer meublé qui progresse comme lui : 252 € la première année, 257,04 € la seconde.
     it "asks for a business tax that follows the rent through its growth" do
       growing = described_class.new(build(:simulation, monthly_rent: 800, occupancy_months: 12,
                                                        rent_growth_rate: 2), :micro_bic)
 
-      expect(growing.years[1].taxation.business_tax).to eq(240)
-      expect(growing.years[2].taxation.business_tax).to eq(BigDecimal("244.80"))
+      expect(growing.years[1].taxation.business_tax).to eq(252)
+      expect(growing.years[2].taxation.business_tax).to eq(BigDecimal("257.04"))
     end
 
     # 1 200 € de provision comptés en recettes : 600 € d'assiette de plus, et 111,60 € d'impôt.
@@ -240,11 +240,11 @@ RSpec.describe Projection do
                                           condominium_fees: 1_200)
       rent_only = build(:simulation, monthly_rent: 800, occupancy_months: 12)
 
-      expect(described_class.new(with_provision, :micro_bic).years[1].taxes).to eq(BigDecimal("1004.40"))
-      expect(described_class.new(rent_only, :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
+      expect(described_class.new(with_provision, :micro_bic).years[1].taxes).to eq(BigDecimal("1049.04"))
+      expect(described_class.new(rent_only, :micro_bic).years[1].taxes).to eq(BigDecimal("937.44"))
     end
 
-    # Ce que le meublé déclare : 10 800 € encaissés et 1 740 € de charges, CFE de 240 € comprise.
+    # Ce que le meublé déclare : 11 280 € encaissés et 1 752 € de charges, CFE de 252 € comprise.
     it "reads the year charges included, the provision on both sides" do
       furnished = described_class.new(build(:simulation, monthly_rent: 800, monthly_charges: 100,
                                                         occupancy_months: 12,
@@ -252,8 +252,8 @@ RSpec.describe Projection do
       year = furnished.years[1]
 
       expect(furnished.rent_column).to eq("annual_rent_including_charges_column")
-      expect(furnished.rent_of(year)).to eq(10_800)
-      expect(furnished.charges_of(year)).to eq(1_740)
+      expect(furnished.rent_of(year)).to eq(11_280)
+      expect(furnished.charges_of(year)).to eq(1_752)
       # Les deux lectures d'une même année laissent le même résultat avant impôt.
       expect(furnished.rent_of(year) - furnished.charges_of(year)).to eq(year.pre_tax_result)
     end
@@ -265,7 +265,7 @@ RSpec.describe Projection do
       year = indexed.years[2]
 
       expect(year.provision_for_charges).to eq(1_236)
-      expect(year.taxes).to eq(BigDecimal("1007.75"))
+      expect(year.taxes).to eq(BigDecimal("1052.39"))
     end
   end
 
@@ -274,34 +274,34 @@ RSpec.describe Projection do
   describe "under the LMNP regime" do
     subject(:projection) { described_class.new(build(:simulation, accounting_fees: 500), :lmnp) }
 
-    # 9 600 € de loyers, 240 € de CFE, 500 € de comptable et 6 400 € d'amortissement : 2 460 € imposables.
+    # 10 080 € de loyers, 252 € de CFE, 500 € de comptable et 6 400 € d'amortissement : 2 928 € imposables.
     it "deducts the depreciation of the building from the assessment and nothing else" do
       year = projection.years[1]
 
       expect(year.taxation.depreciation).to eq(6_400)
-      expect(year.taxation.taxable_income).to eq(2_460)
-      expect(year.taxes).to eq(BigDecimal("457.56"))
+      expect(year.taxation.taxable_income).to eq(2_928)
+      expect(year.taxes).to eq(BigDecimal("544.61"))
     end
 
-    # 740 € de charges que personne d'autre ne paie, et un cash-flow que l'amortissement ne touche pas.
+    # 752 € de charges que personne d'autre ne paie, et un cash-flow que l'amortissement ne touche pas.
     it "pays the accountant and the business tax out of the year, the depreciation costing nothing" do
       year = projection.years[1]
 
-      expect(projection.charge_lines(year)).to eq(business_tax: BigDecimal("240"), accounting_fees: BigDecimal("500"))
-      expect(year.charges_excluding_provision).to eq(740)
-      expect(year.pre_tax_result).to eq(8_860)
-      expect(year.cash_flow).to eq(BigDecimal("8402.44"))
+      expect(projection.charge_lines(year)).to eq(business_tax: BigDecimal("252"), accounting_fees: BigDecimal("500"))
+      expect(year.charges_excluding_provision).to eq(752)
+      expect(year.pre_tax_result).to eq(9_328)
+      expect(year.cash_flow).to eq(BigDecimal("8783.39"))
     end
 
-    # Le plan s'éteint après vingt-cinq ans : la vingt-sixième année paie sur 8 860 €.
+    # Le plan s'éteint après vingt-cinq ans : la vingt-sixième année paie sur 9 328 €.
     it "taxes the whole result once the plan of depreciation is over" do
-      expect(projection.years[25].taxes).to eq(BigDecimal("457.56"))
-      expect(projection.years[26].taxes).to eq(BigDecimal("1647.96"))
+      expect(projection.years[25].taxes).to eq(BigDecimal("544.61"))
+      expect(projection.years[26].taxes).to eq(BigDecimal("1735.01"))
     end
 
-    # Le forfait du micro-BIC laisse 4 800 € imposables là où le réel amorti n'en laisse que 2 460 €.
+    # Le forfait du micro-BIC laisse 5 040 € imposables là où le réel amorti n'en laisse que 2 928 €.
     it "taxes less than the micro-BIC on the same year, the depreciation making the difference" do
-      expect(described_class.new(build(:simulation), :micro_bic).years[1].taxes).to eq(BigDecimal("892.80"))
+      expect(described_class.new(build(:simulation), :micro_bic).years[1].taxes).to eq(BigDecimal("937.44"))
     end
 
     # Ce que l'amortissement a fait gagner chaque année, la revente le reprend : 216 612 € de valeur
@@ -470,8 +470,8 @@ RSpec.describe Projection do
     it "counts the business tax of a furnished letting with the charges it details" do
       furnished = described_class.new(simulation, :micro_bic)
 
-      # 30 % d'un loyer mensuel de 1 000 € : la CFE se détaille avec les charges, non avec l'impôt.
-      expect(furnished.charge_lines(furnished.year(1))[:business_tax]).to eq(300)
+      # 30 % d'un loyer meublé de 1 050 € : la CFE se détaille avec les charges, non avec l'impôt.
+      expect(furnished.charge_lines(furnished.year(1))[:business_tax]).to eq(315)
     end
 
     it "reads the rent of the year at the month, indexed like the year" do

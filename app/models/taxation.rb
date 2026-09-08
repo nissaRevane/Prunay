@@ -28,5 +28,8 @@ module Taxation
     const_get(name.to_s.camelize)
   end
 
+  # De combien le régime majore le loyer saisi : rien au nu, la prime du meublé au BIC.
+  def self.rent_premium_rate(name) = regime(name).rent_premium_rate
+
   def self.for(name, **attributes) = regime(name).new(**attributes)
 end

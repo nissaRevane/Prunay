@@ -93,7 +93,7 @@ class Projection
   def cumulative_cash_flow(year) = years.take(year.number + 1).sum(&:cash_flow)
 
   # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
-  def monthly_rent_of(year) = indexed(@simulation.monthly_rent, @simulation.rent_growth_rate, year)
+  def monthly_rent_of(year) = indexed(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, year)
 
   def monthly_provision_of(year) = indexed(@simulation.monthly_charges, @simulation.inflation_rate, year)
 
@@ -130,8 +130,9 @@ class Projection
     sale_costs = @simulation.sale_costs.total
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
-      rent = compound(@simulation.annual_rent_excluding_charges, @simulation.rent_growth_rate, number - 1)
-      monthly_rent = compound(@simulation.monthly_rent, @simulation.rent_growth_rate, number - 1)
+      rent = compound(@simulation.annual_rent_excluding_charges_under(regime), @simulation.rent_growth_rate,
+                      number - 1)
+      monthly_rent = compound(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, number - 1)
       provision = compound(@simulation.annual_provision_for_charges, @simulation.inflation_rate, number - 1)
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)

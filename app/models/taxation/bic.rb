@@ -8,6 +8,11 @@ module Taxation
     # Prunay prend un loyer mensuel pour référence et lui applique ce taux.
     BUSINESS_TAX_RATE = BigDecimal("30")
 
+    # Un meublé se loue plus cher qu'un nu, meubles et rotation compris.
+    RENT_PREMIUM_RATE = BigDecimal("5")
+
+    def self.rent_premium_rate = RENT_PREMIUM_RATE
+
     # La provision pour charges entre dans les recettes, là où le foncier l'écarte de l'assiette.
     def self.provision_in_receipts? = true
 

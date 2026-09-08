@@ -110,6 +110,23 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  # Un meublé se loue 5 % plus cher qu'un nu : les deux régimes du meublé en tiennent compte.
+  describe "#monthly_rent_under" do
+    let(:simulation) { build(:simulation, monthly_rent: 800, occupancy_months: 11) }
+
+    it "leaves the entered rent to the bare regimes" do
+      expect(simulation.monthly_rent_under(:micro_foncier)).to eq(800)
+      expect(simulation.annual_rent_excluding_charges_under(:foncier_reel)).to eq(8_800)
+    end
+
+    # 800 € majorés de 5 % font 840 €, et onze mois loués 9 240 €.
+    it "adds the furnished premium under the micro-BIC and the LMNP" do
+      expect(simulation.monthly_rent_under(:micro_bic)).to eq(840)
+      expect(simulation.monthly_rent_under(:lmnp)).to eq(840)
+      expect(simulation.annual_rent_excluding_charges_under(:lmnp)).to eq(9_240)
+    end
+  end
+
   # La simulation ne fait que passer aux régimes son assiette, ses charges, ses intérêts et sa tranche.
   describe "#annual_taxes" do
     it "taxes the rent excluding charges at the bracket of the household" do
@@ -148,12 +165,12 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
-  # 30 % d'un loyer mensuel de 800 €, que le total des charges saisies ne compte pas.
+  # 30 % d'un loyer meublé de 840 €, que le total des charges saisies ne compte pas.
   describe "#annual_business_tax" do
     it "reads the CFE off the furnished regime and leaves the entered charges alone" do
       simulation = build(:simulation, monthly_rent: 800, property_tax: 700)
 
-      expect(simulation.annual_business_tax).to eq(240)
+      expect(simulation.annual_business_tax).to eq(252)
       expect(simulation.annual_charges).to eq(700)
     end
   end

@@ -141,6 +141,11 @@ class Simulation < ApplicationRecord
   # Le loyer seul, hors charges : la part imposable, et rien d'autre.
   def annual_rent_excluding_charges = monthly_rent * occupancy_months
 
+  # Le loyer saisi est celui d'un nu : les régimes du meublé lui ajoutent leur prime (voir Taxation::Bic).
+  def monthly_rent_under(regime) = (monthly_rent * (1 + Taxation.rent_premium_rate(regime).to_d / 100)).round(2)
+
+  def annual_rent_excluding_charges_under(regime) = monthly_rent_under(regime) * occupancy_months
+
   # La provision que le locataire rembourse par-dessus le loyer, et que la copropriété reprend.
   def annual_provision_for_charges = monthly_charges * occupancy_months
 
@@ -153,10 +158,11 @@ class Simulation < ApplicationRecord
   def annual_business_tax = taxation(:micro_bic).business_tax
 
   # La provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
-  def taxation(regime = Taxation::DEFAULT_REGIME, rent_excluding_charges: annual_rent_excluding_charges,
+  def taxation(regime = Taxation::DEFAULT_REGIME,
+               rent_excluding_charges: annual_rent_excluding_charges_under(regime),
                provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0),
-               monthly_rent: self.monthly_rent, year: 1)
+               monthly_rent: monthly_rent_under(regime), year: 1)
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,

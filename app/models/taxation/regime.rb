@@ -25,6 +25,9 @@ module Taxation
     # La provision refacturée n'est une recette que du meublé : voir Taxation::Bic.
     def self.provision_in_receipts? = false
 
+    # Le loyer saisi est celui d'un nu : le meublé le majore de sa prime, voir Taxation::Bic.
+    def self.rent_premium_rate = 0
+
     def taxable_income = raise NotImplementedError
 
     # Ce que le régime déclare avant tout abattement : le meublé y ajoute la provision.
