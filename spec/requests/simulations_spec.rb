@@ -115,6 +115,18 @@ RSpec.describe "Simulations", type: :request do
       expect(removal.at_css("button")["aria-label"]).to eq(I18n.t("views.simulations.index.destroy"))
     end
 
+    # Le plus ne dit rien de lui-même : l'action garde son libellé pour qui ne voit pas l'écran.
+    it "shrinks the new-simulation label to a plus without losing it" do
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      action = doc.at_css(".page-header a.btn-primary")
+
+      expect(action["aria-label"]).to eq(I18n.t("views.simulations.index.new"))
+      expect(action.at_css(".hide-on-mobile").text.strip).to eq(I18n.t("views.simulations.index.new"))
+      expect(action.at_css(".show-on-mobile").text.strip).to eq("+")
+    end
+
     it "says plainly when there is nothing to list" do
       get simulations_path
 
