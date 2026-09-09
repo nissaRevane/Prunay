@@ -277,6 +277,8 @@ fr:
         statement_sale_title: "Revente — Année %{year}"
         statement_sale_tab: Revente
         statement_close: Fermer
+        statement_previous_year: "Année précédente"
+        statement_next_year: "Année suivante"
         statement_detail: Détail
         hint_annual_rent_column: "Le loyer seul, hors provision pour charges, sur les mois effectivement loués."
         hint_annual_rent_including_charges_column: "Le meublé déclare la provision avec le loyer, puis la déduit."

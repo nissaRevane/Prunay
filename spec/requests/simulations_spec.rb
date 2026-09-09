@@ -183,6 +183,22 @@ RSpec.describe "Simulations", type: :request do
       expect(result).not_to include(currency(200_000).gsub(/\s+/, " "))
     end
 
+    # On passe d'une année à l'autre sans refermer la fiche, sauf aux deux bouts de la projection.
+    it "offers a step to each neighbouring year, disabled at both ends of the projection" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      steps = ->(year) do
+        doc.css("#panel-micro_foncier dialog#micro_foncier-year-#{year}-statement .statement-step").map do |step|
+          [step["data-projection-step-param"], step["disabled"]]
+        end
+      end
+
+      expect(steps.call(0)).to eq([["-1", "disabled"], ["1", nil]])
+      expect(steps.call(15)).to eq([["-1", nil], ["1", nil]])
+      expect(steps.call(Projection::HORIZON_YEARS)).to eq([["-1", nil], ["1", "disabled"]])
+    end
+
     # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt, mais 900 € de diagnostics et de remise en état.
     it "simulates a sale from the same statement, behind a tab of its own" do
       get simulation_path(simulation)

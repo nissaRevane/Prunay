@@ -39,7 +39,8 @@
   <% projection.years.each do |year| %>
     <dialog class="statement" id="<%= projection.regime %>-year-<%= year.number %>-statement" data-projection-target="statement"
             data-year="<%= year.number %>" data-controller="statement" data-statement-view-value="result"
-            data-action="click->projection#dismiss close->statement#reset"
+            data-statement-detail-value="false"
+            data-action="click->projection#dismiss keydown->projection#navigateByKey close->statement#reset"
             aria-labelledby="<%= projection.regime %>-year-<%= year.number %>-statement-title">
       <div class="statement-header">
         <div>
@@ -52,8 +53,17 @@
           </div>
           <div class="statement-date"><%= l(year.date, format: :long) %></div>
         </div>
-        <button type="button" class="statement-close" data-action="click->projection#close"
-                aria-label="<%= t("views.simulations.show.statement_close") %>">&times;</button>
+        <%# Les flèches passent à l'année voisine sans refermer la fiche ; le clavier fait de même. %>
+        <div class="statement-actions">
+          <button type="button" class="statement-step" data-action="click->projection#navigate"
+                  data-projection-step-param="-1" <%= "disabled" if year == projection.years.first %>
+                  aria-label="<%= t("views.simulations.show.statement_previous_year") %>">&lsaquo;</button>
+          <button type="button" class="statement-step" data-action="click->projection#navigate"
+                  data-projection-step-param="1" <%= "disabled" if year == projection.years.last %>
+                  aria-label="<%= t("views.simulations.show.statement_next_year") %>">&rsaquo;</button>
+          <button type="button" class="statement-close" data-action="click->projection#close"
+                  aria-label="<%= t("views.simulations.show.statement_close") %>">&times;</button>
+        </div>
       </div>
 
       <div class="statement-controls">

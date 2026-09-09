@@ -440,6 +440,13 @@ a.nav-user-name:hover {
   color: var(--color-text-muted);
 }
 
+.statement-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
 .statement-close {
   background: none;
   border: none;
@@ -448,6 +455,28 @@ a.nav-user-name:hover {
   line-height: 1;
   color: var(--color-text-muted);
   cursor: pointer;
+}
+
+.statement-step {
+  padding: 0 0.375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: none;
+  font-family: inherit;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.statement-step:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.statement-step:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 /* Les deux lectures d'une fiche se choisissent juste sous son titre : le filet des onglets
