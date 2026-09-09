@@ -157,30 +157,43 @@ docker compose run --rm web bundle exec rspec
   - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
     of the micro-BIC, the 18.6 % and the CFE, but no allowance at all — the charges, the CFE
     itself, the accountant and the interest of the loan are deducted for what they cost, and
-    on top of them the depreciation of the building, the only expense the taxman admits without
-    a payment. Prunay depreciates 80 % of the price paid — the land does not wear out — over 25
-    years, from the first year let to the twenty-fifth: a flat plan where the taxman expects one
-    per component, and the works and the notary fees, which really are depreciated too, are left
-    out. Neither the deficit nor the excess of depreciation is carried forward: a year that
-    gained nothing owes nothing, and nothing passes to the next — the real regime defers the
-    excess indefinitely, which is precisely what makes the LMNP pay no tax for years. The
-    accountant is the one charge a single regime pays: it is asked of the user like the others
-    (500 € by default, `accounting_fees`), kept out of `ANNUAL_CHARGES` since no other regime
-    owes it (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone. What the
+    on top of them the depreciation, the only expense the taxman admits without a payment. The
+    plan (`Taxation::DepreciationPlan`) has one line per component, each in a straight line from
+    the first year let: the building — the price paid and the notary fees, less the 15 % of land
+    that does not wear out (`LAND_SHARE`) — over 32 years, the initial works over 12 and the
+    furniture over 7 (`COMPONENTS`), the last annuity settling the base to the cent. The
+    durations sit in the middle of the usual ranges; the first year is a whole one, so there is
+    no prorata. The depreciation cannot create a deficit: it is deducted within the result before
+    depreciation — receipts less charges, the regime's own and the interest — and what does not
+    fit is carried forward without limit of time (art. 39 C CGI), component by component, to be
+    deducted the first year that has room for it; this is precisely what makes the LMNP pay no
+    tax for years. The order in which the components are deducted — the building, then the works,
+    then the furniture — is Prunay's choice, not the law's, which reasons in bulk: it matters only
+    for the capital gain below, and errs on the side of giving more back. The deficit itself,
+    charges above receipts, is still not carried forward. The accountant is the one charge a
+    single regime pays: it is asked of the user like the others (500 € by default,
+    `accounting_fees`), kept out of `ANNUAL_CHARGES` since no other regime owes it
+    (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone. What the
     depreciation spares of the tax is not spared for good: the resale gives it back, see the
     capital gain below.
 
   The parameters tab lists the CFE and the accountant with the annual charges, each noted as
   the regime's own and left out of their total, and details the calculation line by line; the
-  tax weighs on the cash flow of every year of the projection. The depreciation appears
-  nowhere but in the detail of the tax: it lowers the assessment and never the cash flow.
+  tax weighs on the cash flow of every year of the projection. The depreciation lowers the
+  assessment and never the cash flow: it appears in the detail of the tax — the annuity of each
+  component, what the previous years left waiting and what will still wait, the sum being what
+  the year deducts — and, under the LMNP alone, as the plan itself in the parameters tab: base,
+  years and annuity per component.
   The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
   individuals: the gain is what the price of that year gets above the fiscal value of the
   property — the price paid, the notary fees, and from the sixth year the flat 15 % of works
   the taxman assumes without an invoice, the real works being the other, exclusive option that
-  Prunay does not simulate. Under the LMNP, everything depreciated up to that year is taken
-  back out of that value: the 2025 finance act reintegrates the depreciation into the gain, and
-  it is the price of the years that owed no tax on the rents. The sale view of that regime
+  Prunay does not simulate. Under the LMNP, the building actually deducted up to that year is
+  taken back out of that value: the 2025 finance act reintegrates the depreciation into the
+  gain, and it is the price of the years that owed no tax on the rents. Neither the works, whose
+  depreciation the act leaves out since the flat 15 % already stands for them, nor the
+  furniture, a movable that no property gain concerns, nor what still waits in the carry-forward
+  comes back. The sale view of that regime
   names it on a line of its own, under the acquisition value that would otherwise be the whole
   fiscal value; every other regime depreciates nothing and has nothing to give back. It bears 19 % of income tax and 17.2 % of social charges, each on
   what its own allowance for the years held leaves it: nothing for five years, then 6 % a year

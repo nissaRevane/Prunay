@@ -158,9 +158,10 @@ rend ce qu'il déduit et ce qu'il reporte.
 
 - `Regime#initialize` : **ajoute** `depreciation: {}` (les lignes du plan pour l'année) et
   `deferred_depreciation: {}` (le report entrant, par composant) ; **retire** `purchase_price:`
-  et `year:`, qui ne servaient qu'à l'ancien calcul. `attr_reader` pour les deux nouveaux.
-- `Regime` (défauts, tous régimes sauf LMNP) : `depreciation = 0`,
-  `deducted_depreciation_lines = {}`, `carried_forward_depreciation = {}`.
+  et `year:`, qui ne servaient qu'à l'ancien calcul.
+- `Regime` (défauts, tous régimes sauf LMNP) : `depreciation_lines = {}`, `deferred_depreciation = {}`
+  — le plan est tendu à tous par `Simulation#taxation`, seul le LMNP le lit (`attr_reader` chez
+  lui) —, `depreciation = 0`, `deducted_depreciation_lines = {}`, `carried_forward_depreciation = {}`.
 - `Lmnp` :
 
 ```ruby
@@ -217,7 +218,7 @@ imposable, dans cet ordre et sans les lignes à zéro :
 
 La somme des cinq vaut `−depreciation`, ce qui est déduit : la règle « les lignes du détail
 somment sur la ligne parente » tient. La condition d'affichage devient
-`taxable_income.positive? || available_depreciation.positive?` — une année qui reporte tout a
+`taxable_income.positive? || depreciation_lines(taxation).any?` — une année qui reporte tout a
 quelque chose à dire même sans impôt.
 
 Clés à ajouter dans `fr.yml`, la clé `detail_depreciation` renommée :
@@ -305,6 +306,7 @@ paramétrage montre le tableau du § 4.2 sous le seul LMNP.
 | `projection_spec` cash-flow | 8 783,39 | 8 663,19 |
 | `projection_spec` « plan over » années 25/26 | 544,61 / 1 735,01 | supprimé, voir § 5.3 |
 | `projection_spec` revente année 5 | 32 000 / 15 388 / 5 570,46 | 28 768,80 / 12 156,80 / 4 400,76 |
+| `requests` détail LMNP à crédit, année 2 | | bâti −5 753,76, reportés −467,55, excédent +717,31, imposable 0 |
 | `projection_spec` « no more than the plan » 160 000 | | supprimé : le plan ne s'éteint plus dans l'horizon |
 | `requests` détail LMNP −6 400 | | −5 753,76 sous la nouvelle clé |
 | `capital_gain_spec` | | inchangé |
@@ -323,9 +325,9 @@ Chacun laisse la suite au vert.
    plus-value (seul le bâti déduit revient) ; la note de `CLAUDE.md` sur les constantes qui
    ont déménagé peut citer `Taxation::DepreciationPlan`.
 
-## 8. À trancher avant de coder
+## 8. Les choix faits, à revoir d'un mot
 
-Tout a une valeur par défaut ci-dessus ; ce sont les trois choix qui méritent un regard :
+L'implémentation a pris les valeurs par défaut ci-dessus ; ces trois choix restent ouverts :
 
 1. **32 ans pour le bâti** (milieu de la fourchette) ou **30 ans** (les exemples du PDF, et
    l'horizon de la projection) ? Une constante.

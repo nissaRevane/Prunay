@@ -8,8 +8,8 @@ chaque calcul est posé. Le lire avant de toucher au calcul, à la projection ou
 fiscalité. Ce fichier-ci ne porte que les conventions de travail.
 
 > Le README est la référence sur les règles, pas toujours sur les noms : quelques
-> constantes ont déménagé depuis (`Loan::PAYMENT_DAY`, `Simulation::Step::NAMES`). Vérifier
-> dans le code avant de citer un nom.
+> constantes ont déménagé depuis (`Loan::PAYMENT_DAY`, `Simulation::Step::NAMES`,
+> `Taxation::DepreciationPlan::COMPONENTS`). Vérifier dans le code avant de citer un nom.
 
 ## Ce qui prime sur les règles générales
 
