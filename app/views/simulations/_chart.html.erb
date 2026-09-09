@@ -28,7 +28,7 @@
       <li class="chart-legend-item chart-<%= series.name %>">
         <span class="chart-swatch" aria-hidden="true"></span>
         <span class="chart-legend-label"><%= series.label %></span>
-        <span class="chart-legend-value <%= series.last.negative? ? 'text-danger' : 'text-success' %>">
+        <span class="chart-legend-value <%= (series.last.negative? ? "text-danger" : "text-success") if signed %>">
           <%= number_to_currency(series.last) %>
         </span>
       </li>

@@ -8,6 +8,7 @@
     <p class="section-hint"><%= t("views.simulations.show.comparison_#{measure}_hint") %></p>
 
     <%= render "simulations/chart", chart: comparison_chart(projections, measure),
-               title: t("views.simulations.show.comparison_#{measure}") %>
+               title: t("views.simulations.show.comparison_#{measure}"),
+               signed: measure != :immobilized_capital %>
   </div>
 <% end %>
