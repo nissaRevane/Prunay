@@ -773,7 +773,7 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # Le plan du LMNP se lit sous son seul régime : 216 612 € moins 15 % de terrain sur 32 ans,
-    # 12 000 € de travaux sur douze, 2 100 € de meubles sur sept.
+    # 12 000 € de travaux sur douze — plus les 500 € de gros travaux de l'année, 41,67 € —, 2 100 € de meubles sur sept.
     it "details the depreciation plan for the LMNP alone" do
       simulation.update!(initial_works: 12_000, furniture: 2_100)
       get simulation_path(simulation)
@@ -792,11 +792,11 @@ RSpec.describe "Simulations", type: :request do
           currency(BigDecimal("5753.76")).gsub(/\s+/, " "),
         "#{I18n.t("views.simulations.show.depreciation_plan_works")} " \
         "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(12_000), years: 12)}" =>
-          currency(1_000).gsub(/\s+/, " "),
+          currency(BigDecimal("1041.67")).gsub(/\s+/, " "),
         "#{I18n.t("views.simulations.show.depreciation_plan_furniture")} " \
         "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(2_100), years: 7)}" =>
           currency(300).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.depreciation_plan_total") => currency(BigDecimal("7053.76")).gsub(/\s+/, " ")
+        I18n.t("views.simulations.show.depreciation_plan_total") => currency(BigDecimal("7095.43")).gsub(/\s+/, " ")
       )
     end
 

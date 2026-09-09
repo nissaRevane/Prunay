@@ -9,7 +9,7 @@ module Taxation
 
     def initialize(rent_excluding_charges:, marginal_tax_rate:, provision_for_charges: 0, charges: 0,
                    loan_interest: 0, monthly_rent: 0, accounting_fees: 0, furniture_maintenance: 0,
-                   depreciation: {}, deferred_depreciation: {})
+                   depreciation: {}, deferred_depreciation: {}, capitalized: {})
       # Décimaux d'office, comme dans Loan : un taux entier ferait une division entière.
       @rent_excluding_charges = rent_excluding_charges.to_d
       @provision_for_charges = provision_for_charges.to_d
@@ -22,6 +22,8 @@ module Taxation
       # Ce que le plan inscrit cette année et ce que les précédentes n'ont pu déduire : voir Taxation::Lmnp.
       @depreciation_lines = depreciation.transform_values(&:to_d)
       @deferred_depreciation = deferred_depreciation.transform_values(&:to_d)
+      # La part de l'entretien de l'année qui achète du durable : elle s'amortit au lieu de se déduire.
+      @capitalized_lines = capitalized.transform_values(&:to_d)
     end
 
     # La provision refacturée n'est une recette que du meublé : voir Taxation::Bic.
@@ -54,6 +56,10 @@ module Taxation
     def depreciation_lines = {}
 
     def deferred_depreciation = {}
+
+    def capitalized_lines = {}
+
+    def capitalized = 0
 
     def depreciation = 0
 
