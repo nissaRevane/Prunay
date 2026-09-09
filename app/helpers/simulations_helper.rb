@@ -226,12 +226,14 @@ module SimulationsHelper
     )
   end
 
+  # La décote est acquise dès la signature ; la revalorisation, elle, court sur la valeur réelle.
   def property_value_detail_lines(projection, year)
-    growth = year.property_value - projection.purchase_price
-    return {} if growth.zero?
+    growth = year.property_value - projection.market_value
+    lines = { statement_label(:purchase_discount) => projection.purchase_discount,
+              statement_label(:property_growth) => growth }.reject { |_, amount| amount.zero? }
+    return {} if lines.empty?
 
-    { statement_label(:purchase_price) => projection.purchase_price,
-      statement_label(:property_growth) => growth }
+    { statement_label(:purchase_price) => projection.purchase_price }.merge(lines)
   end
 
   def sale_cost_detail_lines(projection, year)

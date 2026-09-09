@@ -83,6 +83,10 @@ class Simulation < ApplicationRecord
   validates(*ANNUAL_CHARGES, *REGIME_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
+  # Une décote n'est pas un rabais négocié sur le prix : c'est ce que le bien vaut de plus que lui.
+  validates :purchase_discount, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update]
+
   # Héritées de l'utilisateur à la création : aucune page du parcours ne les demande.
   validates(*EconomicConditions::RATES, presence: true,
             numericality: { greater_than_or_equal_to: EconomicConditions::MIN_RATE,
@@ -116,6 +120,9 @@ class Simulation < ApplicationRecord
 
     (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
   end
+
+  # Ce que le bien vaut vraiment : le prix payé plus la décote obtenue. La revente en part, l'achat non.
+  def market_value = purchase_price + purchase_discount
 
   # Le montant à financer, comptant ou à crédit — non ce qu'on immobilise : voir #initial_outlay.
   def total_investment = purchase_price + notary_fees + initial_works

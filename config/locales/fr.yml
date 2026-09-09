@@ -24,6 +24,7 @@ fr:
         surface: "Surface (m²)"
         purchase_date: "Date d'achat"
         purchase_price: "Prix d'achat"
+        purchase_discount: "Décote à l'achat"
         notary_fees: Frais de notaire
         initial_works: Travaux
         furniture: Meubles
@@ -297,7 +298,7 @@ fr:
         hint_income_tax_column: "Votre tranche marginale et les prélèvements sociaux, sur la même assiette."
         hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
         hint_cash_flow: "Ce qui reste en poche une fois l'année écoulée, échéances et impôt payés."
-        hint_sale_property_value: "Le prix d'achat revalorisé ; ni les frais ni les travaux ne se revendent."
+        hint_sale_property_value: "Le prix d'achat, décote comprise, revalorisé ; ni les frais ni les travaux ne se revendent."
         hint_sale_capital_gain_tax: "19 % et 17,2 % après abattement pour durée de détention ; au LMNP, les amortissements déduits y reviennent."
         hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
         hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
@@ -321,6 +322,7 @@ fr:
         detail_income_tax: "Impôt sur le revenu (%{rate})"
         detail_social_charges: "Prélèvements sociaux (%{rate})"
         detail_purchase_price: "Prix d'achat"
+        detail_purchase_discount: "Décote obtenue à l'achat"
         detail_property_growth: "Revalorisation depuis l'achat"
         detail_diagnostics: Diagnostics
         detail_refurbishment: Remise en état

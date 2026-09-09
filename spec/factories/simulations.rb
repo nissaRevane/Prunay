@@ -7,6 +7,7 @@ FactoryBot.define do
     surface { 50 }
     purchase_date { Date.new(2025, 1, 15) }
     purchase_price { 200_000 }
+    purchase_discount { 0 }
     initial_works { 0 }
     monthly_rent { 800 }
     monthly_charges { 0 }

@@ -79,8 +79,8 @@ RSpec.describe "Economic conditions", type: :request do
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
     end
 
-    # Le contexte se corrige comme les paramètres : au clic sur le taux, et sans bouton.
-    it "carries one self-saving field per assumption" do
+    # Le contexte se corrige comme les paramètres : au clic sur la valeur, et sans bouton.
+    it "carries one self-saving field per assumption, and one for the discount" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -89,7 +89,7 @@ RSpec.describe "Economic conditions", type: :request do
       expect(panel.css("form").map { |form| form["action"] }.uniq)
         .to eq([simulation_economic_conditions_path(simulation)])
       expect(panel.css("input[type=submit], button[type=submit]")).to be_empty
-      expect(panel.css(".detail-item").size).to eq(EconomicConditions::ASSUMPTIONS.size)
+      expect(panel.css(".detail-item").size).to eq(EconomicConditions::ASSUMPTIONS.size + 1)
     end
 
     # Un taux corrigé refait la projection : la fiche revient entière, sur son onglet.
@@ -131,6 +131,26 @@ RSpec.describe "Economic conditions", type: :request do
       patch simulation_economic_conditions_path(taxed), params: { simulation: { marginal_tax_rate: "41" } }
 
       expect(taxed.reload.marginal_tax_rate).to eq(41)
+    end
+
+    # La décote se corrige là aussi : elle ne tient de personne et ne vaut que pour cette simulation.
+    it "carries the discount obtained at the purchase next to the rates" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("#simulation_purchase_discount")).to be_present
+
+      patch simulation_economic_conditions_path(simulation), params: { simulation: { purchase_discount: "15000" } }
+
+      expect(simulation.reload.purchase_discount).to eq(15_000)
+    end
+
+    # Une décote négative n'est pas une décote : le bien ne vaut pas moins que ce qu'il a coûté.
+    it "refuses a discount that would put the property under its price" do
+      patch simulation_economic_conditions_path(simulation), params: { simulation: { purchase_discount: "-1000" } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(simulation.reload.purchase_discount).to eq(0)
     end
 
     # Une tranche que le barème ne connaît pas n'est pas une hypothèse : c'est une faute.

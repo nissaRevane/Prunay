@@ -112,7 +112,14 @@ docker compose run --rm web bundle exec rspec
   the day it is created — correcting the defaults afterwards never rewrites a projection
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, one rate at a time like
-  every other value, and the page comes back on that tab (`?tab=economic_conditions`).
+  every other value, and the page comes back on that tab (`?tab=economic_conditions`). That
+  tab holds one assumption that is not a rate and belongs to the simulation alone: the
+  discount obtained at the purchase (`purchase_discount`, zero by default), what the buyer
+  reckons the property is worth above what he paid for it. `Simulation#market_value` is the
+  sum of the two, and it is what the projection compounds: the resale starts from the real
+  value, while the notary fees, the capital borrowed, the depreciation and the fiscal value of
+  the capital gain all stay on the price actually paid. A discount is therefore a gain from
+  the first day — a real one, and taxed as such.
 - **The taxation** (`Taxation`): four regimes, each a tab of the simulation page and a
   projection of its own — the same property, the same rents, the same charges, and the tax
   alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of
@@ -262,7 +269,8 @@ docker compose run --rm web bundle exec rspec
   carries the amounts as they were typed — it describes the twelve months that follow the
   purchase — and each year after compounds them by its rate. Under the table, two totals: the
   cash flow accumulated over the horizon, and what the property is then worth — the purchase
-  price alone compounded, since neither the notary fees nor the works are resold.
+  price and its discount alone compounded, since neither the notary fees nor the works are
+  resold.
 
 - **The comparison:** a tab of its own where the four regimes are read on the same axes rather
   than one panel at a time. Two charts, thirty-one points each, drawn server-side as plain SVG:
@@ -325,7 +333,8 @@ spec/
     - *the rest:* other_charges
   - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
     marginal_tax_rate — the same four columns as `EconomicConditions`, copied from the user's
-    defaults at the creation and corrected afterwards for this simulation alone
+    defaults at the creation and corrected afterwards for this simulation alone, plus
+    purchase_discount, which belongs to this simulation only and is corrected in the same tab
 
   The thirty-year projection is derived, never stored: see `Simulation#projection` and its
   `Year` struct, the tax of the year included.

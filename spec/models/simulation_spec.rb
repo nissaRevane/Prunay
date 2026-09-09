@@ -44,6 +44,8 @@ RSpec.describe Simulation, type: :model do
 
     it { is_expected.to validate_numericality_of(:property_tax).is_greater_than_or_equal_to(0).on(:charges) }
 
+    it { is_expected.to validate_numericality_of(:purchase_discount).is_greater_than_or_equal_to(0).on(:update) }
+
     # La tranche marginale se choisit dans le barème : un taux inventé n'y a pas de place.
     it { is_expected.to validate_inclusion_of(:marginal_tax_rate).in_array(Taxation::MARGINAL_TAX_RATES).on(:update) }
 
@@ -205,6 +207,17 @@ RSpec.describe Simulation, type: :model do
       expect(simulation.taxation(:lmnp).depreciation_lines).to eq(building: BigDecimal("5753.76"), works: 1_050,
                                                                   furniture: 340)
       expect(simulation.taxation(:foncier_reel).depreciation_lines).to eq({})
+    end
+  end
+
+  # Une décote de 20 000 € sur 200 000 € payés : le bien en vaut 220 000, et la revente part de là.
+  describe "#market_value" do
+    it "adds the discount obtained to the price paid" do
+      expect(build(:simulation, purchase_price: 200_000, purchase_discount: 20_000).market_value).to eq(220_000)
+    end
+
+    it "is the price itself when the property was bought at its value" do
+      expect(build(:simulation, purchase_price: 200_000).market_value).to eq(200_000)
     end
   end
 

@@ -106,6 +106,11 @@ class Projection
 
   def purchase_price = @simulation.purchase_price
 
+  # Ce dont la revente part : le prix payé plus la décote, que le premier jour a déjà acquise.
+  def market_value = @simulation.market_value
+
+  def purchase_discount = @simulation.purchase_discount
+
   def occupancy_months = @simulation.occupancy_months
 
   def initial_outlay = @simulation.initial_outlay(regime)
@@ -185,7 +190,7 @@ class Projection
       provision = compound(@simulation.annual_provision_for_charges, @simulation.inflation_rate, number - 1)
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
-      property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
+      property_value = compound(@simulation.market_value, @simulation.property_growth_rate, number)
       taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation)
       deferred_depreciation = taxation.carried_forward_depreciation
       # Revendre reprend le bâti déduit jusque-là, l'année en cours comprise — ni les travaux, ni
@@ -243,9 +248,9 @@ class Projection
       loan_insurance: 0,
       capital_repayment: 0,
       taxation: taxation_for(0, 0, 0, 0, 0, 0),
-      gain: @simulation.capital_gain_taxation(@simulation.purchase_price, 0),
+      gain: @simulation.capital_gain_taxation(@simulation.market_value, 0),
       immobilized_capital: initial_outlay,
-      property_value: @simulation.purchase_price,
+      property_value: @simulation.market_value,
       remaining_loan_capital: @simulation.loan.capital,
       sale_costs: @simulation.sale_costs.total,
       early_repayment_fee: @simulation.loan.early_repayment_fee(@simulation.loan.capital)

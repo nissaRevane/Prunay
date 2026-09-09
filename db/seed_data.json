@@ -45,7 +45,8 @@
       "early_repayment_fee": true,
       "accounting_fees": 500,
       "furniture": 2110,
-      "furniture_maintenance": 210
+      "furniture_maintenance": 210,
+      "purchase_discount": 10000
     },
     {
       "purchase_date": "2024-09-01",
@@ -80,7 +81,8 @@
       "early_repayment_fee": true,
       "accounting_fees": 500,
       "furniture": 2830,
-      "furniture_maintenance": 280
+      "furniture_maintenance": 280,
+      "purchase_discount": 0
     }
   ]
 }

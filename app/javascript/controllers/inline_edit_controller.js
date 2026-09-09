@@ -5,12 +5,14 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["display", "form"]
 
-  // Un mot de la phrase s'ouvre aussi au clavier : la barre d'espace ne déroule pas la page.
+  // Le clavier ouvre comme le clic, sans dérouler la page, et sur la valeur sélectionnée :
+  // ce qu'on tape la remplace au lieu de s'y coller.
   open(event) {
     event?.preventDefault()
     this.displayTarget.hidden = true
     this.formTarget.hidden = false
     this.field?.focus()
+    this.field?.select?.()
   }
 
   close() {
@@ -20,7 +22,9 @@ export default class extends Controller {
     this.displayTarget.hidden = false
   }
 
+  // Échap abandonne ce qui a été tapé, fût-ce un chiffre que le navigateur refuse.
   cancel() {
+    this.pending = false
     this.formTarget.reset()
     this.close()
   }
@@ -31,10 +35,18 @@ export default class extends Controller {
     this.save()
   }
 
-  // requestSubmit refuse de partir sur un champ invalide : la contrainte HTML fait le premier tri.
+  // requestSubmit refuse de partir sur un champ invalide : le dire, et garder la porte ouverte —
+  // refermer rendrait l'ancienne valeur sans un mot.
   save() {
+    if (!this.formTarget.checkValidity()) return this.reject()
+
     this.syncTab()
     this.formTarget.requestSubmit()
+  }
+
+  reject() {
+    this.pending = true
+    this.formTarget.reportValidity()
   }
 
   // L'onglet ouvert vit dans l'URL : la fiche renvoyée rouvre celui-là, non celui du rendu.

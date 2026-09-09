@@ -434,6 +434,20 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
+    # 200 000 € payés pour un bien qui en vaut 220 000 : la revente le dit sur une ligne à elle.
+    it "names the discount obtained at the purchase in the value of the property" do
+      discounted = create(:simulation, user: user, purchase_discount: 20_000)
+
+      get simulation_path(discounted)
+
+      doc = Nokogiri::HTML(response.body)
+      sale = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-10-statement #micro_foncier-year-10-sale")
+      lines = sale.css(".statement-detail-line").map { |line| line.at_css(".statement-detail-label").text.strip }
+
+      expect(lines.first(2)).to eq([I18n.t("views.simulations.show.detail_purchase_price"),
+                                    I18n.t("views.simulations.show.detail_purchase_discount")])
+    end
+
     # Le tableau ne montre que le loyer hors charges, et la fiche des charges allégées d'autant.
     it "shows the rent excluding charges and says discreetly what the provision took off them" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
