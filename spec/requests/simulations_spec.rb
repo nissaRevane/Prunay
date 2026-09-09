@@ -1248,9 +1248,20 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".navbar-logo")["href"]).to eq(root_path)
-      expect(doc.css(".navbar-links .nav-link").map { |link| link["href"] }).to eq([edit_economic_conditions_path])
+      expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] }).to eq([edit_economic_conditions_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
       expect(doc.at_css(".nav-user-name").text).to eq(user.full_name)
+    end
+
+    # Sur mobile le burger commande le panneau : le compte et la déconnexion y sont avec les liens.
+    it "folds the menu, the account and the sign out behind one button" do
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      menu = doc.at_css("##{doc.at_css('.navbar-burger')['aria-controls']}")
+      expect(menu["class"]).to include("navbar-menu")
+      expect(menu.at_css(".nav-user-name")["href"]).to eq(account_path)
+      expect(menu.at_css("form[action='#{destroy_user_session_path}']")).not_to be_nil
     end
   end
 end

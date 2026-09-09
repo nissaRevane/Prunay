@@ -127,6 +127,7 @@ fr:
       building: "🏘️"
   views:
     nav:
+      menu: Menu
       economic_conditions: Conditions économiques
       sign_out: Déconnexion
       sign_in: Connexion

@@ -15,7 +15,7 @@ RSpec.describe "Home", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".hero .btn-lg")["href"]).to eq(new_user_registration_path)
-      expect(doc.at_css(".navbar-links a[href='#{new_user_session_path}']")).not_to be_nil
+      expect(doc.at_css(".navbar-menu a[href='#{new_user_session_path}']")).not_to be_nil
     end
 
     # La racine sert la vitrine au visiteur et la liste des simulations à l'utilisateur connecté.

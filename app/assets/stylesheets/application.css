@@ -34,6 +34,7 @@ body {
 
 /* Navbar */
 .navbar {
+  position: relative;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   padding: 0.75rem 2rem;
@@ -50,10 +51,47 @@ body {
   text-decoration: none;
 }
 
-.navbar-links {
+.navbar-menu {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* Le bouton du menu replié : il n'a de raison d'être que sur mobile. */
+.navbar-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.navbar-burger-bar {
+  display: block;
+  width: 1.125rem;
+  height: 2px;
+  margin: 0 auto;
+  border-radius: 1px;
+  background: var(--color-text);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.navbar.is-open .navbar-burger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.navbar.is-open .navbar-burger-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar.is-open .navbar-burger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .nav-link {
@@ -67,12 +105,6 @@ body {
 
 .nav-link:hover {
   background: var(--color-bg);
-}
-
-.navbar-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 .nav-user-name {
@@ -1282,8 +1314,51 @@ a.icon-btn:hover {
 /* Responsive */
 @media (max-width: 768px) {
   .navbar {
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-burger {
+    display: flex;
+  }
+
+  /* Replié sous la barre : les liens, le compte et la déconnexion, l'un sous l'autre. */
+  .navbar:has(.navbar-burger) .navbar-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem 1rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .navbar.is-open .navbar-menu {
+    display: flex;
+  }
+
+  .navbar.is-open .nav-link {
+    padding: 0.625rem 0.5rem;
+  }
+
+  /* Le compte ouvre sa propre section, sous un trait. */
+  .navbar.is-open .nav-user-name {
+    margin-top: 0.25rem;
+    padding: 0.75rem 0.5rem 0.5rem;
+    font-size: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .navbar.is-open .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
   }
 
   .page-header {
