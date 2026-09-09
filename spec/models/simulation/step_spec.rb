@@ -66,7 +66,7 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("charges", draft(surface: 50))).to eq(
         "property_tax" => 700, "insurance" => 150, "maintenance" => 1_000,
         "condominium_fees" => 1_000, "management_fees" => 0, "rent_guarantee" => 0,
-        "accounting_fees" => 500, "furniture_maintenance" => 210, "other_charges" => 100
+        "accounting_fees" => 500, "furniture_maintenance" => 370, "other_charges" => 100
       )
     end
   end

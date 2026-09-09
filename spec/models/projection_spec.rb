@@ -309,6 +309,17 @@ RSpec.describe Projection do
                accounting_fees: BigDecimal("500"))
     end
 
+    # À 2 % d'inflation, le comptable et l'entretien des meubles se paient au prix de l'année : 510 € et 204 € la deuxième.
+    it "lets the charges of the regime follow the inflation like the others" do
+      inflating = described_class.new(build(:simulation, accounting_fees: 500, furniture_maintenance: 200,
+                                                         inflation_rate: 2), :lmnp)
+      year = inflating.years[2]
+
+      expect(inflating.charge_lines(year))
+        .to eq(business_tax: BigDecimal("252"), furniture_maintenance: BigDecimal("204"), accounting_fees: BigDecimal("510"))
+      expect(year.charges_excluding_provision).to eq(966)
+    end
+
     # 12 000 € de travaux sur douze ans et 2 100 € de meubles sur sept : 1 300 € de plus à
     # déduire, et pas un centime de charge en plus.
     it "depreciates the works and the furniture beside the building" do
@@ -319,6 +330,24 @@ RSpec.describe Projection do
       expect(year.taxation.taxable_income).to eq(BigDecimal("2274.24"))
       expect(described_class.new(equipped, :lmnp).charge_lines(year))
         .to eq(business_tax: BigDecimal("252"), accounting_fees: BigDecimal("500"))
+    end
+
+    # 1 200 € d'entretien et 350 € pour les meubles sortent de la trésorerie en entier ; 600 € et
+    # 280 € n'en sont pas moins ôtés des charges déduites et reviennent par le plan, 50 € et 40 €
+    # la première année. Le foncier réel, lui, déduit tout l'entretien tout de suite.
+    it "depreciates the durable share of the upkeep instead of deducting it, the cash flow unchanged" do
+      upkept = build(:simulation, accounting_fees: 500, maintenance: 1_200, furniture_maintenance: 350)
+      year = described_class.new(upkept, :lmnp).years[1]
+
+      expect(year.charges_excluding_provision).to eq(2_302)
+      expect(year.pre_tax_result).to eq(7_778)
+      expect(year.taxation.capitalized_lines).to eq(works: 600, furniture: 280)
+      expect(year.taxation.result_before_depreciation).to eq(8_658)
+      expect(year.taxation.depreciation_lines).to eq(building: BigDecimal("5753.76"), works: 50, furniture: 40)
+      expect(year.taxation.taxable_income).to eq(BigDecimal("2814.24"))
+      expect(year.taxes).to eq(BigDecimal("523.45"))
+      expect(year.cash_flow).to eq(BigDecimal("7254.55"))
+      expect(described_class.new(upkept, :foncier_reel).years[1].taxation.taxable_income).to eq(8_400)
     end
 
     # Trente-deux ans de bâti : la trentième année déduit encore son annuité pleine.

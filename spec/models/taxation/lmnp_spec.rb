@@ -62,6 +62,16 @@ RSpec.describe Taxation::Lmnp do
       expect(comfortable.carried_forward_depreciation).to eq({})
     end
 
+    # 600 € de gros travaux et 280 € de meubles renouvelés sont dans les charges payées, mais pas
+    # dans celles que l'année déduit : 10 880 € à effacer au lieu de 10 000.
+    it "gives back to the result the upkeep that the plan depreciates instead" do
+      capitalizing = described_class.new(**attributes, capitalized: { works: 600, furniture: 280 })
+
+      expect(capitalizing.capitalized).to eq(880)
+      expect(capitalizing.result_before_depreciation).to eq(10_880)
+      expect(capitalizing.taxable_income).to eq(3_580)
+    end
+
     # Une année sans résultat ne déduit rien et reporte tout.
     it "defers the whole depreciation when the charges have swallowed the receipts" do
       loss = described_class.new(**attributes, loan_interest: 12_000)
@@ -94,6 +104,7 @@ RSpec.describe Taxation::Lmnp do
     expect(Taxation::MicroBic.new(**attributes).depreciation).to eq(0)
     expect(Taxation::FoncierReel.new(**attributes).own_charges).to eq(0)
     expect(Taxation::FoncierReel.new(**attributes).depreciation_lines).to eq({})
+    expect(Taxation::FoncierReel.new(**attributes, capitalized: { works: 600 }).capitalized).to eq(0)
     expect(Taxation::FoncierReel.new(**attributes).carried_forward_depreciation).to eq({})
   end
 

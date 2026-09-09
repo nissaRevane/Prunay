@@ -13,7 +13,8 @@ module Simulation::Estimate
     condominium_fees: 1_000,
     other_charges: 100,
     furniture: 2_000,
-    furniture_maintenance: 200
+    # Pour l'essentiel le renouvellement des meubles : 2 000 € tous les sept ans, et l'entretien par-dessus.
+    furniture_maintenance: 350
   }.freeze
 
   # Les meubles se comptent sur un logement plus petit : un T2 meublé est la référence du marché.

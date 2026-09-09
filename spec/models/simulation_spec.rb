@@ -195,12 +195,15 @@ RSpec.describe Simulation, type: :model do
   # Le plan du LMNP lit le prix, les frais de notaire, les travaux et les meubles de la simulation.
   describe "#depreciation_plan" do
     it "hands the plan what the purchase cost, notary fees included" do
-      simulation = build(:simulation, purchase_price: 200_000, initial_works: 12_000, furniture: 2_100)
+      simulation = build(:simulation, purchase_price: 200_000, initial_works: 12_000, furniture: 2_100,
+                                      maintenance: 1_200, furniture_maintenance: 350)
 
       expect(simulation.depreciation_plan.bases)
         .to eq(building: BigDecimal("184120.20"), works: 12_000, furniture: 2_100)
-      expect(simulation.taxation(:lmnp).depreciation_lines).to eq(building: BigDecimal("5753.76"), works: 1_000,
-                                                                  furniture: 300)
+      expect(simulation.depreciation_plan.capitalized(1)).to eq(works: 600, furniture: 280)
+      expect(simulation.taxation(:lmnp).capitalized_lines).to eq(works: 600, furniture: 280)
+      expect(simulation.taxation(:lmnp).depreciation_lines).to eq(building: BigDecimal("5753.76"), works: 1_050,
+                                                                  furniture: 340)
       expect(simulation.taxation(:foncier_reel).depreciation_lines).to eq({})
     end
   end

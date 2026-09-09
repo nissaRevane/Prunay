@@ -4,13 +4,16 @@ module Taxation
   # l'amortissement du plan (voir DepreciationPlan), une dépense que rien ne décaisse. Il ne
   # crée pas de déficit : ce que l'année ne peut déduire se reporte sans limite sur les suivantes.
   class Lmnp < Bic
-    # Le plan de l'année et le report des précédentes, que ce régime seul lit.
-    attr_reader :depreciation_lines, :deferred_depreciation
+    # Le plan de l'année, le report des précédentes et la part immobilisée de l'entretien : lui seul les lit.
+    attr_reader :depreciation_lines, :deferred_depreciation, :capitalized_lines
 
     # Le comptable, que seul ce régime paie : c'est l'amortissement qui le rend nécessaire.
     def own_charge_lines = super.merge(accounting_fees: accounting_fees)
 
-    def result_before_depreciation = [receipts - charges - own_charges - loan_interest, 0].max
+    def capitalized = capitalized_lines.values.sum
+
+    # Ce que l'entretien immobilise n'est pas une charge de l'année : il revient par l'amortissement.
+    def result_before_depreciation = [receipts - charges - own_charges + capitalized - loan_interest, 0].max
 
     # L'annuité de l'année et le report des précédentes, composant par composant.
     def available_depreciation
