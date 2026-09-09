@@ -585,6 +585,35 @@ RSpec.describe Projection do
     end
   end
 
+  describe "the internal rate of return of a year" do
+    # 236 612 € engagés le premier jour, 7 675,60 € de cash-flow par an, et une revente à
+    # 199 100 € (200 000 € moins 900 € de frais, sans plus-value) sur la dernière année tenue.
+    it "is what a resale that year would have returned, year by year" do
+      expect(projection.internal_rate_of_return(projection.year(1))).to eq(BigDecimal("-12.61"))
+      expect(projection.internal_rate_of_return(projection.year(15))).to eq(BigDecimal("2.35"))
+      expect(projection.internal_rate_of_return(projection.year(30))).to eq(BigDecimal("2.91"))
+    end
+
+    # Le jour de la signature, rien n'a couru : il n'y a pas deux flux à comparer.
+    it "does not exist on the day of the purchase" do
+      expect(projection.internal_rate_of_return(projection.year(0))).to be_nil
+    end
+
+    # Les frais de notaire ne se revendent pas : la première année les perd, et le taux le dit.
+    it "is negative as long as the resale has not made up for the purchase" do
+      expect(projection.internal_rate_of_return(projection.year(3))).to be_negative
+      expect(projection.internal_rate_of_return(projection.year(10))).to be_positive
+    end
+
+    it "reads the regime it is asked of" do
+      furnished = described_class.new(simulation, :micro_bic)
+
+      # Le meublé loue 5 % plus cher et son abattement est de moitié : d'autres flux, un autre taux.
+      expect(furnished.internal_rate_of_return(furnished.year(30)))
+        .not_to eq(projection.internal_rate_of_return(projection.year(30)))
+    end
+  end
+
   describe "#final_immobilized_capital" do
     it "is what the last line shows" do
       expect(projection.final_immobilized_capital).to eq(projection.years.last.immobilized_capital)
