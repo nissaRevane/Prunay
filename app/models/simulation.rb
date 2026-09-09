@@ -166,18 +166,25 @@ class Simulation < ApplicationRecord
   # La CFE, que le meublé seul paie : elle ne se saisit pas et reste hors du total des charges.
   def annual_business_tax = taxation(:micro_bic).business_tax
 
+  # Ce que le LMNP amortit : le bâti frais de notaire compris, les travaux et les meubles.
+  def depreciation_plan
+    Taxation::DepreciationPlan.new(price: purchase_price, acquisition_fees: notary_fees, works: initial_works,
+                                   furniture: furniture)
+  end
+
   # La provision voyage avec le loyer : le meublé l'impose là où le nu la laisse dehors.
   def taxation(regime = Taxation::DEFAULT_REGIME,
                rent_excluding_charges: annual_rent_excluding_charges_under(regime),
                provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0),
-               monthly_rent: monthly_rent_under(regime), year: 1)
+               monthly_rent: monthly_rent_under(regime), year: 1, depreciation: depreciation_plan.lines(year),
+               deferred_depreciation: {})
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,
-                         monthly_rent: monthly_rent, purchase_price: purchase_price,
-                         accounting_fees: accounting_fees, furniture_maintenance: furniture_maintenance,
-                         year: year)
+                         monthly_rent: monthly_rent, accounting_fees: accounting_fees,
+                         furniture_maintenance: furniture_maintenance, depreciation: depreciation,
+                         deferred_depreciation: deferred_depreciation)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total

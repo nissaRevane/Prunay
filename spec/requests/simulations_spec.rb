@@ -258,19 +258,19 @@ RSpec.describe "Simulations", type: :request do
       end
 
       # 12 600 € de recettes prime de meublé comprise, 1 615 € de charges CFE et comptable compris,
-      # 6 400 € d'amortissement.
+      # 5 753,76 € d'amortissement du bâti.
       expect(lines).to eq([
         [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_050), months: "12"),
          currency(12_600).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:property_tax), currency(-800).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.business_tax"), currency(-315).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:accounting_fees), currency(-500).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_depreciation"), currency(-6_400).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_taxable_income"), currency(4_585).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_depreciation"), currency(BigDecimal("-5753.76")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(BigDecimal("5231.24")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)),
-         currency(BigDecimal("-1375.50")).gsub(/\s+/, " ")],
+         currency(BigDecimal("-1569.37")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_social_charges", rate: percentage(BigDecimal("18.6"))),
-         currency(BigDecimal("-852.81")).gsub(/\s+/, " ")]
+         currency(BigDecimal("-973.01")).gsub(/\s+/, " ")]
       ])
     end
 

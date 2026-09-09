@@ -274,13 +274,15 @@ RSpec.describe Projection do
   describe "under the LMNP regime" do
     subject(:projection) { described_class.new(build(:simulation, accounting_fees: 500), :lmnp) }
 
-    # 10 080 € de loyers, 252 € de CFE, 500 € de comptable et 6 400 € d'amortissement : 2 928 € imposables.
+    # 10 080 € de loyers, 252 € de CFE, 500 € de comptable : 9 328 € avant amortissement, et le
+    # bâti — 216 612 € moins 15 % de terrain, sur 32 ans — en ôte 5 753,76 €.
     it "deducts the depreciation of the building from the assessment and nothing else" do
       year = projection.years[1]
 
-      expect(year.taxation.depreciation).to eq(6_400)
-      expect(year.taxation.taxable_income).to eq(2_928)
-      expect(year.taxes).to eq(BigDecimal("544.61"))
+      expect(year.taxation.depreciation_lines).to eq(building: BigDecimal("5753.76"))
+      expect(year.taxation.depreciation).to eq(BigDecimal("5753.76"))
+      expect(year.taxation.taxable_income).to eq(BigDecimal("3574.24"))
+      expect(year.taxes).to eq(BigDecimal("664.81"))
     end
 
     # 752 € de charges que personne d'autre ne paie, et un cash-flow que l'amortissement ne touche pas.
@@ -290,7 +292,7 @@ RSpec.describe Projection do
       expect(projection.charge_lines(year)).to eq(business_tax: BigDecimal("252"), accounting_fees: BigDecimal("500"))
       expect(year.charges_excluding_provision).to eq(752)
       expect(year.pre_tax_result).to eq(9_328)
-      expect(year.cash_flow).to eq(BigDecimal("8783.39"))
+      expect(year.cash_flow).to eq(BigDecimal("8663.19"))
     end
 
     # Les meubles s'achètent le jour de la signature et s'entretiennent chaque année : 2 000 €
@@ -307,34 +309,69 @@ RSpec.describe Projection do
                accounting_fees: BigDecimal("500"))
     end
 
-    # Le plan s'éteint après vingt-cinq ans : la vingt-sixième année paie sur 9 328 €.
-    it "taxes the whole result once the plan of depreciation is over" do
-      expect(projection.years[25].taxes).to eq(BigDecimal("544.61"))
-      expect(projection.years[26].taxes).to eq(BigDecimal("1735.01"))
+    # 12 000 € de travaux sur douze ans et 2 100 € de meubles sur sept : 1 300 € de plus à
+    # déduire, et pas un centime de charge en plus.
+    it "depreciates the works and the furniture beside the building" do
+      equipped = build(:simulation, accounting_fees: 500, initial_works: 12_000, furniture: 2_100)
+      year = described_class.new(equipped, :lmnp).years[1]
+
+      expect(year.taxation.depreciation_lines).to eq(building: BigDecimal("5753.76"), works: 1_000, furniture: 300)
+      expect(year.taxation.taxable_income).to eq(BigDecimal("2274.24"))
+      expect(described_class.new(equipped, :lmnp).charge_lines(year))
+        .to eq(business_tax: BigDecimal("252"), accounting_fees: BigDecimal("500"))
     end
 
-    # Le forfait du micro-BIC laisse 5 040 € imposables là où le réel amorti n'en laisse que 2 928 €.
+    # Trente-deux ans de bâti : la trentième année déduit encore son annuité pleine.
+    it "still deducts the building on the last year of the projection" do
+      expect(projection.years[30].taxation.depreciation).to eq(BigDecimal("5753.76"))
+      expect(projection.years[30].taxes).to eq(BigDecimal("664.81"))
+    end
+
+    # Le forfait du micro-BIC laisse 5 040 € imposables là où le réel amorti n'en laisse que 3 574,24 €.
     it "taxes less than the micro-BIC on the same year, the depreciation making the difference" do
       expect(described_class.new(build(:simulation), :micro_bic).years[1].taxes).to eq(BigDecimal("937.44"))
     end
 
+    # À crédit, 5 698,79 € d'intérêts ne laissent que 3 629,21 € la première année : le bâti s'y
+    # loge en partie, 2 124,55 € attendent l'année suivante, et rien n'est dû.
+    it "carries forward what the result of a year on credit cannot hold" do
+      indebted = described_class.new(build(:simulation, :with_credit, accounting_fees: 500), :lmnp)
+      first, second = indebted.years[1], indebted.years[2]
+
+      expect(first.loan_interest).to eq(BigDecimal("5698.79"))
+      expect(first.taxation.result_before_depreciation).to eq(BigDecimal("3629.21"))
+      expect(first.taxation.deducted_depreciation_lines).to eq(building: BigDecimal("3629.21"))
+      expect(first.taxation.carried_forward_depreciation).to eq(building: BigDecimal("2124.55"))
+      expect(first.taxes).to eq(0)
+      # L'année suivante reçoit le report : 5 753,76 € d'annuité et 2 124,55 € d'attente.
+      expect(second.taxation.deferred_depreciation).to eq(building: BigDecimal("2124.55"))
+      expect(second.taxation.available_depreciation).to eq(building: BigDecimal("7878.31"))
+      expect(second.taxes).to eq(0)
+    end
+
     # Ce que l'amortissement a fait gagner chaque année, la revente le reprend : 216 612 € de valeur
-    # fiscale amputés de cinq ans d'amortissement, et un bien vendu à son prix dégage 15 388 €.
+    # fiscale amputés de cinq annuités du bâti, et un bien vendu à son prix dégage 12 156,80 €.
     it "gives the depreciation back to the capital gain of the year it sells" do
       year = projection.years[5]
 
       expect(year.gain.acquisition_value).to eq(216_612)
-      expect(year.gain.depreciation).to eq(32_000)
-      expect(year.capital_gain).to eq(15_388)
-      expect(year.capital_gain_tax).to eq(BigDecimal("5570.46"))
+      expect(year.gain.depreciation).to eq(BigDecimal("28768.80"))
+      expect(year.capital_gain).to eq(BigDecimal("12156.80"))
+      expect(year.capital_gain_tax).to eq(BigDecimal("4400.76"))
       # Le foncier réel n'amortit rien : le même bien revendu au même prix ne doit rien.
       expect(described_class.new(build(:simulation), :foncier_reel).years[5].capital_gain).to eq(0)
     end
 
-    # Le plan éteint, la réintégration ne grossit plus : 160 000 € une fois pour toutes.
-    it "reintegrates no more than the plan of depreciation ever deducted" do
-      expect(projection.years[25].gain.depreciation).to eq(160_000)
-      expect(projection.years[26].gain.depreciation).to eq(160_000)
+    # Seul le bâti déduit revient : ni les travaux, couverts par le forfait de 15 %, ni les
+    # meubles, ni ce qui attend encore en report. À crédit, 3 629,21 € la première année.
+    it "reintegrates the building actually deducted, not the works, the furniture nor the deferral" do
+      equipped = described_class.new(build(:simulation, accounting_fees: 500, initial_works: 12_000, furniture: 2_100),
+                                     :lmnp)
+      indebted = described_class.new(build(:simulation, :with_credit, accounting_fees: 500), :lmnp)
+
+      expect(equipped.years[1].gain.depreciation).to eq(BigDecimal("5753.76"))
+      expect(indebted.years[1].gain.depreciation).to eq(BigDecimal("3629.21"))
+      expect(indebted.years[2].gain.depreciation).to eq(BigDecimal("7476.21"))
     end
   end
 

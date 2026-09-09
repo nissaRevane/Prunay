@@ -5,11 +5,11 @@ module Taxation
   # #total est l'impôt sur le revenu seul ; les charges du régime se comptent à part.
   class Regime
     attr_reader :rent_excluding_charges, :provision_for_charges, :marginal_tax_rate, :charges, :loan_interest,
-                :monthly_rent, :purchase_price, :year
+                :monthly_rent
 
     def initialize(rent_excluding_charges:, marginal_tax_rate:, provision_for_charges: 0, charges: 0,
-                   loan_interest: 0, monthly_rent: 0, purchase_price: 0, accounting_fees: 0,
-                   furniture_maintenance: 0, year: 0)
+                   loan_interest: 0, monthly_rent: 0, accounting_fees: 0, furniture_maintenance: 0,
+                   depreciation: {}, deferred_depreciation: {})
       # Décimaux d'office, comme dans Loan : un taux entier ferait une division entière.
       @rent_excluding_charges = rent_excluding_charges.to_d
       @provision_for_charges = provision_for_charges.to_d
@@ -17,11 +17,11 @@ module Taxation
       @charges = charges.to_d
       @loan_interest = loan_interest.to_d
       @monthly_rent = monthly_rent.to_d
-      @purchase_price = purchase_price.to_d
       @accounting_fees = accounting_fees.to_d
       @furniture_maintenance = furniture_maintenance.to_d
-      # Le rang de l'année, et non un montant : l'amortissement du LMNP s'y arrête.
-      @year = year.to_i
+      # Ce que le plan inscrit cette année et ce que les précédentes n'ont pu déduire : voir Taxation::Lmnp.
+      @depreciation_lines = depreciation.transform_values(&:to_d)
+      @deferred_depreciation = deferred_depreciation.transform_values(&:to_d)
     end
 
     # La provision refacturée n'est une recette que du meublé : voir Taxation::Bic.
@@ -50,8 +50,16 @@ module Taxation
 
     def social_charges = share(taxable_income, social_charges_rate)
 
-    # Le réel du meublé seul en a une : voir Taxation::Lmnp.
+    # Le réel du meublé seul amortit : les autres ne lisent même pas le plan qu'on leur tend. Voir Taxation::Lmnp.
+    def depreciation_lines = {}
+
+    def deferred_depreciation = {}
+
     def depreciation = 0
+
+    def deducted_depreciation_lines = {}
+
+    def carried_forward_depreciation = {}
 
     # Les charges que le régime paie de lui-même, hors de celles qu'on lui donne : la CFE du
     # meublé, le comptable du LMNP. La projection les ajoute aux charges de l'année.

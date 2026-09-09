@@ -267,8 +267,8 @@ recettes 13 200 €, charges 2 000 €, charges propres 1 200 € (CFE 300, meub
   Reporté : `{ building: 1_000, works: 1_000, furniture: 300 }`. Imposable 0, impôt 0.
 - **L'année d'après**, mêmes lignes et `deferred_depreciation: { building: 1_000, works: 1_000, furniture: 300 }`,
   intérêts 4 000 € : résultat 6 000 €, disponible bâti 7 000. Déduit : bâti 6 000, rien d'autre.
-  Reporté : `{ building: 1_000, works: 1_000, furniture: 300 }` — le stock ne fond que quand le
-  résultat dépasse l'annuité.
+  Reporté : `{ building: 1_000, works: 2_000, furniture: 600 }` — le stock grossit tant que le
+  résultat ne dépasse pas l'annuité.
 - **Une année confortable**, intérêts 0, même report entrant : résultat 10 000 €, disponible
   9 600 €, tout se déduit, imposable 400 €, report vide.
 
