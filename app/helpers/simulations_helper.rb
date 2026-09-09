@@ -124,7 +124,7 @@ module SimulationsHelper
 
   # Un axe de montants se gradue en euros, un axe de taux en pourcentage.
   def chart_tick_label(value, measure)
-    return rate_label(value) if rate_measure?(measure)
+    return return_rate_label(value) if rate_measure?(measure)
 
     number_to_currency(value, precision: 0)
   end
@@ -265,7 +265,7 @@ module SimulationsHelper
   def internal_rate_of_return_label(rate)
     return t("views.simulations.show.no_internal_rate_of_return") if rate.nil?
 
-    rate_label(rate)
+    return_rate_label(rate)
   end
 
   private
@@ -334,4 +334,7 @@ module SimulationsHelper
   end
 
   def rate_label(rate) = number_to_percentage(rate, precision: 2, strip_insignificant_zeros: true)
+
+  # Le TRI se lit à la décimale, zéro compris : une colonne de taux s'aligne.
+  def return_rate_label(rate) = number_to_percentage(rate, precision: 1)
 end

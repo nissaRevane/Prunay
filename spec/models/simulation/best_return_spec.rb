@@ -7,9 +7,10 @@ RSpec.describe Simulation::BestReturn do
     create(:simulation, purchase_price: 200_000, monthly_rent: 800, purchase_date: Date.new(2025, 1, 15))
   end
 
-  # 4,04 % au LMNP, contre 3,96 au micro-BIC, 3,75 au micro-foncier et 3,51 au foncier réel.
+  # 4,04 % au LMNP, contre 3,96 au micro-BIC, 3,75 au micro-foncier et 3,51 au foncier réel : les
+  # deux premiers s'affichent à 4,0 %, et c'est le taux exact qui les départage.
   it "keeps the highest rate of every regime and every resale year" do
-    expect(best.rate).to eq(BigDecimal("4.04"))
+    expect(best.rate).to eq(BigDecimal("4.0"))
     expect(best.regime).to eq(:lmnp)
     expect(best.year).to eq(30)
     expect(best.date).to eq(Date.new(2055, 1, 15))
@@ -40,7 +41,7 @@ RSpec.describe Simulation::BestReturn do
       described_class.new(simulation).rate
 
       expect(simulation).not_to receive(:projection)
-      expect(described_class.new(simulation).rate).to eq(BigDecimal("4.04"))
+      expect(described_class.new(simulation).rate).to eq(BigDecimal("4.0"))
     end
 
     # Corriger un chiffre du bien date sa ligne, et le balayage recommence.
@@ -48,7 +49,7 @@ RSpec.describe Simulation::BestReturn do
       described_class.new(simulation).rate
       simulation.update!(monthly_rent: 1_200)
 
-      expect(described_class.new(simulation).rate).to eq(BigDecimal("6.06"))
+      expect(described_class.new(simulation).rate).to eq(BigDecimal("6.1"))
     end
   end
 end

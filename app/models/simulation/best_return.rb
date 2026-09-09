@@ -49,8 +49,9 @@ class Simulation::BestReturn
     found
   end
 
-  # On ne cherche pas les cent vingt-quatre taux mais le plus haut : une actualisation suffit à
-  # écarter une sortie qui ne bat pas le record, et seule celle qui le bat vaut une dichotomie.
+  # On ne cherche pas les cent vingt-quatre taux mais le plus haut : l'actualisation tranche au
+  # taux exact, là où deux taux arrondis à la décimale se seraient dits égaux, et seule la sortie
+  # qui bat le record vaut une dichotomie.
   def scan
     Taxation::NAMES.reduce(nil) do |found, regime|
       scanned = projection(regime)
@@ -59,7 +60,7 @@ class Simulation::BestReturn
         next if found && !scanned.beats?(year, found.rate)
 
         rate = scanned.internal_rate_of_return(year)
-        next unless rate && (found.nil? || rate > found.rate)
+        next unless rate
 
         found = Exit.new(rate: rate, regime: regime, year: year.number, date: year.date)
       end

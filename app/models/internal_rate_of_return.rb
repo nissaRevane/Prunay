@@ -7,8 +7,8 @@ class InternalRateOfReturn
 
   HIGHEST_RATE = BigDecimal("10")
 
-  # Le millionième : quatre chiffres sous les deux décimales de pourcentage qui se lisent.
-  PRECISION = BigDecimal("0.000001")
+  # Le cent-millième : deux chiffres sous la décimale de pourcentage qui se lit.
+  PRECISION = BigDecimal("0.00001")
 
   # Vingt chiffres significatifs par opération : sans quoi l'actualisation en traîne mille.
   DIGITS = 20
@@ -33,7 +33,7 @@ class InternalRateOfReturn
   def percentage
     found = rate
 
-    (found * 100).round(2) if found
+    (found * 100).round(1) if found
   end
 
   # Le facteur d'actualisation se compose d'une année sur l'autre, plutôt que de s'élever à la puissance.

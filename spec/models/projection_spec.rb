@@ -626,9 +626,9 @@ RSpec.describe Projection do
     # 236 612 € engagés le premier jour, 7 675,60 € de cash-flow par an, et une revente à
     # 199 100 € (200 000 € moins 900 € de frais, sans plus-value) sur la dernière année tenue.
     it "is what a resale that year would have returned, year by year" do
-      expect(projection.internal_rate_of_return(projection.year(1))).to eq(BigDecimal("-12.61"))
-      expect(projection.internal_rate_of_return(projection.year(15))).to eq(BigDecimal("2.35"))
-      expect(projection.internal_rate_of_return(projection.year(30))).to eq(BigDecimal("2.91"))
+      expect(projection.internal_rate_of_return(projection.year(1))).to eq(BigDecimal("-12.6"))
+      expect(projection.internal_rate_of_return(projection.year(15))).to eq(BigDecimal("2.4"))
+      expect(projection.internal_rate_of_return(projection.year(30))).to eq(BigDecimal("2.9"))
     end
 
     # Le jour de la signature, rien n'a couru : il n'y a pas deux flux à comparer.

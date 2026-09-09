@@ -13,6 +13,10 @@ RSpec.describe "Simulations", type: :request do
     ActionController::Base.helpers.number_to_percentage(rate, precision: 2, strip_insignificant_zeros: true)
   end
 
+  def return_percentage(rate)
+    ActionController::Base.helpers.number_to_percentage(rate, precision: 1)
+  end
+
   describe "GET /simulations" do
     it "returns success" do
       get simulations_path
@@ -38,7 +42,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       rates = doc.css(".simulation-grid .simulation-card .simulation-card-rate").map { |cell| cell.text.strip }
 
-      expect(rates).to eq([percentage(5.01), percentage(4.04), percentage(3.1)])
+      expect(rates).to eq([return_percentage(5), return_percentage(4), return_percentage(3.1)])
     end
 
     # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
@@ -64,7 +68,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-rate").text.strip).to eq(percentage(4.04))
+      expect(doc.at_css(".simulation-card-rate").text.strip).to eq(return_percentage(4))
       expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
         I18n.t("views.simulations.index.best_exit", date: 2055, year: 30)
       )
@@ -207,7 +211,7 @@ RSpec.describe "Simulations", type: :request do
         currency(11_000).gsub(/\s+/, " "),
         currency(BigDecimal("7675.60")).gsub(/\s+/, " "),
         currency(BigDecimal("228936.40")).gsub(/\s+/, " "),
-        percentage(BigDecimal("-12.61")).gsub(/\s+/, " ")
+        return_percentage(BigDecimal("-12.6")).gsub(/\s+/, " ")
       ])
     end
 
@@ -1041,8 +1045,8 @@ RSpec.describe "Simulations", type: :request do
         doc = Nokogiri::HTML(response.body)
         chart = doc.css("#panel-comparison .chart")[2]
 
-        expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0 %")
-        expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("6 %")
+        expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0,0 %")
+        expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("4,0 %")
         expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
       end
 
