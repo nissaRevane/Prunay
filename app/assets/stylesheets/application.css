@@ -1614,6 +1614,22 @@ a.icon-btn:hover {
   height: 0.75rem;
 }
 
-.chart-legend-value {
-  font-weight: 600;
+/* Assez large, la page range la légende à droite de la courbe plutôt qu'en dessous. */
+@media (min-width: 900px) {
+  .chart {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .chart-svg {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chart-legend {
+    flex-flow: column nowrap;
+    gap: 0.5rem;
+    margin-top: 0;
+  }
 }

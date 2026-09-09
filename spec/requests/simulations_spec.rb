@@ -1033,19 +1033,6 @@ RSpec.describe "Simulations", type: :request do
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
       end
 
-      # 216 612 € engagés et 8 444,16 € de cash-flow par an au micro-foncier : la trentième année
-      # en a rendu 36 712,80 € de plus, et revendre à 200 000 € moins 900 € de frais les ajoute.
-      it "closes each curve on the thirtieth year of its regime" do
-        get simulation_path(neutral)
-
-        doc = Nokogiri::HTML(response.body)
-        values = doc.css("#panel-comparison .chart .chart-micro_foncier .chart-legend-value")
-                    .map { |value| value.text.gsub(/\s+/, " ").strip }
-
-        expect(values).to eq([currency(-36_712.80).gsub(/\s+/, " "), currency(235_812.80).gsub(/\s+/, " "),
-                              "3,75 %"])
-      end
-
       # Le micro-foncier ne rend un taux positif qu'à partir de la troisième année : sa courbe
       # ne part que de là, et l'axe des taux commence au zéro plutôt qu'au plus bas des quatre.
       it "leaves the years without a positive rate off the rate chart" do

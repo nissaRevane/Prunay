@@ -8,8 +8,7 @@
       <h2><%= t("views.simulations.show.comparison_#{measure}") %></h2>
     </div>
     <%= render "simulations/chart", chart: comparison_chart(projections, measure),
-               title: t("views.simulations.show.comparison_#{measure}"),
-               measure: measure, signed: measure == :sale_profit %>
+               title: t("views.simulations.show.comparison_#{measure}"), measure: measure %>
   </div>
 <% end %>
 

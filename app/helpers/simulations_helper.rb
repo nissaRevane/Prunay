@@ -129,13 +129,6 @@ module SimulationsHelper
     number_to_currency(value, precision: 0)
   end
 
-  # Ce que la courbe vaut à son terme, en tête de légende.
-  def chart_series_label(series, measure)
-    return internal_rate_of_return_label(series.last) if rate_measure?(measure)
-
-    number_to_currency(series.last)
-  end
-
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: parameters_url(simulation),
                       label: Simulation.human_attribute_name(field), note: nil, value_class: nil,
