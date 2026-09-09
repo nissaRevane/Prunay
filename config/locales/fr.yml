@@ -155,7 +155,6 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
-        subtitle: Le meilleur bien d'abord, au meilleur taux de rendement interne qu'il permette.
         best_exit: "%{regime} · revente en %{date} (%{year}ᵉ année)"
         no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
         initial_outlay: Mise de départ
