@@ -22,7 +22,13 @@ class LineChart
     @series = series
   end
 
-  def points(one) = one.values.each_with_index.map { |value, index| "#{x(index)},#{y(value)}" }.join(" ")
+  # Une mesure peut manquer une année : la courbe se rend alors en autant de tronçons que de
+  # suites d'années renseignées, coupés là où l'année suivante ne l'est pas.
+  def segments(one)
+    one.values.each_with_index.reject { |value, _| value.nil? }
+       .slice_when { |(_, index), (_, following)| following > index + 1 }
+       .map { |points| points.map { |value, index| "#{x(index)},#{y(value)}" }.join(" ") }
+  end
 
   def x(index) = (MARGIN[:left] + index * plot_width / (length - 1)).round(2)
 
@@ -76,7 +82,7 @@ class LineChart
 
   def extremes
     @extremes ||= begin
-      values = series.flat_map(&:values).map(&:to_d) << 0
+      values = series.flat_map(&:values).compact.map(&:to_d) << 0
 
       [values.min, values.max]
     end

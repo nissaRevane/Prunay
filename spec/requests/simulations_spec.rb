@@ -1015,20 +1015,20 @@ RSpec.describe "Simulations", type: :request do
       end
     end
 
-    # Un onglet met les quatre régimes sur les mêmes axes : le capital encore engagé, et ce que
-    # revendre cette année-là laisserait.
+    # Un onglet met les quatre régimes sur les mêmes axes : le capital encore engagé, ce que
+    # revendre cette année-là laisserait, et le taux que l'opération aurait rendu.
     context "the comparison tab" do
       let(:neutral) { create(:simulation, user: user) }
 
-      it "draws one curve per regime on each of the two charts" do
+      it "draws one curve per regime on each of the three charts" do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
         charts = doc.css("#panel-comparison .chart")
 
         expect(doc.at_css("#tab-comparison")).not_to be_nil
-        expect(charts.size).to eq(2)
-        expect(charts.map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4])
+        expect(charts.size).to eq(3)
+        expect(charts.take(2).map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4])
         expect(charts.first.css(".chart-legend-item").map { |item| item.at_css(".chart-legend-label").text.strip })
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
       end
@@ -1042,7 +1042,21 @@ RSpec.describe "Simulations", type: :request do
         values = doc.css("#panel-comparison .chart .chart-micro_foncier .chart-legend-value")
                     .map { |value| value.text.gsub(/\s+/, " ").strip }
 
-        expect(values).to eq([currency(-36_712.80).gsub(/\s+/, " "), currency(235_812.80).gsub(/\s+/, " ")])
+        expect(values).to eq([currency(-36_712.80).gsub(/\s+/, " "), currency(235_812.80).gsub(/\s+/, " "),
+                              "3,75 %"])
+      end
+
+      # Le micro-foncier ne rend un taux positif qu'à partir de la troisième année : sa courbe
+      # ne part que de là, et l'axe des taux commence au zéro plutôt qu'au plus bas des quatre.
+      it "leaves the years without a positive rate off the rate chart" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        chart = doc.css("#panel-comparison .chart").last
+
+        expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0 %")
+        expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("6 %")
+        expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
       end
     end
 

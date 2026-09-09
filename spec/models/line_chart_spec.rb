@@ -19,13 +19,21 @@ RSpec.describe LineChart do
     end
   end
 
-  describe "#points" do
+  describe "#segments" do
     # Le cadre va de 88 à 936 en largeur, de 16 à 288 en hauteur : 0 et 20 000 en occupent les
     # deux bords, et 10 000 la mi-hauteur.
     it "maps each value onto the plot area" do
       one = series(0, 10_000, 20_000)
 
-      expect(described_class.new([one]).points(one)).to eq("88,288.0 512,152.0 936,16.0")
+      expect(described_class.new([one]).segments(one)).to eq(["88,288.0 512,152.0 936,16.0"])
+    end
+
+    # Les deux premières années manquent, la quatrième aussi : deux tronçons, et l'axe ignore
+    # les trous pour se graduer.
+    it "cuts the curve where the measure is missing" do
+      one = series(nil, nil, 10_000, nil, 20_000)
+
+      expect(described_class.new([one]).segments(one)).to eq(["512,152.0", "936,16.0"])
     end
   end
 

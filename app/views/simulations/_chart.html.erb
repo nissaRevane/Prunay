@@ -1,5 +1,6 @@
 <%# Le graphique est rendu par le serveur, sans bibliothèque : une polyligne par régime sur une
-    grille en montants ronds, et la ligne du zéro appuyée — c'est elle qu'on cherche. %>
+    grille en valeurs rondes, et la ligne du zéro appuyée — c'est elle qu'on cherche. Une
+    courbe interrompue là où la mesure manque se rend en plusieurs tronçons. %>
 <div class="chart">
   <svg class="chart-svg" viewBox="0 0 <%= LineChart::WIDTH %> <%= LineChart::HEIGHT %>"
        role="img" aria-label="<%= title %>">
@@ -7,7 +8,7 @@
       <line class="chart-grid" x1="<%= LineChart::MARGIN[:left] %>" x2="<%= chart.right %>"
             y1="<%= chart.y(value) %>" y2="<%= chart.y(value) %>" />
       <text class="chart-label chart-label-y" x="<%= LineChart::MARGIN[:left] - 8 %>"
-            y="<%= chart.y(value) + 4 %>"><%= number_to_currency(value, precision: 0) %></text>
+            y="<%= chart.y(value) + 4 %>"><%= chart_tick_label(value, measure) %></text>
     <% end %>
 
     <line class="chart-zero" x1="<%= LineChart::MARGIN[:left] %>" x2="<%= chart.right %>"
@@ -19,7 +20,9 @@
     <% end %>
 
     <% chart.series.each do |series| %>
-      <polyline class="chart-line chart-<%= series.name %>" points="<%= chart.points(series) %>" />
+      <% chart.segments(series).each do |points| %>
+        <polyline class="chart-line chart-<%= series.name %>" points="<%= points %>" />
+      <% end %>
     <% end %>
   </svg>
 
@@ -29,7 +32,7 @@
         <span class="chart-swatch" aria-hidden="true"></span>
         <span class="chart-legend-label"><%= series.label %></span>
         <span class="chart-legend-value <%= (series.last.negative? ? "text-danger" : "text-success") if signed %>">
-          <%= number_to_currency(series.last) %>
+          <%= chart_series_label(series, measure) %>
         </span>
       </li>
     <% end %>

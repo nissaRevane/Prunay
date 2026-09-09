@@ -9,8 +9,11 @@ module SimulationsHelper
   # L'onglet fiscal n'a pas de panneau à lui : il ouvre celui du régime choisi dans sa liste.
   TAXATION_TAB = "taxation".freeze
 
-  # Ce que l'onglet de comparaison met côte à côte : une année d'un régime se lit sur les deux.
-  COMPARISON_MEASURES = %i[immobilized_capital sale_profit].freeze
+  # Ce que l'onglet de comparaison met côte à côte : une année d'un régime se lit sur les trois.
+  COMPARISON_MEASURES = %i[immobilized_capital sale_profit internal_rate_of_return].freeze
+
+  # La seule des trois qui se lise en pourcentage, et qu'une année peut ne pas avoir.
+  RATE_MEASURE = :internal_rate_of_return
 
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
@@ -85,8 +88,22 @@ module SimulationsHelper
   def comparison_chart(projections, measure)
     LineChart.new(projections.map do |regime, projection|
       LineChart::Series.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
-                            values: projection.years.map(&measure))
+                            values: comparison_values(projection, measure))
     end)
+  end
+
+  # Un axe de montants se gradue en euros, un axe de taux en pourcentage.
+  def chart_tick_label(value, measure)
+    return rate_label(value) if rate_measure?(measure)
+
+    number_to_currency(value, precision: 0)
+  end
+
+  # Ce que la courbe vaut à son terme, en tête de légende.
+  def chart_series_label(series, measure)
+    return internal_rate_of_return_label(series.last) if rate_measure?(measure)
+
+    number_to_currency(series.last)
   end
 
   # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
@@ -229,6 +246,18 @@ module SimulationsHelper
   end
 
   private
+
+  def rate_measure?(measure) = measure == RATE_MEASURE
+
+  # Le taux ne vit pas sur l'année mais sur la projection, et ne se trace pas sous le zéro : la
+  # courbe ne commence qu'une fois l'opération rentable.
+  def comparison_values(projection, measure)
+    return projection.years.map(&measure) unless rate_measure?(measure)
+
+    projection.years.map { |year| positive_rate(projection.internal_rate_of_return(year)) }
+  end
+
+  def positive_rate(rate) = (rate if rate&.positive?)
 
   def statement_label(key, **options) = t("views.simulations.show.detail_#{key}", **options)
 

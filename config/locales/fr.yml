@@ -216,6 +216,10 @@ fr:
         comparison_sale_profit_hint: >-
           Ce que revendre cette année-là laisserait, une fois le crédit soldé, les frais et
           l'impôt sur la plus-value payés, et le capital encore engagé repris.
+        comparison_internal_rate_of_return: Le taux de rendement interne
+        comparison_internal_rate_of_return_hint: >-
+          Le taux annuel qu'aurait rendu l'opération revendue cette année-là. La courbe ne
+          commence qu'une fois l'opération rentable : un taux négatif ne se trace pas.
         chart_caption: "En abscisse, l'année de l'opération ; à droite, la %{year}ᵉ."
         summary_html: "%{type} de %{surface} au %{address} à %{city}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
