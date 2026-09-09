@@ -127,6 +127,7 @@ class Projection
     remaining = @simulation.loan.annual_remaining_capital
     cumulative_cash_flow = 0
     cumulative_depreciation = 0
+    deferred_depreciation = {}
     sale_costs = @simulation.sale_costs.total
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
@@ -137,9 +138,11 @@ class Projection
       charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.purchase_price, @simulation.property_growth_rate, number)
-      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number)
-      # Revendre reprend les amortissements déduits jusque-là : l'année en cours en fait partie.
-      cumulative_depreciation += taxation.depreciation
+      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation)
+      deferred_depreciation = taxation.carried_forward_depreciation
+      # Revendre reprend le bâti déduit jusque-là, l'année en cours comprise — ni les travaux, ni
+      # les meubles, ni ce qui attend encore en report.
+      cumulative_depreciation += taxation.deducted_depreciation_lines.fetch(:building, 0)
       gain = @simulation.capital_gain_taxation(property_value, number, depreciation: cumulative_depreciation)
 
       year = Year.new(
@@ -168,10 +171,10 @@ class Projection
   # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
   # Les charges qu'il ajoute lui-même ne lui sont pas repassées : il les connaît déjà, et les déduit
   # ou non selon qu'il est au réel ou au forfait.
-  def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number)
+  def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation = {})
     @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
                                  charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent,
-                                 year: number)
+                                 year: number, deferred_depreciation: deferred_depreciation)
   end
 
   # Le jour de l'achat : rien n'a couru, la ligne est là pour le capital immobilisé et le prix payé.

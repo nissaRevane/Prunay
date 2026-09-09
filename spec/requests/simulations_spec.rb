@@ -258,20 +258,44 @@ RSpec.describe "Simulations", type: :request do
       end
 
       # 12 600 € de recettes prime de meublé comprise, 1 615 € de charges CFE et comptable compris,
-      # 6 400 € d'amortissement.
+      # 5 753,76 € d'amortissement du bâti.
       expect(lines).to eq([
         [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_050), months: "12"),
          currency(12_600).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:property_tax), currency(-800).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.business_tax"), currency(-315).gsub(/\s+/, " ")],
         [Simulation.human_attribute_name(:accounting_fees), currency(-500).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_depreciation"), currency(-6_400).gsub(/\s+/, " ")],
-        [I18n.t("views.simulations.show.detail_taxable_income"), currency(4_585).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_depreciation_building"), currency(BigDecimal("-5753.76")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(BigDecimal("5231.24")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_income_tax", rate: percentage(30)),
-         currency(BigDecimal("-1375.50")).gsub(/\s+/, " ")],
+         currency(BigDecimal("-1569.37")).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_social_charges", rate: percentage(BigDecimal("18.6"))),
-         currency(BigDecimal("-852.81")).gsub(/\s+/, " ")]
+         currency(BigDecimal("-973.01")).gsub(/\s+/, " ")]
       ])
+    end
+
+    # À crédit, la deuxième année : 5 481 € d'intérêts laissent 5 504 € de résultat pour 5 753,76 €
+    # d'annuité et 467,55 € reportés de la première — 717,31 € attendront la troisième, et rien n'est dû.
+    it "shows what the LMNP defers and what it takes back from the years before" do
+      indebted = create(:simulation, :with_credit, user: user, monthly_rent: 1_000, occupancy_months: 12,
+                                                   purchase_price: 200_000, accounting_fees: 500,
+                                                   property_tax: 800, marginal_tax_rate: 30)
+
+      get simulation_path(indebted)
+
+      doc = Nokogiri::HTML(response.body)
+      result = doc.at_css("#panel-lmnp dialog#lmnp-year-2-statement #lmnp-year-2-result")
+      lines = result.css(".statement-detail-line").map do |line|
+        [line.at_css(".statement-detail-label").text.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(lines).to include(
+        [I18n.t("views.simulations.show.detail_depreciation_building"), currency(BigDecimal("-5753.76")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_deferred_depreciation"), currency(BigDecimal("-467.55")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_carried_forward_depreciation"), currency(BigDecimal("717.31")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_taxable_income"), currency(0).gsub(/\s+/, " ")]
+      )
     end
 
     # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
@@ -729,6 +753,34 @@ RSpec.describe "Simulations", type: :request do
         "foncier_reel" => currency(2_000).gsub(/\s+/, " "),
         "micro_bic" => currency(2_315).gsub(/\s+/, " "),
         "lmnp" => currency(2_815).gsub(/\s+/, " ")
+      )
+    end
+
+    # Le plan du LMNP se lit sous son seul régime : 216 612 € moins 15 % de terrain sur 32 ans,
+    # 12 000 € de travaux sur douze, 2 100 € de meubles sur sept.
+    it "details the depreciation plan for the LMNP alone" do
+      simulation.update!(initial_works: 12_000, furniture: 2_100)
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.depreciation_plan_detail") }
+      amounts = section.css(".detail-item").to_h do |item|
+        [item.at_css(".detail-label").text.gsub(/\s+/, " ").strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(section["data-regimes"]).to eq("lmnp")
+      expect(section["hidden"]).not_to be_nil
+      expect(amounts).to eq(
+        "#{I18n.t("views.simulations.show.depreciation_plan_building", share: percentage(85))} " \
+        "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(BigDecimal("184120.20")), years: 32)}" =>
+          currency(BigDecimal("5753.76")).gsub(/\s+/, " "),
+        "#{I18n.t("views.simulations.show.depreciation_plan_works")} " \
+        "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(12_000), years: 12)}" =>
+          currency(1_000).gsub(/\s+/, " "),
+        "#{I18n.t("views.simulations.show.depreciation_plan_furniture")} " \
+        "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(2_100), years: 7)}" =>
+          currency(300).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.depreciation_plan_total") => currency(BigDecimal("7053.76")).gsub(/\s+/, " ")
       )
     end
 
