@@ -26,25 +26,30 @@ class Simulation::BestReturn
 
   private
 
-  def projection
-    @projection ||= simulation.projection(regime)
+  # Le balayage les construit toutes : celle du régime qui l'emporte se relit sans se refaire.
+  def projection(name = regime)
+    @projections ||= {}
+    @projections[name] ||= simulation.projection(name)
   end
 
   def best
     return @best if defined?(@best)
 
-    @best = exits.max_by(&:rate)
+    @best = Taxation::NAMES.reduce(nil) { |found, name| best_exit_of(name, found) }
   end
 
-  def exits
-    Taxation::NAMES.flat_map do |name|
-      projection = simulation.projection(name)
+  # On ne cherche pas les cent vingt-quatre taux mais le plus haut : une actualisation suffit à
+  # écarter une sortie qui ne bat pas le record, et seule celle qui le bat vaut une dichotomie.
+  def best_exit_of(regime, found)
+    scanned = projection(regime)
 
-      projection.years.filter_map do |year|
-        rate = projection.internal_rate_of_return(year)
+    scanned.years.each do |year|
+      next if found && !scanned.beats?(year, found.rate)
 
-        Exit.new(rate: rate, regime: name, year: year) if rate
-      end
+      rate = scanned.internal_rate_of_return(year)
+      found = Exit.new(rate: rate, regime: regime, year: year) if rate && (found.nil? || rate > found.rate)
     end
+
+    found
   end
 end

@@ -7,8 +7,8 @@ class InternalRateOfReturn
 
   HIGHEST_RATE = BigDecimal("10")
 
-  # Le milliardième : bien en dessous des deux décimales de pourcentage qui se lisent.
-  PRECISION = BigDecimal("0.000000001")
+  # Le millionième : quatre chiffres sous les deux décimales de pourcentage qui se lisent.
+  PRECISION = BigDecimal("0.000001")
 
   # Vingt chiffres significatifs par opération : sans quoi l'actualisation en traîne mille.
   DIGITS = 20
@@ -24,6 +24,10 @@ class InternalRateOfReturn
 
     @rate = solve
   end
+
+  # Le taux dépasse-t-il celui-là ? La valeur actualisée décroît quand le taux monte, donc elle est
+  # positive ici exactement quand le taux cherché est plus haut — une actualisation au lieu d'une dichotomie.
+  def above?(rate) = net_present_value(rate).positive?
 
   # En pourcentage, comme les taux que l'utilisateur saisit.
   def percentage

@@ -15,11 +15,20 @@ RSpec.describe InternalRateOfReturn do
     expect(described_class.new([-1_000, 900]).percentage).to eq(-10)
   end
 
-  # Le taux annule la valeur actualisée des flux : c'est la seule chose qu'on lui demande.
+  # Le taux annule la valeur actualisée des flux : cherché au millionième, il laisse un centime
+  # sur les dix mille euros engagés, quatre chiffres sous les deux décimales qui s'affichent.
   it "annuls the present value of the flows it is read on" do
     irr = described_class.new([-10_000, -500, 1_200, 1_200, 12_000])
 
-    expect(irr.net_present_value(irr.rate).abs).to be < 0.001
+    expect(irr.net_present_value(irr.rate).abs).to be < 0.02
+  end
+
+  # Le taux vaut dix pour cent : il dépasse neuf, pas onze, et le dire ne demande aucune dichotomie.
+  it "tells whether its rate is above another one" do
+    irr = described_class.new([-1_000, 1_100])
+
+    expect(irr).to be_above(BigDecimal("0.09"))
+    expect(irr).not_to be_above(BigDecimal("0.11"))
   end
 
   it "has no rate when nothing ever comes back" do

@@ -89,16 +89,18 @@ class Projection
 
   def initial_outlay = @simulation.initial_outlay(regime)
 
+  # Chaque année recalcule son impôt pour dire son cash-flow : on ne le lui demande qu'une fois.
+  def cash_flows = @cash_flows ||= years.map(&:cash_flow)
+
   # Ce que l'année a déjà rendu de l'investissement : le capital immobilisé s'en déduit.
-  def cumulative_cash_flow(year) = years.take(year.number + 1).sum(&:cash_flow)
+  def cumulative_cash_flow(year) = cash_flows.take(year.number + 1).sum
 
   # Le taux annuel qu'aurait rendu l'opération revendue cette année-là, en pourcentage.
-  def internal_rate_of_return(year)
-    @internal_rates_of_return ||= {}
-    return @internal_rates_of_return[year.number] if @internal_rates_of_return.key?(year.number)
+  def internal_rate_of_return(year) = rate_of_return_at(year).percentage
 
-    @internal_rates_of_return[year.number] = InternalRateOfReturn.new(exit_cash_flows(year)).percentage
-  end
+  # Revendre cette année-là rend-il plus que ce taux ? Une actualisation le dit, là où le taux lui-même
+  # se cherche par dichotomie : c'est tout ce qu'il faut pour départager deux sorties.
+  def beats?(year, percentage) = rate_of_return_at(year).above?(percentage.to_d / 100)
 
   # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
   def monthly_rent_of(year) = indexed(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, year)
@@ -126,12 +128,17 @@ class Projection
 
   private
 
+  def rate_of_return_at(year)
+    @rates_of_return ||= {}
+    @rates_of_return[year.number] ||= InternalRateOfReturn.new(exit_cash_flows(year))
+  end
+
   # Ce que l'opération encaisse et débourse si elle s'arrête cette année-là : l'investissement
   # du premier jour, les cash-flows des années tenues, et le produit de la revente sur la dernière.
   def exit_cash_flows(year)
     return [] if year.number.zero?
 
-    flows = years.take(year.number + 1).map(&:cash_flow)
+    flows = cash_flows.take(year.number + 1)
     flows[0] = -initial_outlay
     flows[-1] += year.sale_proceeds
 
