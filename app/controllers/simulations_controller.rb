@@ -3,8 +3,11 @@ class SimulationsController < ApplicationController
 
   before_action :set_simulation, only: [:show, :edit, :update, :destroy]
 
+  # Le meilleur bien d'abord : le TRI ne se trie qu'en Ruby, et un bien sans taux ferme la liste.
   def index
-    @simulations = current_user.simulations.order(purchase_date: :desc, id: :desc)
+    @simulations = current_user.simulations.sort_by do |simulation|
+      -(simulation.best_return.rate || -Float::INFINITY)
+    end
   end
 
   # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.

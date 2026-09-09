@@ -1,0 +1,57 @@
+<%# Un bien de la liste : le meilleur TRI qu'il permette, le régime et l'année de revente qui le
+    donnent, puis ce qu'il faut avancer et ce qu'il faut porter chaque mois d'ici là. Le titre
+    couvre la carte entière (voir .simulation-card-link), la corbeille passe au-dessus. Rien à
+    modifier ici : chaque valeur se corrige d'un clic sur la fiche. %>
+<% best = simulation.best_return %>
+<article class="simulation-card">
+  <header class="simulation-card-header">
+    <h2 class="simulation-card-name">
+      <%= link_to simulation.name, simulation_path(simulation), class: "simulation-card-link" %>
+    </h2>
+    <%= button_to "🗑️", simulation_path(simulation), method: :delete,
+        class: "btn btn-sm btn-danger simulation-card-remove",
+        form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } },
+        aria: { label: t("views.simulations.index.destroy") } %>
+  </header>
+
+  <p class="simulation-card-meta">
+    <span class="simulation-card-date"><%= l(simulation.purchase_date, format: :month_year) %></span>
+    <% if simulation.address.present? %>
+      <span class="simulation-card-address"><%= simulation.address %></span>
+    <% end %>
+  </p>
+
+  <% if best.found? %>
+    <%# Le régime cadre les trois chiffres et non la seule revente : le taux, la mise et le
+        cash-flow se lisent tous sous lui. D'où sa place en tête, au-dessus du taux. %>
+    <div class="simulation-card-return">
+      <span class="simulation-card-regime">
+        <%= t("views.simulations.index.under_regime", regime: t("views.simulations.show.tab_#{best.regime}")) %>
+      </span>
+      <span class="simulation-card-rate <%= best.rate.negative? ? "text-danger" : "text-success" %>">
+        <%= internal_rate_of_return_label(best.rate) %>
+      </span>
+      <span class="simulation-card-exit">
+        <%= t("views.simulations.index.best_exit", date: best.year.date.year, year: best.year.number) %>
+      </span>
+    </div>
+
+    <dl class="simulation-card-figures">
+      <div class="simulation-card-figure">
+        <dt><%= t("views.simulations.index.initial_outlay") %></dt>
+        <dd><%= number_to_currency(best.initial_outlay, precision: 0) %></dd>
+      </div>
+      <div class="simulation-card-figure">
+        <dt><%= t("views.simulations.index.monthly_cash_flow") %></dt>
+        <dd class="<%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
+          <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
+          <span class="simulation-card-figure-note"><%= t("views.simulations.index.first_full_year") %></span>
+        </dd>
+      </div>
+    </dl>
+  <% else %>
+    <p class="simulation-card-return simulation-card-exit">
+      <%= t("views.simulations.index.no_best_exit") %>
+    </p>
+  <% end %>
+</article>

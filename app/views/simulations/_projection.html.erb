@@ -12,6 +12,7 @@
           <th class="text-right"><%= t("views.simulations.show.#{projection.rent_column}") %></th>
           <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
           <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
+          <th class="text-right"><%= t("views.simulations.show.internal_rate_of_return") %></th>
         </tr>
       </thead>
       <tbody>
@@ -28,6 +29,10 @@
             <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
             <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
               <%= number_to_currency(year.immobilized_capital) %>
+            </td>
+            <% rate = projection.internal_rate_of_return(year) %>
+            <td class="text-right <%= rate.negative? ? 'text-danger' : 'text-success' unless rate.nil? %>">
+              <%= internal_rate_of_return_label(rate) %>
             </td>
           </tr>
         <% end %>

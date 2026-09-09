@@ -843,45 +843,133 @@ a.icon-btn:hover {
   margin-top: 1rem;
 }
 
-/* Simulations accordion */
-.simulations-accordion {
+/* La liste des simulations : une carte par bien, la grille se replie seule sur une colonne
+   plutôt que de faire scroller un tableau. Le taux y domine, c'est par lui qu'on compare. */
+.simulation-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 }
 
-.accordion-item {
+.simulation-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  padding: 1rem 1.25rem;
 }
 
-.accordion-summary {
+.simulation-card:hover,
+.simulation-card:focus-within {
+  border-color: var(--color-primary);
+}
+
+.simulation-card-header {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  cursor: pointer;
+  gap: 0.5rem;
+}
+
+.simulation-card-name {
+  font-size: 1.0625rem;
+  margin: 0;
+  min-width: 0;
+}
+
+/* Le titre couvre la carte : la corbeille repasse au-dessus par son propre contexte. */
+.simulation-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.simulation-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+
+.simulation-card-remove {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.simulation-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.simulation-card-date {
+  white-space: nowrap;
+}
+
+.simulation-card-return {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0.5rem 0;
+}
+
+.simulation-card-regime {
+  font-size: 0.75rem;
   font-weight: 600;
-  list-style: none;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
 }
 
-.accordion-summary::-webkit-details-marker {
-  display: none;
+.simulation-card-rate {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
-.accordion-year {
-  font-size: 1.125rem;
+.simulation-card-exit {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
-.accordion-content {
-  padding: 0 1rem 1rem;
+.simulation-card-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
 }
 
-.accordion-content .table {
-  margin-bottom: 0;
+.simulation-card-figure dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.simulation-card-figure dd {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+/* L'année du montant, à côté de lui plutôt que dans un libellé qu'elle allongeait. */
+.simulation-card-figure-note {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 /* Responsive utilities */
@@ -1205,17 +1293,19 @@ a.icon-btn:hover {
     gap: 1rem;
   }
 
-  .accordion-summary {
-    padding: 0.75rem 0.875rem;
+  /* L'en-tête dont l'action se réduit assez pour rester sur la ligne du titre. */
+  .page-header-inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
   }
 
-  .accordion-year {
-    font-size: 1rem;
+  .simulation-card {
+    padding: 1rem;
   }
 
-  .accordion-content {
-    padding: 0 0.5rem 0.5rem;
-    overflow-x: auto;
+  .simulation-card-rate {
+    font-size: 1.75rem;
   }
 }
 

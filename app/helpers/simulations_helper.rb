@@ -221,6 +221,13 @@ module SimulationsHelper
       statement_label(:cumulative_cash_flow) => projection.cumulative_cash_flow(year) }
   end
 
+  # L'année de la signature n'a pas de taux, et une opération qui ne rend jamais l'investissement non plus.
+  def internal_rate_of_return_label(rate)
+    return t("views.simulations.show.no_internal_rate_of_return") if rate.nil?
+
+    rate_label(rate)
+  end
+
   private
 
   def statement_label(key, **options) = t("views.simulations.show.detail_#{key}", **options)

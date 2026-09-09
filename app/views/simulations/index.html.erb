@@ -1,31 +1,17 @@
-<div class="page-header">
-  <div>
-    <h1><%= t("views.simulations.index.title") %></h1>
-    <p class="page-header-hint">
-      <%= t("views.simulations.index.subtitle", regime: t("views.simulations.show.tab_#{Taxation::REVIEW_REGIME}").downcase,
-                                                year: Projection::REVIEW_YEAR) %>
-    </p>
-  </div>
-  <%= link_to t("views.simulations.index.new"), new_simulation_path, class: "btn btn-primary" %>
+<%# Le bouton se réduit à un plus plutôt que de passer sous le titre : l'écran étroit n'a pas
+    une ligne à donner à ce qu'on a déjà lu. %>
+<div class="page-header page-header-inline">
+  <h1><%= t("views.simulations.index.title") %></h1>
+  <%= link_to new_simulation_path, class: "btn btn-primary",
+              aria: { label: t("views.simulations.index.new") } do %>
+    <span class="hide-on-mobile"><%= t("views.simulations.index.new") %></span>
+    <span class="show-on-mobile" aria-hidden="true">+</span>
+  <% end %>
 </div>
 
 <% if @simulations.any? %>
-  <% grouped_simulations = @simulations.group_by { |simulation| simulation.purchase_date.year } %>
-  <% expanded_year = grouped_simulations.keys.first %>
-
-  <div class="simulations-accordion">
-    <% grouped_simulations.each do |year, yearly_simulations| %>
-      <details class="accordion-item" <%= "open" if year == expanded_year %>>
-        <summary class="accordion-summary">
-          <span class="accordion-year"><%= year %></span>
-          <span class="badge badge-secondary"><%= yearly_simulations.size %></span>
-        </summary>
-
-        <div class="accordion-content">
-          <%= render "simulations/table", simulations: yearly_simulations %>
-        </div>
-      </details>
-    <% end %>
+  <div class="simulation-grid">
+    <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
   </div>
 <% else %>
   <p class="empty-state"><%= t("views.simulations.index.empty") %></p>

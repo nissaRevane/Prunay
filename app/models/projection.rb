@@ -92,6 +92,14 @@ class Projection
   # Ce que l'année a déjà rendu de l'investissement : le capital immobilisé s'en déduit.
   def cumulative_cash_flow(year) = years.take(year.number + 1).sum(&:cash_flow)
 
+  # Le taux annuel qu'aurait rendu l'opération revendue cette année-là, en pourcentage.
+  def internal_rate_of_return(year)
+    @internal_rates_of_return ||= {}
+    return @internal_rates_of_return[year.number] if @internal_rates_of_return.key?(year.number)
+
+    @internal_rates_of_return[year.number] = InternalRateOfReturn.new(exit_cash_flows(year)).percentage
+  end
+
   # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
   def monthly_rent_of(year) = indexed(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, year)
 
@@ -117,6 +125,18 @@ class Projection
   end
 
   private
+
+  # Ce que l'opération encaisse et débourse si elle s'arrête cette année-là : l'investissement
+  # du premier jour, les cash-flows des années tenues, et le produit de la revente sur la dernière.
+  def exit_cash_flows(year)
+    return [] if year.number.zero?
+
+    flows = years.take(year.number + 1).map(&:cash_flow)
+    flows[0] = -initial_outlay
+    flows[-1] += year.sale_proceeds
+
+    flows
+  end
 
   # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
   def build_years

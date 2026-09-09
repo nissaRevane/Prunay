@@ -143,6 +143,10 @@ class Simulation < ApplicationRecord
 
   def projections = Taxation::NAMES.index_with { |regime| projection(regime) }
 
+  def best_return
+    @best_return ||= BestReturn.new(self)
+  end
+
   def annual_rent = annual_rent_excluding_charges + annual_provision_for_charges
 
   # Le loyer seul, hors charges : la part imposable, et rien d'autre.

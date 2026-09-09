@@ -155,10 +155,13 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
-        subtitle: "Au %{regime}, à la %{year}ᵉ année"
-        name: Nom
-        cash_flow: Cash-flow
-        sale_profit: Bénéfice
+        under_regime: "Au %{regime}"
+        best_exit: "revendu la %{year}ᵉ année (%{date})"
+        no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
+        initial_outlay: Mise de départ
+        monthly_cash_flow: Cash-flow / mois
+        first_full_year: "(1ʳᵉ année)"
+        destroy: Supprimer cette simulation
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
@@ -268,6 +271,8 @@ fr:
         annual_rent_including_charges_column: Loyers charges comprises
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
+        internal_rate_of_return: TRI
+        no_internal_rate_of_return: "—"
         annual_charges_column: "Charges de l'année"
         provision_deducted: "provision pour charges de %{amount} déduite"
         income_tax_column: "Impôt sur le revenu et prélèvements sociaux"
