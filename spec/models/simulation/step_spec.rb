@@ -42,9 +42,9 @@ RSpec.describe Simulation::Step do
     end
 
     # Sur 193 224 € empruntés : 19,32 € d'assurance, 3 220,40 € de cautionnement, 1 932,24 € de dossier.
-    it "proposes twenty years at 3.5 % and the amounts read on the capital borrowed" do
+    it "proposes twenty years at 3.6 % and the amounts read on the capital borrowed" do
       expect(described_class.defaults("credit", draft)).to eq(
-        "loan_rate" => BigDecimal("3.5"), "loan_duration_years" => 20, "loan_insurance" => 0,
+        "loan_rate" => BigDecimal("3.6"), "loan_duration_years" => 20, "loan_insurance" => 0,
         "loan_guarantee_fees" => 0, "loan_application_fees" => 0
       )
 

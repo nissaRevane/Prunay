@@ -232,13 +232,13 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
-    # Vingt ans à 3,5 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 526,87 € et 2 116,12 € de frais.
-    it "proposes twenty years at 3.5 % and the amounts the capital borrowed dictates" do
+    # Vingt ans à 3,6 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 526,87 € et 2 116,12 € de frais.
+    it "proposes twenty years at 3.6 % and the amounts the capital borrowed dictates" do
       submit("purchase", ON_CREDIT)
 
       get new_simulation_step_path(step: "credit")
 
-      expect(field_value("simulation_loan_rate")).to eq("3.5")
+      expect(field_value("simulation_loan_rate")).to eq("3.6")
       expect(field_value("simulation_loan_duration_years")).to eq("20")
       expect(field_value("simulation_loan_insurance")).to eq("21.16")
       expect(field_value("simulation_loan_guarantee_fees")).to eq("3526.87")

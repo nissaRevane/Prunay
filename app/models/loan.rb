@@ -6,7 +6,7 @@ class Loan
 
   PAYMENT_DAY = 5
 
-  DEFAULT_RATE = BigDecimal("3.5")
+  DEFAULT_RATE = BigDecimal("3.6")
 
   DEFAULT_DURATION_YEARS = 20
 
