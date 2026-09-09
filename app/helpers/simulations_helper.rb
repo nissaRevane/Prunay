@@ -15,6 +15,9 @@ module SimulationsHelper
   # La seule des trois qui se lise en pourcentage, et qu'une année peut ne pas avoir.
   RATE_MEASURE = :internal_rate_of_return
 
+  # Les impôts qui n'ont pas de ligne de charge à qui emprunter leur nom.
+  UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
+
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
                         "submit->inline-edit#lock turbo:submit-end->inline-edit#release".freeze
@@ -90,6 +93,26 @@ module SimulationsHelper
       LineChart::Series.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
                             values: comparison_values(projection, measure))
     end)
+  end
+
+  # Une barre par régime, empilée poste par poste : ce qu'aura coûté d'impôt une opération
+  # arrêtée cette année-là.
+  def tax_burden_chart(projections, exit_year)
+    BarChart.new(projections.map do |regime, projection|
+      BarChart::Bar.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
+                        lines: projection.tax_lines(projection.year(exit_year)))
+    end)
+  end
+
+  # L'année zéro ne revend rien : le choix commence au premier anniversaire.
+  def exit_year_options
+    (1..Projection::HORIZON_YEARS).map { |number| [t("views.simulations.show.exit_year_option", year: number), number] }
+  end
+
+  def tax_component_label(component)
+    return t("views.simulations.show.tax_#{component}") if UNCHARGED_TAXES.include?(component)
+
+    charge_detail_label(component)
   end
 
   # Un axe de montants se gradue en euros, un axe de taux en pourcentage.

@@ -37,7 +37,8 @@
     <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{name}",
                 aria: { labelledby: panel_label_id(name) },
                 data: { tabs_target: "panel", tab_name: name }, hidden: name != opened do %>
-      <%= render "simulations/#{name}", simulation: simulation, projections: projections, schedule: schedule %>
+      <%= render "simulations/#{name}", simulation: simulation, projections: projections,
+                 schedule: schedule, exit_year: exit_year %>
     <% end %>
   <% end %>
 </div>

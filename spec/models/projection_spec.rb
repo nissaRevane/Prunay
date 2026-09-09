@@ -29,6 +29,43 @@ RSpec.describe Projection do
     expect(origin.property_value).to eq(200_000)
   end
 
+  describe "#tax_lines" do
+    let(:simulation) { build(:simulation, purchase_price: 200_000, property_tax: 700, marginal_tax_rate: 30) }
+
+    # 9 600 € de loyers, 30 % d'abattement : 6 720 € imposables, soit 2 016 € d'IR et 1 155,84 €
+    # de prélèvements sociaux par an. La taxe foncière et les frais de notaire s'y ajoutent.
+    it "sums every tax of the horizon, the notary fees of the first day included" do
+      expect(projection.tax_lines(projection.years.last))
+        .to eq(notary_fees: BigDecimal("16612"), property_tax: BigDecimal("21000"),
+               income_tax: BigDecimal("60480"), social_charges: BigDecimal("34675.2"))
+    end
+
+    # La CFE ne pèse qu'au meublé : 30 % d'un loyer de 840 € par an, et le nu n'en porte pas la ligne.
+    it "gives the furnished regimes their business tax" do
+      other = described_class.new(simulation, :micro_bic)
+
+      expect(other.tax_lines(other.years.last)[:business_tax]).to eq(BigDecimal("7560"))
+    end
+
+    # Revendre la dixième année n'a tenu que dix ans de loyers, et la plus-value n'est abattue
+    # que de 30 % à l'impôt et de 8,25 % aux prélèvements sociaux : elle coûte encore.
+    context "when the sale happens before the horizon" do
+      let(:simulation) { build(:simulation, purchase_price: 200_000, property_growth_rate: 5) }
+
+      it "counts the years held and the tax the sale costs" do
+        lines = projection.tax_lines(projection.year(10))
+
+        expect(lines[:social_charges]).to eq(BigDecimal("11558.40"))
+        expect(lines[:capital_gain_tax]).to eq(BigDecimal("23022.53"))
+      end
+
+      # Trente ans de détention effacent la plus-value : la ligne disparaît de la barre.
+      it "leaves the sale out once the gain is entirely abated" do
+        expect(projection.tax_lines(projection.years.last)).not_to have_key(:capital_gain_tax)
+      end
+    end
+  end
+
   # Une année se lit par son numéro et non par son rang : l'année zéro occupe la première place.
   it "gives back a year by its number" do
     expect(projection.year(15).number).to eq(15)

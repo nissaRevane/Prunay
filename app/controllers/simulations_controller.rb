@@ -1,7 +1,7 @@
 class SimulationsController < ApplicationController
   include RendersSimulation
 
-  before_action :set_simulation, only: [:show, :edit, :update, :destroy]
+  before_action :set_simulation, only: [:show, :tax_burden, :edit, :update, :destroy]
 
   # Le meilleur bien d'abord : le TRI ne se trie qu'en Ruby, et un bien sans taux ferme la liste.
   def index
@@ -12,6 +12,13 @@ class SimulationsController < ApplicationController
 
   # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.
   def show = assign_detail
+
+  # Le seul cadre de la fiche à se redessiner seul : redessiner tout coûterait les cent vingt TRI
+  # des courbes voisines pour un graphique qui ne les lit pas.
+  def tax_burden
+    render partial: "simulations/tax_burden",
+           locals: { simulation: @simulation, projections: @simulation.projections, exit_year: exit_year }
+  end
 
   # La création vit dans Simulations::StepsController : entrer ici oublie le brouillon et rouvre la première page.
   def new

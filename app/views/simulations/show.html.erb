@@ -1,6 +1,7 @@
 <%# Une valeur corrigée dans un onglet renvoie toute la fiche : elle se remplace d'un seul id. %>
 <%= tag.div id: dom_id(@simulation) do %>
-  <%= render "simulations/detail", simulation: @simulation, projections: @projections, schedule: @schedule, tab: @tab, regime: @regime %>
+  <%= render "simulations/detail", simulation: @simulation, projections: @projections, schedule: @schedule,
+             tab: @tab, regime: @regime, exit_year: @exit_year %>
 <% end %>
 
 <div class="form-actions">

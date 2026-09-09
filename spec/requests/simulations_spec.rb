@@ -1027,7 +1027,7 @@ RSpec.describe "Simulations", type: :request do
         charts = doc.css("#panel-comparison .chart")
 
         expect(doc.at_css("#tab-comparison")).not_to be_nil
-        expect(charts.size).to eq(3)
+        expect(charts.size).to eq(4)
         expect(charts.take(2).map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4])
         expect(charts.first.css(".chart-legend-item").map { |item| item.at_css(".chart-legend-label").text.strip })
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
@@ -1052,11 +1052,66 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        chart = doc.css("#panel-comparison .chart").last
+        chart = doc.css("#panel-comparison .chart")[2]
 
         expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0 %")
         expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("6 %")
         expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
+      end
+
+      # La fiche revend la quinzième année à défaut : 16 612 € de frais de notaire et, au
+      # micro-foncier, 17,2 % des 6 720 € imposables que laissent 9 600 € de loyers, quinze fois.
+      # Le barème n'atteint pas ce foyer, qui ne paie ni taxe foncière ni CFE.
+      it "stacks the taxes paid up to the year of sale, one bar per regime" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        chart = doc.css("#panel-comparison .chart").last
+        amounts = chart.css("text.chart-bar-label").map { |label| label.text.gsub(/\s+/, " ").strip }
+
+        expect(doc.at_css("#panel-comparison option[selected]")["value"]).to eq("15")
+        expect(amounts.first(2)).to eq([currency(16_612, precision: 0).gsub(/\s+/, " "),
+                                        currency(17_338, precision: 0).gsub(/\s+/, " ")])
+        expect(chart.css("text.chart-bar-total").first.text.gsub(/\s+/, " ").strip)
+          .to eq(currency(33_950, precision: 0).gsub(/\s+/, " "))
+      end
+
+      # Le prix n'a pas bougé et personne ne dégage de plus-value — sauf le LMNP, à qui la revente
+      # reprend quinze ans d'amortissements et qui seul porte la ligne.
+      it "taxes the sale of the LMNP alone when the price has not moved" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        chart = doc.css("#panel-comparison .chart").last
+
+        columns = chart.css("rect.chart-bar").map { |rect| rect["x"] }.uniq
+
+        expect(chart.css("rect.chart-tax-capital_gain_tax").map { |rect| rect["x"] }).to eq([columns.last])
+      end
+
+      # L'année de revente ne redessine que son cadre : la fiche entière ne repart pas, et la
+      # dixième année ajoute l'impôt d'une plus-value que la trentième aurait effacé.
+      it "redraws the tax chart alone on the chosen year of sale" do
+        selling = create(:simulation, user: user, property_growth_rate: 5)
+
+        get tax_burden_simulation_path(selling, exit_year: 10)
+
+        doc = Nokogiri::HTML(response.body)
+
+        expect(doc.at_css("turbo-frame#tax_burden")).not_to be_nil
+        expect(doc.css(".chart").size).to eq(1)
+        expect(doc.at_css("option[selected]")["value"]).to eq("10")
+        expect(doc.css(".chart-legend-label").map(&:text))
+          .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))
+      end
+
+      # Une année hors de l'horizon ne casse rien : la fiche revend celle où la liste la lit.
+      it "falls back on the year the listing reads" do
+        get simulation_path(neutral, tab: "comparison", exit_year: 99)
+
+        doc = Nokogiri::HTML(response.body)
+
+        expect(doc.at_css("#panel-comparison option[selected]")["value"]).to eq("15")
       end
     end
 

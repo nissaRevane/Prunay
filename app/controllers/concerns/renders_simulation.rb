@@ -7,8 +7,16 @@ module RendersSimulation
   def assign_detail(tab = params[:tab], regime = params[:regime])
     @tab = tab
     @regime = regime
+    @exit_year = exit_year
     @projections = @simulation.projections
     @schedule = @simulation.loan.schedule
+  end
+
+  # L'année où le graphique de l'impôt fait revendre : celle où la liste lit les simulations à défaut.
+  def exit_year
+    number = params[:exit_year].to_i
+
+    number.between?(1, Projection::HORIZON_YEARS) ? number : Projection::REVIEW_YEAR
   end
 
   def render_detail(tab = params[:tab], regime = params[:regime])

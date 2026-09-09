@@ -25,6 +25,9 @@ Prunay::Application.routes.draw do
 
   # Celles d'une simulation vivent dans un onglet : elles ne se demandent pas pendant la création.
   resources :simulations, except: [:create] do
+    # Changer l'année de revente ne redessine qu'un graphique : le reste de la fiche ne bouge pas.
+    get :tax_burden, on: :member, path: "impot"
+
     resource :economic_conditions, only: [:update], module: :simulations, path: "conditions-economiques"
   end
 end

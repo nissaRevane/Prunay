@@ -1,0 +1,38 @@
+<%# Une barre par régime, empilée poste par poste, rendue par le serveur comme les courbes :
+    chaque tranche porte son montant dès qu'elle est assez haute, et le total coiffe la barre. %>
+<div class="chart">
+  <svg class="chart-svg" viewBox="0 0 <%= BarChart::WIDTH %> <%= BarChart::HEIGHT %>"
+       role="img" aria-label="<%= title %>">
+    <% chart.y_ticks.each do |value| %>
+      <line class="chart-grid" x1="<%= BarChart::MARGIN[:left] %>" x2="<%= chart.right %>"
+            y1="<%= chart.y(value) %>" y2="<%= chart.y(value) %>" />
+      <text class="chart-label chart-label-y" x="<%= BarChart::MARGIN[:left] - 8 %>"
+            y="<%= chart.y(value) + 4 %>"><%= number_to_currency(value, precision: 0) %></text>
+    <% end %>
+
+    <% chart.bars.each_with_index do |bar, index| %>
+      <% chart.segments(bar).each do |segment| %>
+        <rect class="chart-bar chart-tax-<%= segment.component %>" x="<%= chart.bar_x(index) %>"
+              y="<%= segment.y %>" width="<%= chart.bar_width %>" height="<%= segment.height %>" />
+        <% if segment.labelled? %>
+          <text class="chart-bar-label" x="<%= chart.x(index) %>" y="<%= segment.middle + 4 %>"
+                text-anchor="middle"><%= number_to_currency(segment.amount, precision: 0) %></text>
+        <% end %>
+      <% end %>
+
+      <text class="chart-bar-total" x="<%= chart.x(index) %>" y="<%= chart.y(bar.total) - 8 %>"
+            text-anchor="middle"><%= number_to_currency(bar.total, precision: 0) %></text>
+      <text class="chart-label" x="<%= chart.x(index) %>" y="<%= chart.bottom + 24 %>"
+            text-anchor="middle"><%= bar.label %></text>
+    <% end %>
+  </svg>
+
+  <ul class="chart-legend">
+    <% chart.components.each do |component| %>
+      <li class="chart-legend-item chart-tax-<%= component %>">
+        <span class="chart-swatch chart-swatch-block" aria-hidden="true"></span>
+        <span class="chart-legend-label"><%= tax_component_label(component) %></span>
+      </li>
+    <% end %>
+  </ul>
+</div>

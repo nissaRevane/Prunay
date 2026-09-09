@@ -6,6 +6,9 @@ application.register("alert", AlertController)
 import CreditController from "controllers/credit_controller"
 application.register("credit", CreditController)
 
+import ExitYearController from "controllers/exit_year_controller"
+application.register("exit-year", ExitYearController)
+
 import InlineEditController from "controllers/inline_edit_controller"
 application.register("inline-edit", InlineEditController)
 

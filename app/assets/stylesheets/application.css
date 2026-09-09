@@ -1524,6 +1524,61 @@ a.icon-btn:hover {
   --chart-color: #7c3aed;
 }
 
+.chart-bar {
+  fill: var(--chart-color);
+}
+
+.chart-bar-label {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chart-bar-total {
+  fill: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chart-tax-notary_fees {
+  --chart-color: #64748b;
+}
+
+.chart-tax-property_tax {
+  --chart-color: #2563eb;
+}
+
+.chart-tax-business_tax {
+  --chart-color: #d97706;
+}
+
+.chart-tax-income_tax {
+  --chart-color: #dc2626;
+}
+
+.chart-tax-social_charges {
+  --chart-color: #7c3aed;
+}
+
+.chart-tax-capital_gain_tax {
+  --chart-color: #0f766e;
+}
+
+.exit-year {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exit-year-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.exit-year .form-control {
+  width: auto;
+}
+
 .chart-legend {
   display: flex;
   flex-wrap: wrap;
@@ -1544,6 +1599,11 @@ a.icon-btn:hover {
   height: 0.25rem;
   border-radius: 2px;
   background: var(--chart-color);
+}
+
+/* Un aplat de barre, là où la courbe n'a qu'un trait. */
+.chart-swatch-block {
+  height: 0.75rem;
 }
 
 .chart-legend-value {

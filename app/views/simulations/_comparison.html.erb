@@ -1,6 +1,7 @@
 <%# Les quatre régimes sur les mêmes axes : ce qui reste engagé année après année, ce que
     revendre cette année-là laisserait, et le taux que l'opération aurait rendu. C'est le
-    croisement du zéro qui départage. %>
+    croisement du zéro qui départage. La dernière section, elle, additionne l'impôt payé jusqu'à
+    la revente, dont l'année se choisit. %>
 <% SimulationsHelper::COMPARISON_MEASURES.each do |measure| %>
   <div class="section">
     <div class="section-header">
@@ -13,3 +14,7 @@
                measure: measure, signed: measure == :sale_profit %>
   </div>
 <% end %>
+
+<div class="section">
+  <%= render "simulations/tax_burden", simulation: simulation, projections: projections, exit_year: exit_year %>
+</div>

@@ -6,11 +6,16 @@
 class Projection
   HORIZON_YEARS = 30
 
-  # L'année où la liste des simulations les lit : un crédit de vingt ans y a rendu la moitié de son capital.
+  # L'année où la liste des simulations les lit, et celle où le graphique de l'impôt revend :
+  # un crédit de vingt ans y a rendu la moitié de son capital.
   REVIEW_YEAR = 15
 
   # Les deux lectures d'une année dans sa fiche : le nom sert d'onglet, de panneau, d'identifiant et de traduction.
   VIEWS = %w[result sale].freeze
+
+  # Tout ce que l'État prend, du plus certain au plus dépendant du résultat, la revente en dernier.
+  TAX_COMPONENTS = %i[notary_fees property_tax business_tax income_tax social_charges
+                      capital_gain_tax].freeze
 
   # Le compte de résultat d'une année : hors meublé, la provision remboursée n'est ni un revenu ni une charge.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
@@ -79,6 +84,22 @@ class Projection
   def total_charges = years.sum(&:charges_excluding_provision)
 
   def total_taxes = years.sum(&:taxes)
+
+  # Ce qu'une opération arrêtée cette année-là aura payé d'impôt, poste par poste : les frais de
+  # notaire du premier jour, la taxe foncière et la CFE de chaque année tenue, l'IR et les
+  # prélèvements sociaux des loyers, et l'impôt que la revente coûte. Un régime qui ne paie pas
+  # un poste n'en porte pas la ligne.
+  def tax_lines(exit_year)
+    lines = years.take(exit_year.number + 1).each_with_object(Hash.new(0)) do |year, totals|
+      totals[:property_tax] += charge_lines(year).fetch(:property_tax, 0)
+      totals[:business_tax] += year.taxation.business_tax
+      totals[:income_tax] += year.taxation.income_tax
+      totals[:social_charges] += year.taxation.social_charges
+    end
+
+    without_zeros({ notary_fees: @simulation.notary_fees }
+                    .merge(lines).merge(capital_gain_tax: exit_year.capital_gain_tax))
+  end
 
   # Négatif, l'investissement est récupéré.
   def final_immobilized_capital = years.last.immobilized_capital

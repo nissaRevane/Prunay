@@ -1,3 +1,4 @@
 <%= turbo_stream.replace dom_id(@simulation) do %>
-  <%= render "simulations/detail", simulation: @simulation, projections: @projections, schedule: @schedule, tab: @tab, regime: @regime %>
+  <%= render "simulations/detail", simulation: @simulation, projections: @projections, schedule: @schedule,
+             tab: @tab, regime: @regime, exit_year: @exit_year %>
 <% end %>

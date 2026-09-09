@@ -1,0 +1,18 @@
+<%# L'année de revente ne vaut que pour ce graphique : son cadre part seul le rechercher, sans
+    refaire le reste de la fiche. %>
+<%= turbo_frame_tag "tax_burden" do %>
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.comparison_tax_burden") %></h2>
+
+    <%= form_with url: tax_burden_simulation_path(simulation), method: :get, class: "exit-year",
+                  data: { controller: "exit-year" } do |f| %>
+      <%= f.label :exit_year, t("views.simulations.show.exit_year"), class: "exit-year-label" %>
+      <%= f.select :exit_year, exit_year_options, { selected: exit_year },
+                   class: "form-control", data: { action: "change->exit-year#submit" } %>
+    <% end %>
+  </div>
+  <p class="section-hint"><%= t("views.simulations.show.comparison_tax_burden_hint") %></p>
+
+  <%= render "simulations/bar_chart", chart: tax_burden_chart(projections, exit_year),
+             title: t("views.simulations.show.comparison_tax_burden") %>
+<% end %>
