@@ -171,9 +171,15 @@ class Projection
   # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
   # Les charges qu'il ajoute lui-même ne lui sont pas repassées : il les connaît déjà, et les déduit
   # ou non selon qu'il est au réel ou au forfait.
+  # Les charges propres du régime suivent l'inflation comme les autres : elles se paient au prix de l'année.
   def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation = {})
+    elapsed = [number - 1, 0].max
+    inflation = @simulation.inflation_rate
+
     @simulation.taxation(regime, rent_excluding_charges: rent, provision_for_charges: provision,
                                  charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent,
+                                 accounting_fees: compound(@simulation.accounting_fees, inflation, elapsed),
+                                 furniture_maintenance: compound(@simulation.furniture_maintenance, inflation, elapsed),
                                  year: number, deferred_depreciation: deferred_depreciation)
   end
 

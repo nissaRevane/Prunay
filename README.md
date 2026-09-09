@@ -149,7 +149,8 @@ docker compose run --rm web bundle exec rspec
     the charges alone staying those of a bare letting. A furnished letting also has furniture
     to buy and to keep: the furniture is asked for on the purchase page (`furniture`) and its
     upkeep with the annual charges (`furniture_maintenance`, in `REGIME_CHARGES` since the
-    two foncier regimes owe neither). The furniture is paid in cash on the day of the
+    two foncier regimes owe neither, and inflating year by year like every other charge, the
+    accountant included). The furniture is paid in cash on the day of the
     signature — never borrowed, the capital of the loan ignores it — and only under a
     furnished regime: the cost of the project, the initial outlay and the capital immobilized
     all carry it there and nowhere else. Its upkeep is a charge of the year like the CFE, and

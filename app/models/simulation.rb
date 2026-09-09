@@ -177,8 +177,9 @@ class Simulation < ApplicationRecord
                rent_excluding_charges: annual_rent_excluding_charges_under(regime),
                provision_for_charges: annual_provision_for_charges,
                charges: annual_charges_excluding_provision, loan_interest: loan.annual_interest.fetch(1, 0),
-               monthly_rent: monthly_rent_under(regime), year: 1, depreciation: depreciation_plan.lines(year),
-               deferred_depreciation: {})
+               monthly_rent: monthly_rent_under(regime), accounting_fees: self.accounting_fees,
+               furniture_maintenance: self.furniture_maintenance, year: 1,
+               depreciation: depreciation_plan.lines(year), deferred_depreciation: {})
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,

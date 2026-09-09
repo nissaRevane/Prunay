@@ -309,6 +309,17 @@ RSpec.describe Projection do
                accounting_fees: BigDecimal("500"))
     end
 
+    # À 2 % d'inflation, le comptable et l'entretien des meubles se paient au prix de l'année : 510 € et 204 € la deuxième.
+    it "lets the charges of the regime follow the inflation like the others" do
+      inflating = described_class.new(build(:simulation, accounting_fees: 500, furniture_maintenance: 200,
+                                                         inflation_rate: 2), :lmnp)
+      year = inflating.years[2]
+
+      expect(inflating.charge_lines(year))
+        .to eq(business_tax: BigDecimal("252"), furniture_maintenance: BigDecimal("204"), accounting_fees: BigDecimal("510"))
+      expect(year.charges_excluding_provision).to eq(966)
+    end
+
     # 12 000 € de travaux sur douze ans et 2 100 € de meubles sur sept : 1 300 € de plus à
     # déduire, et pas un centime de charge en plus.
     it "depreciates the works and the furniture beside the building" do
