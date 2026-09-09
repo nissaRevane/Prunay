@@ -1129,7 +1129,6 @@ a.icon-btn:hover {
 /* Le bien se présente en une phrase sous le nom de la fiche : chaque mot saisi s'y corrige. */
 .summary {
   margin-top: 0.375rem;
-  max-width: 64ch;
   color: var(--color-text-muted);
   line-height: 1.7;
 }
