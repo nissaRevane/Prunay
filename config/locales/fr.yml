@@ -268,6 +268,8 @@ fr:
         annual_rent_including_charges_column: Loyers charges comprises
         cash_flow: Cash-flow
         immobilized_capital: Capital immobilisé
+        internal_rate_of_return: TRI
+        no_internal_rate_of_return: "—"
         annual_charges_column: "Charges de l'année"
         provision_deducted: "provision pour charges de %{amount} déduite"
         income_tax_column: "Impôt sur le revenu et prélèvements sociaux"

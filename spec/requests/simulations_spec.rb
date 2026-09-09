@@ -136,7 +136,8 @@ RSpec.describe "Simulations", type: :request do
         "mar.-2025",
         currency(0).gsub(/\s+/, " "),
         currency(0).gsub(/\s+/, " "),
-        currency(236_612).gsub(/\s+/, " ")
+        currency(236_612).gsub(/\s+/, " "),
+        I18n.t("views.simulations.show.no_internal_rate_of_return")
       ])
     end
 
@@ -153,7 +154,8 @@ RSpec.describe "Simulations", type: :request do
         "mar.-2026",
         currency(11_000).gsub(/\s+/, " "),
         currency(BigDecimal("7675.60")).gsub(/\s+/, " "),
-        currency(BigDecimal("228936.40")).gsub(/\s+/, " ")
+        currency(BigDecimal("228936.40")).gsub(/\s+/, " "),
+        percentage(BigDecimal("-12.61")).gsub(/\s+/, " ")
       ])
     end
 
@@ -441,7 +443,8 @@ RSpec.describe "Simulations", type: :request do
         "mar.-2026",
         currency(11_000).gsub(/\s+/, " "),
         currency(7_452).gsub(/\s+/, " "),
-        currency(229_160).gsub(/\s+/, " ")
+        currency(229_160).gsub(/\s+/, " "),
+        percentage(BigDecimal("-12.70")).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
         I18n.t("views.simulations.show.income_tax_column") => currency(-1_548).gsub(/\s+/, " "),
@@ -466,7 +469,8 @@ RSpec.describe "Simulations", type: :request do
         "mar.-2026",
         currency(11_550).gsub(/\s+/, " "),
         currency(BigDecimal("8160.85")).gsub(/\s+/, " "),
-        currency(BigDecimal("228451.15")).gsub(/\s+/, " ")
+        currency(BigDecimal("228451.15")).gsub(/\s+/, " "),
+        percentage(BigDecimal("-12.40")).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
         I18n.t("views.simulations.show.income_tax_column") => currency(BigDecimal("-1074.15")).gsub(/\s+/, " "),
@@ -898,8 +902,8 @@ RSpec.describe "Simulations", type: :request do
         headers = doc.css("#panel-micro_foncier thead th").map { |th| th.text.strip }
         cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
-        # Année, date, loyers, cash-flow, capital immobilisé.
-        expect(headers.size).to eq(5)
+        # Année, date, loyers, cash-flow, capital immobilisé, TRI.
+        expect(headers.size).to eq(6)
         expect(cells.third).to eq(currency(11_000).gsub(/\s+/, " "))
         expect(cells.fourth)
           .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment).gsub(/\s+/, " "))

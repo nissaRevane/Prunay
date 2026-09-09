@@ -226,9 +226,10 @@ docker compose run --rm web bundle exec rspec
   owed. The sale view deducts it right after the capital, and it falls to nothing the year the
   loan is cleared.
 - **The projection:** thirty lines, one per anniversary of the purchase. The table carries
-  five columns and no commentary — the year, its month, its rent, its cash flow and the
-  capital still immobilized. The charges, the tax and the annuity weigh on the cash flow
-  without a column of their own: they are what the parameters tab is for, and a table one
+  six columns and no commentary — the year, its month, its rent, its cash flow, the capital
+  still immobilized and the internal rate of return. The charges, the tax and the annuity
+  weigh on the cash flow without a column of their own: they are what the parameters tab is
+  for, and a table one
   reads to decide is not a table that explains itself. The rent column and the year's statement
   read the way the regime declares: excluding charges under the two foncier regimes, where the
   provision the tenant repays is neither a revenue nor a deductible charge, and charges included
@@ -247,7 +248,17 @@ docker compose run --rm web bundle exec rspec
   nothing after. What is immobilized on day one is what actually leaves the buyer's pocket —
   the whole project when it is paid outright, the down payment alone when a credit finances
   the rest, since the capital borrowed is repaid by the annuities the projection already
-  deducts, and the furniture on top of it under a furnished regime. Neither the rents nor the charges are the same on every line: the first year
+  deducts, and the furniture on top of it under a furnished regime.
+  The rate — the TRI of the column (`InternalRateOfReturn`) — is read on the flows the
+  operation would actually have known had it stopped that year: what left the buyer's pocket
+  on the first day, the cash flow of every year held, and the proceeds of the resale added to
+  the last, exactly the figures the year's sale view shows, discounted instead of summed. It
+  is the annual rate that annuls their present value, sought by bisection since the equation
+  has no closed form; the day of the signature has no rate, having but a single flow, and
+  neither has an operation that never gives anything back — the column then reads a dash. It
+  says in one number what the sale profit and the years it took to make it say in two, and it
+  is the one column the four regimes can be compared on directly.
+  Neither the rents nor the charges are the same on every line: the first year
   carries the amounts as they were typed — it describes the twelve months that follow the
   purchase — and each year after compounds them by its rate. Under the table, two totals: the
   cash flow accumulated over the horizon, and what the property is then worth — the purchase
