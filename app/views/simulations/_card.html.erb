@@ -1,18 +1,25 @@
 <%# Un bien de la liste : le meilleur TRI qu'il permette, le régime et l'année de revente qui le
     donnent, puis ce qu'il faut avancer et ce qu'il faut porter chaque mois d'ici là. Le titre
-    couvre la carte entière (voir .simulation-card-link), les actions passent au-dessus. %>
+    couvre la carte entière (voir .simulation-card-link), la corbeille passe au-dessus. Rien à
+    modifier ici : chaque valeur se corrige d'un clic sur la fiche. %>
 <% best = simulation.best_return %>
 <article class="simulation-card">
   <header class="simulation-card-header">
     <h2 class="simulation-card-name">
       <%= link_to simulation.name, simulation_path(simulation), class: "simulation-card-link" %>
     </h2>
-    <span class="simulation-card-date"><%= l(simulation.purchase_date, format: :month_year) %></span>
+    <%= button_to "🗑️", simulation_path(simulation), method: :delete,
+        class: "btn btn-sm btn-danger simulation-card-remove",
+        form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } },
+        aria: { label: t("views.simulations.index.destroy") } %>
   </header>
 
-  <% if simulation.address.present? %>
-    <p class="simulation-card-address"><%= simulation.address %></p>
-  <% end %>
+  <p class="simulation-card-meta">
+    <span class="simulation-card-date"><%= l(simulation.purchase_date, format: :month_year) %></span>
+    <% if simulation.address.present? %>
+      <span class="simulation-card-address"><%= simulation.address %></span>
+    <% end %>
+  </p>
 
   <% if best.found? %>
     <div class="simulation-card-return">
@@ -43,10 +50,4 @@
       <%= t("views.simulations.index.no_best_exit") %>
     </p>
   <% end %>
-
-  <div class="simulation-card-actions">
-    <%= link_to "✏️", edit_simulation_path(simulation), class: "btn btn-sm btn-outline" %>
-    <%= button_to "🗑️", simulation_path(simulation), method: :delete, class: "btn btn-sm btn-danger",
-        form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } } %>
-  </div>
 </article>

@@ -870,7 +870,7 @@ a.icon-btn:hover {
 
 .simulation-card-header {
   display: flex;
-  align-items: baseline;
+  align-items: start;
   justify-content: space-between;
   gap: 0.5rem;
 }
@@ -881,7 +881,7 @@ a.icon-btn:hover {
   min-width: 0;
 }
 
-/* Le titre couvre la carte : les actions repassent au-dessus par leur propre contexte. */
+/* Le titre couvre la carte : la corbeille repasse au-dessus par son propre contexte. */
 .simulation-card-link {
   color: inherit;
   text-decoration: none;
@@ -894,16 +894,22 @@ a.icon-btn:hover {
   border-radius: var(--radius);
 }
 
-.simulation-card-date,
-.simulation-card-address {
+.simulation-card-remove {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.simulation-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   margin: 0;
-  white-space: nowrap;
 }
 
-.simulation-card-address {
-  white-space: normal;
+.simulation-card-date {
+  white-space: nowrap;
 }
 
 .simulation-card-return {
@@ -930,6 +936,7 @@ a.icon-btn:hover {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 0;
+  margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-border);
 }
@@ -947,15 +954,6 @@ a.icon-btn:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   margin: 0;
-}
-
-.simulation-card-actions {
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.25rem;
-  margin-top: auto;
-  padding-top: 0.75rem;
 }
 
 /* Responsive utilities */

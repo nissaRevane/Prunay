@@ -86,13 +86,33 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # La date d'achat reste sur la carte : elle situe l'horizon, elle ne regroupe plus rien.
-    it "carries the purchase date of each property" do
-      create(:simulation, user: user, purchase_date: Date.new(2026, 6, 30))
+    it "carries the purchase date and the address of each property" do
+      create(:simulation, user: user, purchase_date: Date.new(2026, 6, 30), address: "14 rue du Beau Laurier")
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".simulation-card-date").text.strip).to eq(I18n.l(Date.new(2026, 6, 30), format: :month_year))
+      meta = doc.at_css(".simulation-card-meta")
+
+      expect(meta.at_css(".simulation-card-date").text.strip).to eq(I18n.l(Date.new(2026, 6, 30),
+                                                                          format: :month_year))
+      expect(meta.at_css(".simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
+    end
+
+    # On ne modifie rien depuis la liste : la fiche corrige chaque valeur d'un clic. Reste la
+    # corbeille, en tête de carte, hors du lien qui couvre le reste.
+    it "carries the delete button alone, in the card header" do
+      simulation = create(:simulation, user: user)
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      removal = doc.at_css(".simulation-card-header form.button_to")
+
+      expect(doc.css("a[href='#{edit_simulation_path(simulation)}']")).to be_empty
+      expect(removal["action"]).to eq(simulation_path(simulation))
+      expect(removal.at_css("input[name=_method]")["value"]).to eq("delete")
+      expect(removal.at_css("button")["aria-label"]).to eq(I18n.t("views.simulations.index.destroy"))
     end
 
     it "says plainly when there is nothing to list" do

@@ -160,6 +160,7 @@ fr:
         no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
         initial_outlay: Mise de départ
         monthly_cash_flow: Cash-flow / mois
+        destroy: Supprimer cette simulation
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
