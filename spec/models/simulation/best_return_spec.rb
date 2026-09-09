@@ -11,7 +11,8 @@ RSpec.describe Simulation::BestReturn do
   it "keeps the highest rate of every regime and every resale year" do
     expect(best.rate).to eq(BigDecimal("4.04"))
     expect(best.regime).to eq(:lmnp)
-    expect(best.year.number).to eq(30)
+    expect(best.year).to eq(30)
+    expect(best.date).to eq(Date.new(2055, 1, 15))
   end
 
   # L'élagage saute les sorties qu'une seule actualisation écarte : il doit trouver ce que le
@@ -29,5 +30,25 @@ RSpec.describe Simulation::BestReturn do
   it "reads the outlay and the first full year under the winning regime" do
     expect(best.initial_outlay).to eq(216_612)
     expect(best.monthly_cash_flow).to eq(BigDecimal("755.85"))
+  end
+
+  # Le balayage ne dépend que de la ligne du bien : on ne le refait pas tant qu'elle n'a pas bougé.
+  describe "the cache it keeps" do
+    before { allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new) }
+
+    it "reads its figures again without building a single projection" do
+      described_class.new(simulation).rate
+
+      expect(simulation).not_to receive(:projection)
+      expect(described_class.new(simulation).rate).to eq(BigDecimal("4.04"))
+    end
+
+    # Corriger un chiffre du bien date sa ligne, et le balayage recommence.
+    it "scans again once a figure of the simulation changed" do
+      described_class.new(simulation).rate
+      simulation.update!(monthly_rent: 1_200)
+
+      expect(described_class.new(simulation).rate).to eq(BigDecimal("6.06"))
+    end
   end
 end

@@ -3,7 +3,8 @@
 # la mise de départ et le cash-flow du régime qui l'emporte. Sans flux de signes opposés il
 # n'y a pas de taux, et rien à annoncer.
 class Simulation::BestReturn
-  Exit = Struct.new(:rate, :regime, :year, keyword_init: true)
+  # Tout ce que la liste lit d'un bien, et rien de plus : c'est ce qui se garde en cache.
+  Exit = Struct.new(:rate, :regime, :year, :date, :initial_outlay, :monthly_cash_flow, keyword_init: true)
 
   attr_reader :simulation
 
@@ -19,37 +20,57 @@ class Simulation::BestReturn
 
   def year = best&.year
 
-  def initial_outlay = simulation.initial_outlay(regime)
+  def date = best&.date
+
+  def initial_outlay = best&.initial_outlay
 
   # Le cash-flow de la première année pleine, ramené au mois : ce qu'il faudra porter jusque-là.
-  def monthly_cash_flow = (projection.year(1).cash_flow / 12).round(2)
+  def monthly_cash_flow = best&.monthly_cash_flow
 
   private
 
-  # Le balayage les construit toutes : celle du régime qui l'emporte se relit sans se refaire.
-  def projection(name = regime)
-    @projections ||= {}
-    @projections[name] ||= simulation.projection(name)
-  end
-
+  # Le balayage coûte une centaine de millisecondes et ne dépend que de la ligne de la simulation
+  # — les hypothèses économiques y sont recopiées à la création : sa clé de version le date donc
+  # exactement, et corriger un chiffre du bien suffit à le refaire.
   def best
     return @best if defined?(@best)
 
-    @best = Taxation::NAMES.reduce(nil) { |found, name| best_exit_of(name, found) }
+    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return"]) { search }
+  end
+
+  def search
+    found = scan
+    return unless found
+
+    winner = projection(found.regime)
+    found.initial_outlay = winner.initial_outlay
+    found.monthly_cash_flow = (winner.year(1).cash_flow / 12).round(2)
+
+    found
   end
 
   # On ne cherche pas les cent vingt-quatre taux mais le plus haut : une actualisation suffit à
   # écarter une sortie qui ne bat pas le record, et seule celle qui le bat vaut une dichotomie.
-  def best_exit_of(regime, found)
-    scanned = projection(regime)
+  def scan
+    Taxation::NAMES.reduce(nil) do |found, regime|
+      scanned = projection(regime)
 
-    scanned.years.each do |year|
-      next if found && !scanned.beats?(year, found.rate)
+      scanned.years.each do |year|
+        next if found && !scanned.beats?(year, found.rate)
 
-      rate = scanned.internal_rate_of_return(year)
-      found = Exit.new(rate: rate, regime: regime, year: year) if rate && (found.nil? || rate > found.rate)
+        rate = scanned.internal_rate_of_return(year)
+        next unless rate && (found.nil? || rate > found.rate)
+
+        found = Exit.new(rate: rate, regime: regime, year: year.number, date: year.date)
+      end
+
+      found
     end
+  end
 
-    found
+  # Le balayage les construit toutes : celle du régime qui l'emporte se relit sans se refaire.
+  def projection(regime)
+    @projections ||= {}
+    @projections[regime] ||= simulation.projection(regime)
   end
 end
