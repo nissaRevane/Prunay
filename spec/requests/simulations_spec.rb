@@ -314,6 +314,31 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
+    # 1 000 € d'entretien et 350 € pour les meubles sont payés en entier, mais 500 € et 280 € ne se
+    # déduisent pas : ils remontent dans l'assiette et reviennent amortis, 41,67 € et 40 € la première année.
+    it "shows the upkeep the LMNP capitalizes coming back through the plan" do
+      upkept = create(:simulation, user: user, monthly_rent: 1_000, occupancy_months: 12, purchase_price: 200_000,
+                                   accounting_fees: 500, maintenance: 1_000, furniture_maintenance: 350)
+
+      get simulation_path(upkept)
+
+      doc = Nokogiri::HTML(response.body)
+      result = doc.at_css("#panel-lmnp dialog#lmnp-year-1-statement #lmnp-year-1-result")
+      lines = result.css(".statement-detail-line").map do |line|
+        [line.at_css(".statement-detail-label").text.strip,
+         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      end
+
+      expect(lines).to include(
+        [Simulation.human_attribute_name(:maintenance), currency(-1_000).gsub(/\s+/, " ")],
+        [Simulation.human_attribute_name(:furniture_maintenance), currency(-350).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_capitalized_works", share: percentage(50)), currency(500).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_capitalized_furniture", share: percentage(80)), currency(280).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_depreciation_works"), currency(BigDecimal("-41.67")).gsub(/\s+/, " ")],
+        [I18n.t("views.simulations.show.detail_depreciation_furniture"), currency(-40).gsub(/\s+/, " ")]
+      )
+    end
+
     # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
     it "carries a hover explanation beside the labels that need one" do
       get simulation_path(simulation)
@@ -773,7 +798,8 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # Le plan du LMNP se lit sous son seul régime : 216 612 € moins 15 % de terrain sur 32 ans,
-    # 12 000 € de travaux sur douze — plus les 500 € de gros travaux de l'année, 41,67 € —, 2 100 € de meubles sur sept.
+    # 12 000 € de travaux sur douze, 2 100 € de meubles sur sept, et les 500 € de gros travaux que
+    # chaque année ouvre sur douze ans.
     it "details the depreciation plan for the LMNP alone" do
       simulation.update!(initial_works: 12_000, furniture: 2_100)
       get simulation_path(simulation)
@@ -792,10 +818,13 @@ RSpec.describe "Simulations", type: :request do
           currency(BigDecimal("5753.76")).gsub(/\s+/, " "),
         "#{I18n.t("views.simulations.show.depreciation_plan_works")} " \
         "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(12_000), years: 12)}" =>
-          currency(BigDecimal("1041.67")).gsub(/\s+/, " "),
+          currency(1_000).gsub(/\s+/, " "),
         "#{I18n.t("views.simulations.show.depreciation_plan_furniture")} " \
         "#{I18n.t("views.simulations.show.depreciation_plan_hint", base: currency(2_100), years: 7)}" =>
           currency(300).gsub(/\s+/, " "),
+        "#{I18n.t("views.simulations.show.depreciation_plan_capitalized_works", share: percentage(50))} " \
+        "#{I18n.t("views.simulations.show.depreciation_plan_tranche_hint", base: currency(500), years: 12)}" =>
+          currency(BigDecimal("41.67")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.depreciation_plan_total") => currency(BigDecimal("7095.43")).gsub(/\s+/, " ")
       )
     end

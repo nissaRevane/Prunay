@@ -45,12 +45,12 @@ fr:
         occupancy_months: "Mois loués"
         property_tax: Taxe foncière
         insurance: Assurance PNO
-        maintenance: Entretien
+        maintenance: Entretien et gros travaux
         condominium_fees: Copropriété
         management_fees: Gestion
         rent_guarantee: "Loyers impayés"
         accounting_fees: Comptabilité
-        furniture_maintenance: Entretien des meubles
+        furniture_maintenance: Entretien et renouvellement des meubles
         other_charges: Autres frais
         rent_growth_rate: "Évolution des loyers (% par an)"
         property_growth_rate: "Évolution du prix du bien (% par an)"
@@ -237,6 +237,9 @@ fr:
         depreciation_plan_works: Travaux
         depreciation_plan_furniture: Meubles
         depreciation_plan_hint: "%{base} sur %{years} ans"
+        depreciation_plan_capitalized_works: "Gros travaux de l'année (%{share} de l'entretien)"
+        depreciation_plan_capitalized_furniture: "Meubles renouvelés (%{share} de l'entretien des meubles)"
+        depreciation_plan_tranche_hint: "%{base} par an, chaque année sur %{years} ans"
         depreciation_plan_total: Amortissement de l'année
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
@@ -301,6 +304,8 @@ fr:
         detail_loan_insurance: Assurance emprunteur
         detail_receipts: Recettes déclarées
         detail_allowance: "Abattement forfaitaire de %{rate}"
+        detail_capitalized_works: "Gros travaux immobilisés (%{share} de l'entretien)"
+        detail_capitalized_furniture: "Meubles renouvelés immobilisés (%{share} de l'entretien des meubles)"
         detail_depreciation_building: "Amortissement du bâti"
         detail_depreciation_works: "Amortissement des travaux"
         detail_depreciation_furniture: "Amortissement des meubles"

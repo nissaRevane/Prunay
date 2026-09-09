@@ -26,8 +26,8 @@ RSpec.describe Simulation::Estimate do
     it "scales the furniture and its upkeep on a smaller reference surface" do
       expect(described_class.for(:furniture, 45)).to eq(2_000)
       expect(described_class.for(:furniture, 180)).to eq(4_000)
-      expect(described_class.for(:furniture_maintenance, 45)).to eq(200)
-      expect(described_class.for(:furniture_maintenance, 180)).to eq(400)
+      expect(described_class.for(:furniture_maintenance, 45)).to eq(350)
+      expect(described_class.for(:furniture_maintenance, 180)).to eq(700)
     end
 
     it "has nothing to propose without a surface" do

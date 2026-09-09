@@ -238,17 +238,24 @@ module SimulationsHelper
     { statement_label(:reintegrated_depreciation) => -gain.depreciation }
   end
 
-  # Ce que le plan inscrit, ce que les années passées ont laissé en attente, et ce qui attendra
-  # encore : la somme est ce que l'année déduit. Les charges, elles, se lisent déjà plus haut.
+  # L'entretien que le plan reprend aux charges, ce que le plan inscrit, ce que les années passées
+  # ont laissé en attente et ce qui attendra encore. Les charges, elles, se lisent déjà plus haut.
   def depreciation_lines(taxation)
-    lines = taxation.depreciation_lines.to_h do |component, amount|
-      [statement_label(:"depreciation_#{component}"), -amount]
+    lines = taxation.capitalized_lines.to_h do |component, amount|
+      [statement_label(:"capitalized_#{component}", share: capitalized_share_label(component)), amount]
+    end
+    taxation.depreciation_lines.each do |component, amount|
+      lines[statement_label(:"depreciation_#{component}")] = -amount
     end
     deferred = taxation.deferred_depreciation.values.sum
     carried = taxation.carried_forward_depreciation.values.sum
     lines[statement_label(:deferred_depreciation)] = -deferred if deferred.positive?
     lines[statement_label(:carried_forward_depreciation)] = carried if carried.positive?
     lines
+  end
+
+  def capitalized_share_label(component)
+    rate_label(Taxation::DepreciationPlan::CAPITALIZED_SHARES.fetch(component) * 100)
   end
 
   def allowance_lines(taxation)

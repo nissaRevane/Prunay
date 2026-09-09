@@ -154,7 +154,8 @@ docker compose run --rm web bundle exec rspec
     signature — never borrowed, the capital of the loan ignores it — and only under a
     furnished regime: the cost of the project, the initial outlay and the capital immobilized
     all carry it there and nowhere else. Its upkeep is a charge of the year like the CFE, and
-    the LMNP deducts it for real where the micro-BIC has only its allowance.
+    the LMNP deducts it for real where the micro-BIC has only its allowance — for its part of
+    plain upkeep, that is: see the depreciation below for the rest.
   - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
     of the micro-BIC, the 18.6 % and the CFE, but no allowance at all — the charges, the CFE
     itself, the accountant and the interest of the loan are deducted for what they cost, and
@@ -164,7 +165,16 @@ docker compose run --rm web bundle exec rspec
     that does not wear out (`LAND_SHARE`) — over 32 years, the initial works over 12 and the
     furniture over 7 (`COMPONENTS`), the last annuity settling the base to the cent. The
     durations sit in the middle of the usual ranges; the first year is a whole one, so there is
-    no prorata. The depreciation cannot create a deficit: it is deducted within the result before
+    no prorata. The upkeep of the years feeds the plan too: a property is not kept for thirty
+    years without a boiler or a kitchen, nor furniture without being replaced, and Prunay reads
+    both in the two upkeep charges rather than asking for them — half of the upkeep of the
+    property is heavy works, four fifths of the upkeep of the furniture is its renewal
+    (`CAPITALIZED_SHARES`). The money leaves the cash flow the year it is paid, under every
+    regime; the LMNP alone deducts only the remainder at once and opens, every year, a tranche
+    of works over 12 years and one of furniture over 7 at the price of the year, so that the
+    deduction of the durable share is delayed rather than lost — and, unlike a charge, carried
+    forward when the year cannot hold it. The default upkeep of the furniture (350 € for 45 m²)
+    is sized for that: 2 000 € of furniture every seven years, and the upkeep on top. The depreciation cannot create a deficit: it is deducted within the result before
     depreciation — receipts less charges, the regime's own and the interest — and what does not
     fit is carried forward without limit of time (art. 39 C CGI), component by component, to be
     deducted the first year that has room for it; this is precisely what makes the LMNP pay no
@@ -183,8 +193,9 @@ docker compose run --rm web bundle exec rspec
   tax weighs on the cash flow of every year of the projection. The depreciation lowers the
   assessment and never the cash flow: it appears in the detail of the tax — the annuity of each
   component, what the previous years left waiting and what will still wait, the sum being what
-  the year deducts — and, under the LMNP alone, as the plan itself in the parameters tab: base,
-  years and annuity per component.
+  the year deducts, preceded by the share of the upkeep the year capitalizes instead of
+  deducting — and, under the LMNP alone, as the plan itself in the parameters tab: base, years
+  and annuity per component, and the tranche each year opens.
   The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
   individuals: the gain is what the price of that year gets above the fiscal value of the
   property — the price paid, the notary fees, and from the sixth year the flat 15 % of works

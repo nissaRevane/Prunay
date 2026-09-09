@@ -334,3 +334,50 @@ L'implémentation a pris les valeurs par défaut ci-dessus ; ces trois choix res
 2. **Bâti d'abord** dans l'imputation (prudent, réintègre le plus) ou **prorata** ? § 2.4.
 3. **Le déficit hors amortissement** : on le laisse perdu comme aujourd'hui, ou on ouvre une
    seconde itération pour le reporter dix ans ? § 2.6.
+
+## 9. Itération 2 — l'entretien qui achète du durable
+
+Le plan de la première itération n'amortissait que ce que l'achat avait posé. Or un bien tenu
+trente ans change de chaudière et de cuisine, et ses meubles se remplacent. Plutôt que de demander
+ces dépenses, Prunay les lit dans les deux charges d'entretien déjà saisies :
+
+| Charge | Libellé | Part immobilisée | Composant du plan |
+|:---|:---|:---|:---|
+| `maintenance` | Entretien et gros travaux | **50 %** | travaux, 12 ans |
+| `furniture_maintenance` | Entretien et renouvellement des meubles | **80 %** | meubles, 7 ans |
+
+Constante `DepreciationPlan::CAPITALIZED_SHARES`. Les colonnes gardent leur nom, seuls les libellés
+changent.
+
+**La règle.** La charge sort de la trésorerie en entier, chaque année, sous tous les régimes. Au
+LMNP seul, la part immobilisée n'est pas déduite l'année même : elle ouvre une tranche du plan,
+au prix de l'année (l'inflation la porte comme la charge), amortie en ligne droite sur la durée du
+composant à partir de l'année où elle est payée, sans prorata. `Lmnp#result_before_depreciation`
+lui rajoute la part immobilisée (`capitalized`) ; `DepreciationPlan#lines(year)` additionne aux
+annuités du départ celles des tranches encore vivantes. Le foncier réel ne change pas : il déduit
+tout l'entretien tout de suite, comme la loi le lui permet.
+
+**Ce que ça produit.** La déduction de la part durable est retardée, pas perdue : après douze ans
+de travaux (sept de meubles), les tranches vivantes déduisent chaque année ce que la charge
+immobilise. Et là où une charge tombée dans une année déficitaire est perdue chez Prunay, une
+tranche se reporte — les premières années à crédit y gagnent.
+
+**Préalable.** Le comptable et l'entretien des meubles ne suivaient pas l'inflation : ils la
+suivent désormais, pour que 80 % de la charge de l'année soit bien ce que le plan immobilise.
+
+**Le défaut.** L'entretien des meubles passe de 200 à 350 € pour 45 m² : 280 € de renouvellement
+(2 000 € tous les sept ans) et 70 € d'entretien.
+
+**Le détail de l'impôt** ajoute, avant les amortissements, deux lignes positives : « Gros travaux
+immobilisés (50 % de l'entretien) » et « Meubles renouvelés immobilisés (80 % de l'entretien des
+meubles) ». Le tableau du plan ajoute une ligne par tranche de l'année : sa base, sa durée et son
+annuité.
+
+**Assumé.** Les meubles du départ s'amortissent déjà pendant que 80 % de l'entretien s'ajoute dès
+l'année 1 : un léger double compte les sept premières années, accepté comme le prix d'une moyenne
+sur la vie du bien.
+
+**Exemple.** 1 200 € d'entretien et 350 € pour les meubles, sur la fabrique neutre : 600 € et
+280 € immobilisés, 8 658 € de résultat avant amortissement au lieu de 7 778, 5 843,76 € déduits
+(5 753,76 de bâti, 50 de travaux, 40 de meubles), 2 814,24 € imposables ; en année 8 la ligne
+meubles vaut 280 € (sept tranches), en année 13 la ligne travaux vaut 600 € (douze tranches).
