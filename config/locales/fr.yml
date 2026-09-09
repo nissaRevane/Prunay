@@ -232,6 +232,12 @@ fr:
         economic_conditions_detail: Les conditions économiques
         annual_charges_total: Total des charges annuelles
         business_tax: CFE
+        depreciation_plan_detail: Le plan d'amortissement
+        depreciation_plan_building: "Bâti, terrain déduit (%{share})"
+        depreciation_plan_works: Travaux
+        depreciation_plan_furniture: Meubles
+        depreciation_plan_hint: "%{base} sur %{years} ans"
+        depreciation_plan_total: Amortissement de l'année
         surface_value: "%{surface} m²"
         occupancy_value: "%{months} mois par an"
         not_provided: Non renseigné
@@ -293,7 +299,11 @@ fr:
         detail_loan_insurance: Assurance emprunteur
         detail_receipts: Recettes déclarées
         detail_allowance: "Abattement forfaitaire de %{rate}"
-        detail_depreciation: "Amortissement du bâti"
+        detail_depreciation_building: "Amortissement du bâti"
+        detail_depreciation_works: "Amortissement des travaux"
+        detail_depreciation_furniture: "Amortissement des meubles"
+        detail_deferred_depreciation: "Amortissements reportés des années précédentes"
+        detail_carried_forward_depreciation: "Excédent d'amortissement reporté"
         detail_taxable_income: Revenu imposable
         detail_income_tax: "Impôt sur le revenu (%{rate})"
         detail_social_charges: "Prélèvements sociaux (%{rate})"

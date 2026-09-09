@@ -1,0 +1,29 @@
+<%# Ce que le LMNP amortit chaque année, et lui seul : rien ne se corrige ici, tout se lit
+    sur l'achat. Le plafond et le report se lisent dans le détail de l'impôt de chaque année. %>
+<%= tag.div class: "section", hidden: true, data: regime_scope(:lmnp) do %>
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.depreciation_plan_detail") %></h2>
+  </div>
+
+  <dl class="rows sum">
+    <% plan.lines(1).each do |component, annuity| %>
+      <div class="detail-item">
+        <dt class="detail-label">
+          <%= t("views.simulations.show.depreciation_plan_#{component}",
+                share: rate_label((1 - Taxation::DepreciationPlan::LAND_SHARE) * 100)) %>
+          <span class="detail-note">
+            <%= t("views.simulations.show.depreciation_plan_hint",
+                  base: number_to_currency(plan.bases.fetch(component)),
+                  years: Taxation::DepreciationPlan::COMPONENTS.fetch(component)) %>
+          </span>
+        </dt>
+        <dd class="detail-value"><%= number_to_currency(annuity) %></dd>
+      </div>
+    <% end %>
+
+    <div class="detail-item sum-total">
+      <dt class="detail-label"><%= t("views.simulations.show.depreciation_plan_total") %></dt>
+      <dd class="detail-value"><%= number_to_currency(plan.total(1)) %></dd>
+    </div>
+  </dl>
+<% end %>

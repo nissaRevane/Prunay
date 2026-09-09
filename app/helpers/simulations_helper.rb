@@ -176,9 +176,10 @@ module SimulationsHelper
   # c'est là tout ce que le LMNP a à dire.
   def tax_detail_lines(year)
     taxation = year.taxation
-    return {} unless taxation.taxable_income.positive? || taxation.depreciation.positive?
+    depreciation = depreciation_lines(taxation)
+    return {} unless taxation.taxable_income.positive? || depreciation.any?
 
-    allowance_lines(taxation).merge(depreciation_lines(taxation)).merge(
+    allowance_lines(taxation).merge(depreciation).merge(
       statement_label(:taxable_income) => taxation.taxable_income,
       statement_label(:income_tax, rate: rate_label(taxation.marginal_tax_rate)) => -taxation.income_tax,
       statement_label(:social_charges, rate: rate_label(taxation.social_charges_rate)) => -taxation.social_charges
@@ -237,11 +238,17 @@ module SimulationsHelper
     { statement_label(:reintegrated_depreciation) => -gain.depreciation }
   end
 
-  # L'assiette du LMNP part des recettes : les charges se lisent déjà plus haut, l'amortissement non.
+  # Ce que le plan inscrit, ce que les années passées ont laissé en attente, et ce qui attendra
+  # encore : la somme est ce que l'année déduit. Les charges, elles, se lisent déjà plus haut.
   def depreciation_lines(taxation)
-    return {} unless taxation.depreciation.positive?
-
-    { statement_label(:depreciation) => -taxation.depreciation }
+    lines = taxation.depreciation_lines.to_h do |component, amount|
+      [statement_label(:"depreciation_#{component}"), -amount]
+    end
+    deferred = taxation.deferred_depreciation.values.sum
+    carried = taxation.carried_forward_depreciation.values.sum
+    lines[statement_label(:deferred_depreciation)] = -deferred if deferred.positive?
+    lines[statement_label(:carried_forward_depreciation)] = carried if carried.positive?
+    lines
   end
 
   def allowance_lines(taxation)
