@@ -87,7 +87,8 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # 216 612 € engagés le premier jour et 9 070,19 € la première année pleine, soit 755,85 € par
-    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale.
+    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale. L'année du
+    # cash-flow se tient à côté de son montant, le libellé s'allongeant trop pour la porter.
     it "shows what the winning regime asks up front and leaves each month" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -96,8 +97,10 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       figures = doc.css(".simulation-card-figure dd").map { |cell| cell.text.gsub(/\s+/, " ").strip }
 
-      expect(figures).to eq([currency(216_612, precision: 0).gsub(/\s+/, " "),
-                             currency(756, precision: 0).gsub(/\s+/, " ")])
+      expect(figures).to eq([
+        currency(216_612, precision: 0).gsub(/\s+/, " "),
+        "#{currency(756, precision: 0).gsub(/\s+/, ' ')} #{I18n.t('views.simulations.index.first_full_year')}"
+      ])
     end
 
     # La date d'achat reste sur la carte : elle situe l'horizon, elle ne regroupe plus rien.

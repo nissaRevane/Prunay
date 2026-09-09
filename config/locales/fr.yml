@@ -159,7 +159,8 @@ fr:
         best_exit: "revendu la %{year}ᵉ année (%{date})"
         no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
         initial_outlay: Mise de départ
-        monthly_cash_flow: Cash-flow / mois, 1ʳᵉ année
+        monthly_cash_flow: Cash-flow / mois
+        first_full_year: "(1ʳᵉ année)"
         destroy: Supprimer cette simulation
       form:
         cancel: Annuler

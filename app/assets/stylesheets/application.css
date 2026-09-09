@@ -964,6 +964,14 @@ a.icon-btn:hover {
   margin: 0;
 }
 
+/* L'année du montant, à côté de lui plutôt que dans un libellé qu'elle allongeait. */
+.simulation-card-figure-note {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 /* Responsive utilities */
 .show-on-mobile {
   display: none;

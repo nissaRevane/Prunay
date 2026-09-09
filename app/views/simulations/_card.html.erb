@@ -45,6 +45,7 @@
         <dt><%= t("views.simulations.index.monthly_cash_flow") %></dt>
         <dd class="<%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
           <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
+          <span class="simulation-card-figure-note"><%= t("views.simulations.index.first_full_year") %></span>
         </dd>
       </div>
     </dl>
