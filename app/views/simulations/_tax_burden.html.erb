@@ -4,15 +4,12 @@
   <div class="section-header">
     <h2><%= t("views.simulations.show.comparison_tax_burden") %></h2>
 
-    <%= form_with url: tax_burden_simulation_path(simulation), method: :get, class: "exit-year",
-                  data: { controller: "exit-year" } do |f| %>
-      <%= f.label :exit_year, t("views.simulations.show.exit_year"), class: "exit-year-label" %>
-      <%= f.select :exit_year, exit_year_options, { selected: exit_year },
-                   class: "form-control", data: { action: "change->exit-year#submit" } %>
-    <% end %>
+    <p class="exit-year" data-controller="exit-year">
+      <%= exit_year_step(simulation, exit_year - 1, :previous) %>
+      <span class="exit-year-value"><%= t("views.simulations.show.exit_year", year: exit_year) %></span>
+      <%= exit_year_step(simulation, exit_year + 1, :next) %>
+    </p>
   </div>
-  <p class="section-hint"><%= t("views.simulations.show.comparison_tax_burden_hint") %></p>
-
   <%= render "simulations/bar_chart", chart: tax_burden_chart(projections, exit_year),
              title: t("views.simulations.show.comparison_tax_burden") %>
 <% end %>

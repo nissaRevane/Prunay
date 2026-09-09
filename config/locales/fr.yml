@@ -209,29 +209,15 @@ fr:
         tab_economic_conditions: Contexte
         regimes_menu: Régimes fiscaux
         comparison_immobilized_capital: Le capital engagé
-        comparison_immobilized_capital_hint: >-
-          Ce qu'il reste à récupérer de l'investissement initial, les cash-flows déjà encaissés
-          déduits. Sous le zéro, l'opération s'est remboursée.
         comparison_sale_profit: Le bénéfice de l'opération
-        comparison_sale_profit_hint: >-
-          Ce que revendre cette année-là laisserait, une fois le crédit soldé, les frais et
-          l'impôt sur la plus-value payés, et le capital encore engagé repris.
         comparison_internal_rate_of_return: Le taux de rendement interne
-        comparison_internal_rate_of_return_hint: >-
-          Le taux annuel qu'aurait rendu l'opération revendue cette année-là. La courbe ne
-          commence qu'une fois l'opération rentable : un taux négatif ne se trace pas.
         comparison_tax_burden: "L'impôt jusqu'à la revente"
-        comparison_tax_burden_hint: >-
-          Tout ce que l'opération aura payé le jour où elle s'arrête : les frais de notaire de la
-          signature, la taxe foncière et la CFE de chaque année tenue, l'impôt sur le revenu et
-          les prélèvements sociaux des loyers, et l'impôt que la revente coûte. Passé trente ans
-          de détention, la plus-value est entièrement abattue et ne doit plus rien.
-        exit_year: Revente
-        exit_year_option: "%{year}ᵉ année"
+        exit_year: "Revente la %{year}ᵉ année"
+        exit_year_previous: L'année précédente
+        exit_year_next: L'année suivante
         tax_income_tax: Impôt sur le revenu
         tax_social_charges: Prélèvements sociaux
         tax_capital_gain_tax: Impôt sur la plus-value
-        chart_caption: "En abscisse, l'année de l'opération ; à droite, la %{year}ᵉ."
         summary_html: "%{type} de %{surface} au %{address} à %{city}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
         purchase_past_html: "Acheté le %{date}."

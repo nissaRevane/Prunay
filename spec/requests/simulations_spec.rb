@@ -1069,7 +1069,8 @@ RSpec.describe "Simulations", type: :request do
         chart = doc.css("#panel-comparison .chart").last
         amounts = chart.css("text.chart-bar-label").map { |label| label.text.gsub(/\s+/, " ").strip }
 
-        expect(doc.at_css("#panel-comparison option[selected]")["value"]).to eq("15")
+        expect(doc.at_css("#panel-comparison .exit-year-value").text)
+          .to eq(I18n.t("views.simulations.show.exit_year", year: 15))
         expect(amounts.first(2)).to eq([currency(16_612, precision: 0).gsub(/\s+/, " "),
                                         currency(17_338, precision: 0).gsub(/\s+/, " ")])
         expect(chart.css("text.chart-bar-total").first.text.gsub(/\s+/, " ").strip)
@@ -1100,7 +1101,7 @@ RSpec.describe "Simulations", type: :request do
 
         expect(doc.at_css("turbo-frame#tax_burden")).not_to be_nil
         expect(doc.css(".chart").size).to eq(1)
-        expect(doc.at_css("option[selected]")["value"]).to eq("10")
+        expect(doc.at_css(".exit-year-value").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10))
         expect(doc.css(".chart-legend-label").map(&:text))
           .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))
       end
@@ -1111,7 +1112,19 @@ RSpec.describe "Simulations", type: :request do
 
         doc = Nokogiri::HTML(response.body)
 
-        expect(doc.at_css("#panel-comparison option[selected]")["value"]).to eq("15")
+        expect(doc.at_css("#panel-comparison .exit-year-value").text)
+          .to eq(I18n.t("views.simulations.show.exit_year", year: 15))
+      end
+
+      # Les flèches font défiler les années une à une, et s'éteignent aux deux bords de l'horizon.
+      it "steps to the neighbouring years and stops at the edges" do
+        get simulation_path(neutral, tab: "comparison", exit_year: 1)
+
+        doc = Nokogiri::HTML(response.body)
+        steps = doc.css("#panel-comparison .exit-year-step")
+
+        expect(steps.first.name).to eq("span")
+        expect(steps.last["href"]).to eq(tax_burden_simulation_path(neutral, exit_year: 2))
       end
     end
 

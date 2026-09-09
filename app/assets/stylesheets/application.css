@@ -1570,13 +1570,21 @@ a.icon-btn:hover {
   gap: 0.5rem;
 }
 
-.exit-year-label {
+.exit-year-value {
   color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 
-.exit-year .form-control {
-  width: auto;
+.exit-year-step {
+  padding: 0 0.25rem;
+  color: var(--color-primary);
+  font-size: 1.125rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.exit-year-step-off {
+  color: var(--color-border);
 }
 
 .chart-legend {
@@ -1608,10 +1616,4 @@ a.icon-btn:hover {
 
 .chart-legend-value {
   font-weight: 600;
-}
-
-.chart-caption {
-  margin-top: 0.75rem;
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
 }

@@ -15,6 +15,8 @@ module SimulationsHelper
   # La seule des trois qui se lise en pourcentage, et qu'une année peut ne pas avoir.
   RATE_MEASURE = :internal_rate_of_return
 
+  EXIT_YEAR_GLYPHS = { previous: "‹", next: "›" }.freeze
+
   # Les impôts qui n'ont pas de ligne de charge à qui emprunter leur nom.
   UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
 
@@ -104,9 +106,14 @@ module SimulationsHelper
     end)
   end
 
-  # L'année zéro ne revend rien : le choix commence au premier anniversaire.
-  def exit_year_options
-    (1..Projection::HORIZON_YEARS).map { |number| [t("views.simulations.show.exit_year_option", year: number), number] }
+  # L'année zéro ne revend rien : la flèche s'éteint au premier anniversaire comme à l'horizon.
+  def exit_year_step(simulation, year, direction)
+    glyph = EXIT_YEAR_GLYPHS.fetch(direction)
+    return tag.span(glyph, class: "exit-year-step exit-year-step-off", aria: { hidden: true }) unless year.between?(1, Projection::HORIZON_YEARS)
+
+    link_to glyph, tax_burden_simulation_path(simulation, exit_year: year), class: "exit-year-step",
+            aria: { label: t("views.simulations.show.exit_year_#{direction}") },
+            data: { action: "exit-year#remember", exit_year_year_param: year }
   end
 
   def tax_component_label(component)
