@@ -31,18 +31,18 @@ RSpec.describe "Simulations", type: :request do
       expect(response.body).to include(I18n.t("views.simulations.index.title"))
     end
 
-    # Le meilleur taux d'abord : c'est le seul ordre qui serve à comparer des biens.
-    it "lays the cards out best rate first" do
-      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 600)
-      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 1_000)
-      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
+    # Le dernier bien acheté d'abord, quel que soit son taux.
+    it "lays the cards out most recent purchase first" do
+      create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
+      create(:simulation, user: user, city: "Nantes", purchase_date: Date.new(2026, 1, 15))
+      create(:simulation, user: user, city: "Brest", purchase_date: Date.new(2025, 7, 9))
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      rates = doc.css(".simulation-grid .simulation-card .simulation-card-rate").map { |cell| cell.text.strip }
+      cities = doc.css(".simulation-grid .simulation-card .simulation-card-link").map { |link| link.text.strip }
 
-      expect(rates).to eq([return_percentage(5), return_percentage(4), return_percentage(3.1)])
+      expect(cities).to eq(["🏢 Nante-50", "🏢 Brest-50", "🏢 Renne-50"])
     end
 
     # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
