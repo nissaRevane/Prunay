@@ -17,6 +17,10 @@ Prunay::Application.routes.draw do
   get   "simulations/new/:step", to: "simulations/steps#show",   as: :new_simulation_step
   patch "simulations/new/:step", to: "simulations/steps#update"
 
+  # Cinq réponses sur une page : la création rapide n'a ni étape ni brouillon.
+  get  "simulations/rapide", to: "simulations/express#new",    as: :new_express_simulation
+  post "simulations/rapide", to: "simulations/express#create", as: :express_simulations
+
   # Tout le compte dans un fichier JSON, que db/seeds.rb sait relire.
   resource :export, only: [:show]
 

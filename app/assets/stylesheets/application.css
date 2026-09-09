@@ -1092,6 +1092,11 @@ a.icon-btn:hover {
   margin-bottom: 1.25rem;
 }
 
+.wizard-panel-lead {
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+}
+
 /* Une fiche de caractéristiques : des couples libellé / valeur, jamais un tableau — il n'y
    a qu'une ligne à lire. */
 .detail-grid {

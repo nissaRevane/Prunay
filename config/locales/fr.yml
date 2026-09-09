@@ -179,6 +179,13 @@ fr:
             title: "La location meublée"
           other:
             title: Divers
+      express:
+        title: Simulation rapide
+        lead: "Cinq réponses suffisent : tout le reste part sur les valeurs proposées d'ordinaire par l'assistant, et se corrige d'un clic sur la fiche."
+        monthly_rent: Loyer mensuel charges comprises
+        create: Créer la simulation
+        detailed: Renseigner tous les détails
+        cancel: Annuler
       steps:
         title: Nouvelle simulation
         next: Continuer
