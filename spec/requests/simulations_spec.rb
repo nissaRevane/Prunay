@@ -5,8 +5,8 @@ RSpec.describe "Simulations", type: :request do
 
   before { sign_in user }
 
-  def currency(amount)
-    ActionController::Base.helpers.number_to_currency(amount)
+  def currency(amount, **options)
+    ActionController::Base.helpers.number_to_currency(amount, **options)
   end
 
   def percentage(rate)
@@ -27,45 +27,72 @@ RSpec.describe "Simulations", type: :request do
       expect(response.body).to include(I18n.t("views.simulations.index.title"))
     end
 
-    it "groups simulations by purchase year in an accordion" do
-      create(:simulation, user: user, purchase_date: Date.new(2025, 12, 31))
-      create(:simulation, user: user, purchase_date: Date.new(2025, 6, 30))
-      create(:simulation, user: user, purchase_date: Date.new(2024, 12, 31))
+    # Le meilleur taux d'abord : c'est le seul ordre qui serve à comparer des biens.
+    it "lays the cards out best rate first" do
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 600)
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 1_000)
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      items = doc.css(".simulations-accordion .accordion-item")
+      rates = doc.css(".simulation-grid .simulation-card .simulation-card-rate").map { |cell| cell.text.strip }
 
-      expect(items.map { |item| item.at_css(".accordion-year")&.text&.strip }).to eq(["2025", "2024"])
-      expect(items.first["open"]).not_to be_nil
-      expect(items.drop(1).map { |item| item["open"] }).to all(be_nil)
-      expect(items.first.at_css(".badge")&.text&.strip).to eq("2")
+      expect(rates).to eq([percentage(5.01), percentage(4.04), percentage(3.1)])
     end
 
     # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
-    it "names each row after the property it describes" do
-      create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
+    it "names each card after the property it describes" do
+      simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".table tbody tr td a.row-link").text.strip).to eq("🏠 Renne-63")
+      link = doc.at_css(".simulation-card .simulation-card-link")
+
+      expect(link.text.strip).to eq("🏠 Renne-63")
+      expect(link["href"]).to eq(simulation_path(simulation))
     end
 
-
-    it "links the row cells to the simulation instead of a dedicated button" do
-      simulation = create(:simulation, user: user)
+    # 4,04 % au LMNP revendu la trentième année, contre 3,96 au micro-BIC, 3,75 au micro-foncier et
+    # 3,51 au foncier réel : la carte annonce le meilleur des quatre régimes, et l'année qui le donne.
+    it "announces the best rate across every regime and every resale year" do
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800,
+                          purchase_date: Date.new(2025, 1, 15))
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      row = doc.at_css(".table tbody tr")
 
-      row_links = row.css("a.row-link")
-      expect(row_links).not_to be_empty
-      expect(row_links.map { |link| link["href"] }).to all(eq(simulation_path(simulation)))
-      expect(doc.at_css(".table-actions a.btn-primary")).to be_nil
+      expect(doc.at_css(".simulation-card-rate").text.strip).to eq(percentage(4.04))
+      expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
+        I18n.t("views.simulations.index.best_exit", regime: I18n.t("views.simulations.show.tab_lmnp"),
+                                                    date: 2055, year: 30)
+      )
+    end
+
+    # 216 612 € engagés le premier jour et 9 070,19 € la première année pleine, soit 755,85 € par
+    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale.
+    it "shows what the winning regime asks up front and leaves each month" do
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      figures = doc.css(".simulation-card-figure dd").map { |cell| cell.text.gsub(/\s+/, " ").strip }
+
+      expect(figures).to eq([currency(216_612, precision: 0).gsub(/\s+/, " "),
+                             currency(756, precision: 0).gsub(/\s+/, " ")])
+    end
+
+    # La date d'achat reste sur la carte : elle situe l'horizon, elle ne regroupe plus rien.
+    it "carries the purchase date of each property" do
+      create(:simulation, user: user, purchase_date: Date.new(2026, 6, 30))
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css(".simulation-card-date").text.strip).to eq(I18n.l(Date.new(2026, 6, 30), format: :month_year))
     end
 
     it "says plainly when there is nothing to list" do
@@ -81,33 +108,8 @@ RSpec.describe "Simulations", type: :request do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.css(".table tbody tr")).to be_empty
+      expect(doc.css(".simulation-card")).to be_empty
       expect(doc.at_css(".empty-state")).to be_present
-    end
-
-    # 7 948,80 € par an : après quinze ans, 119 232 € retrouvés sur 216 612 € engagés, moins 900 € de frais de revente.
-    it "reads each projection at the review year of the review regime" do
-      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
-
-      get simulations_path
-
-      doc = Nokogiri::HTML(response.body)
-      cells = doc.css(".table tbody tr td").map { |cell| cell.text.gsub(/\s+/, " ").strip }
-
-      expect(cells[1]).to eq(currency(BigDecimal("7948.80")).gsub(/\s+/, " "))
-      expect(cells[2]).to eq(currency(101_720).gsub(/\s+/, " "))
-    end
-
-    # Le régime et l'année ne se devinent pas d'un montant : le titre de la page les dit.
-    it "says under which regime and at which year it reads them" do
-      get simulations_path
-
-      doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css(".page-header-hint").text.strip).to eq(
-        I18n.t("views.simulations.index.subtitle",
-               regime: I18n.t("views.simulations.show.tab_#{Taxation::REVIEW_REGIME}").downcase,
-               year: Projection::REVIEW_YEAR)
-      )
     end
   end
 

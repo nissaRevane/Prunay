@@ -1,31 +1,14 @@
 <div class="page-header">
   <div>
     <h1><%= t("views.simulations.index.title") %></h1>
-    <p class="page-header-hint">
-      <%= t("views.simulations.index.subtitle", regime: t("views.simulations.show.tab_#{Taxation::REVIEW_REGIME}").downcase,
-                                                year: Projection::REVIEW_YEAR) %>
-    </p>
+    <p class="page-header-hint"><%= t("views.simulations.index.subtitle") %></p>
   </div>
   <%= link_to t("views.simulations.index.new"), new_simulation_path, class: "btn btn-primary" %>
 </div>
 
 <% if @simulations.any? %>
-  <% grouped_simulations = @simulations.group_by { |simulation| simulation.purchase_date.year } %>
-  <% expanded_year = grouped_simulations.keys.first %>
-
-  <div class="simulations-accordion">
-    <% grouped_simulations.each do |year, yearly_simulations| %>
-      <details class="accordion-item" <%= "open" if year == expanded_year %>>
-        <summary class="accordion-summary">
-          <span class="accordion-year"><%= year %></span>
-          <span class="badge badge-secondary"><%= yearly_simulations.size %></span>
-        </summary>
-
-        <div class="accordion-content">
-          <%= render "simulations/table", simulations: yearly_simulations %>
-        </div>
-      </details>
-    <% end %>
+  <div class="simulation-grid">
+    <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
   </div>
 <% else %>
   <p class="empty-state"><%= t("views.simulations.index.empty") %></p>

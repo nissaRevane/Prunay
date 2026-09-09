@@ -1,0 +1,52 @@
+<%# Un bien de la liste : le meilleur TRI qu'il permette, le régime et l'année de revente qui le
+    donnent, puis ce qu'il faut avancer et ce qu'il faut porter chaque mois d'ici là. Le titre
+    couvre la carte entière (voir .simulation-card-link), les actions passent au-dessus. %>
+<% best = simulation.best_return %>
+<article class="simulation-card">
+  <header class="simulation-card-header">
+    <h2 class="simulation-card-name">
+      <%= link_to simulation.name, simulation_path(simulation), class: "simulation-card-link" %>
+    </h2>
+    <span class="simulation-card-date"><%= l(simulation.purchase_date, format: :month_year) %></span>
+  </header>
+
+  <% if simulation.address.present? %>
+    <p class="simulation-card-address"><%= simulation.address %></p>
+  <% end %>
+
+  <% if best.found? %>
+    <div class="simulation-card-return">
+      <span class="simulation-card-rate <%= best.rate.negative? ? "text-danger" : "text-success" %>">
+        <%= internal_rate_of_return_label(best.rate) %>
+      </span>
+      <span class="simulation-card-exit">
+        <%= t("views.simulations.index.best_exit",
+              regime: t("views.simulations.show.tab_#{best.regime}"),
+              date: best.year.date.year, year: best.year.number) %>
+      </span>
+    </div>
+
+    <dl class="simulation-card-figures">
+      <div class="simulation-card-figure">
+        <dt><%= t("views.simulations.index.initial_outlay") %></dt>
+        <dd><%= number_to_currency(best.initial_outlay, precision: 0) %></dd>
+      </div>
+      <div class="simulation-card-figure">
+        <dt><%= t("views.simulations.index.monthly_cash_flow") %></dt>
+        <dd class="<%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
+          <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
+        </dd>
+      </div>
+    </dl>
+  <% else %>
+    <p class="simulation-card-return simulation-card-exit">
+      <%= t("views.simulations.index.no_best_exit") %>
+    </p>
+  <% end %>
+
+  <div class="simulation-card-actions">
+    <%= link_to "✏️", edit_simulation_path(simulation), class: "btn btn-sm btn-outline" %>
+    <%= button_to "🗑️", simulation_path(simulation), method: :delete, class: "btn btn-sm btn-danger",
+        form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } } %>
+  </div>
+</article>

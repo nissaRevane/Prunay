@@ -155,10 +155,11 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
-        subtitle: "Au %{regime}, à la %{year}ᵉ année"
-        name: Nom
-        cash_flow: Cash-flow
-        sale_profit: Bénéfice
+        subtitle: Le meilleur bien d'abord, au meilleur taux de rendement interne qu'il permette.
+        best_exit: "%{regime} · revente en %{date} (%{year}ᵉ année)"
+        no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
+        initial_outlay: Mise de départ
+        monthly_cash_flow: Cash-flow / mois
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
