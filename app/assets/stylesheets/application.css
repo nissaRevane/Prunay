@@ -919,6 +919,14 @@ a.icon-btn:hover {
   margin: 0.5rem 0;
 }
 
+.simulation-card-regime {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
 .simulation-card-rate {
   font-size: 2rem;
   font-weight: 700;

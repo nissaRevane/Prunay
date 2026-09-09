@@ -66,9 +66,24 @@ RSpec.describe "Simulations", type: :request do
 
       expect(doc.at_css(".simulation-card-rate").text.strip).to eq(percentage(4.04))
       expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
-        I18n.t("views.simulations.index.best_exit", regime: I18n.t("views.simulations.show.tab_lmnp"),
-                                                    date: 2055, year: 30)
+        I18n.t("views.simulations.index.best_exit", date: 2055, year: 30)
       )
+    end
+
+    # Les trois chiffres se lisent sous le même régime : il se nomme une fois, en tête du bloc,
+    # et la ligne de revente ne le reprend pas — elle n'en cadrait qu'un tiers.
+    it "names the winning regime once, above the figures it frames" do
+      create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      regime = I18n.t("views.simulations.show.tab_lmnp")
+
+      expect(doc.at_css(".simulation-card-return .simulation-card-regime").text.strip).to eq(
+        I18n.t("views.simulations.index.under_regime", regime: regime)
+      )
+      expect(doc.at_css(".simulation-card-exit").text).not_to include(regime)
     end
 
     # 216 612 € engagés le premier jour et 9 070,19 € la première année pleine, soit 755,85 € par

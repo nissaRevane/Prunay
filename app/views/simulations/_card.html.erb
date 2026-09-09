@@ -22,14 +22,17 @@
   </p>
 
   <% if best.found? %>
+    <%# Le régime cadre les trois chiffres et non la seule revente : le taux, la mise et le
+        cash-flow se lisent tous sous lui. D'où sa place en tête, au-dessus du taux. %>
     <div class="simulation-card-return">
+      <span class="simulation-card-regime">
+        <%= t("views.simulations.index.under_regime", regime: t("views.simulations.show.tab_#{best.regime}")) %>
+      </span>
       <span class="simulation-card-rate <%= best.rate.negative? ? "text-danger" : "text-success" %>">
         <%= internal_rate_of_return_label(best.rate) %>
       </span>
       <span class="simulation-card-exit">
-        <%= t("views.simulations.index.best_exit",
-              regime: t("views.simulations.show.tab_#{best.regime}"),
-              date: best.year.date.year, year: best.year.number) %>
+        <%= t("views.simulations.index.best_exit", date: best.year.date.year, year: best.year.number) %>
       </span>
     </div>
 
