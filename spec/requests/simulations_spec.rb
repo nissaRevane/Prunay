@@ -17,6 +17,13 @@ RSpec.describe "Simulations", type: :request do
     ActionController::Base.helpers.number_to_percentage(rate, precision: 1)
   end
 
+  # La fiche d'une année ne vit plus dans la page : elle se demande, et le serveur ne rend qu'elle.
+  def statement_doc(simulation, regime, year)
+    get statement_simulation_path(simulation, regime: regime, year: year)
+
+    Nokogiri::HTML(response.body)
+  end
+
   describe "GET /simulations" do
     it "returns success" do
       get simulations_path
@@ -217,10 +224,8 @@ RSpec.describe "Simulations", type: :request do
 
     # La pop-in de l'année porte le compte de résultat, du loyer au cash-flow.
     it "renders the statement of each year as a dialog, closed until its row is clicked" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
-      statement = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-2-statement")
+      doc = statement_doc(simulation, :micro_foncier, 2)
+      statement = doc.at_css("dialog#micro_foncier-year-2-statement")
       lines = statement.css("#micro_foncier-year-2-result .statement-line").map do |line|
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
@@ -243,11 +248,8 @@ RSpec.describe "Simulations", type: :request do
 
     # On passe d'une année à l'autre sans refermer la fiche, sauf aux deux bouts de la projection.
     it "offers a step to each neighbouring year, disabled at both ends of the projection" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
       steps = ->(year) do
-        doc.css("#panel-micro_foncier dialog#micro_foncier-year-#{year}-statement .statement-step").map do |step|
+        statement_doc(simulation, :micro_foncier, year).css(".statement-step").map do |step|
           [step["data-projection-step-param"], step["disabled"]]
         end
       end
@@ -259,9 +261,7 @@ RSpec.describe "Simulations", type: :request do
 
     # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt, mais 900 € de diagnostics et de remise en état.
     it "simulates a sale from the same statement, behind a tab of its own" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
+      doc = statement_doc(simulation, :micro_foncier, 2)
       sale = doc.at_css("dialog#micro_foncier-year-2-statement #micro_foncier-year-2-sale")
       lines = sale.css(".statement-line").map do |line|
         [line.at_css(".statement-label").text.strip.lines.first.strip,
@@ -287,10 +287,8 @@ RSpec.describe "Simulations", type: :request do
                                     condominium_fees: 1_500, property_tax: 800,
                                     marginal_tax_rate: 30)
 
-      get simulation_path(let_out)
-
-      doc = Nokogiri::HTML(response.body)
-      result = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement #micro_foncier-year-1-result")
+      doc = statement_doc(let_out, :micro_foncier, 1)
+      result = doc.at_css("#micro_foncier-year-1-result")
       details = result.css(".statement-detail")
       lines = details.css(".statement-detail-line").map do |line|
         [line.at_css(".statement-detail-label").text.strip,
@@ -322,10 +320,7 @@ RSpec.describe "Simulations", type: :request do
                                       purchase_price: 200_000, accounting_fees: 500, property_tax: 800,
                                       marginal_tax_rate: 30)
 
-      get simulation_path(furnished)
-
-      doc = Nokogiri::HTML(response.body)
-      result = doc.at_css("#panel-lmnp dialog#lmnp-year-1-statement #lmnp-year-1-result")
+      result = statement_doc(furnished, :lmnp, 1).at_css("#lmnp-year-1-result")
       lines = result.css(".statement-detail-line").map do |line|
         [line.at_css(".statement-detail-label").text.strip,
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
@@ -355,10 +350,7 @@ RSpec.describe "Simulations", type: :request do
                                                    purchase_price: 200_000, accounting_fees: 500,
                                                    property_tax: 800, marginal_tax_rate: 30)
 
-      get simulation_path(indebted)
-
-      doc = Nokogiri::HTML(response.body)
-      result = doc.at_css("#panel-lmnp dialog#lmnp-year-2-statement #lmnp-year-2-result")
+      result = statement_doc(indebted, :lmnp, 2).at_css("#lmnp-year-2-result")
       lines = result.css(".statement-detail-line").map do |line|
         [line.at_css(".statement-detail-label").text.strip,
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
@@ -378,10 +370,7 @@ RSpec.describe "Simulations", type: :request do
       upkept = create(:simulation, user: user, monthly_rent: 1_000, occupancy_months: 12, purchase_price: 200_000,
                                    accounting_fees: 500, maintenance: 1_000, furniture_maintenance: 350)
 
-      get simulation_path(upkept)
-
-      doc = Nokogiri::HTML(response.body)
-      result = doc.at_css("#panel-lmnp dialog#lmnp-year-1-statement #lmnp-year-1-result")
+      result = statement_doc(upkept, :lmnp, 1).at_css("#lmnp-year-1-result")
       lines = result.css(".statement-detail-line").map do |line|
         [line.at_css(".statement-detail-label").text.strip,
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
@@ -399,10 +388,7 @@ RSpec.describe "Simulations", type: :request do
 
     # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
     it "carries a hover explanation beside the labels that need one" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
-      hint = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement .statement-hint")
+      hint = statement_doc(simulation, :micro_foncier, 1).at_css(".statement-hint")
 
       expect(hint["data-hint"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
       expect(hint["aria-label"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
@@ -412,10 +398,7 @@ RSpec.describe "Simulations", type: :request do
     it "details the costs and the capital gain tax of a sale" do
       growing = create(:simulation, user: user, property_growth_rate: 2)
 
-      get simulation_path(growing)
-
-      doc = Nokogiri::HTML(response.body)
-      sale = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-10-statement #micro_foncier-year-10-sale")
+      sale = statement_doc(growing, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
       lines = sale.css(".statement-detail-line").map do |line|
         [line.at_css(".statement-detail-label").text.strip,
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
@@ -438,10 +421,7 @@ RSpec.describe "Simulations", type: :request do
     it "names the discount obtained at the purchase in the value of the property" do
       discounted = create(:simulation, user: user, purchase_discount: 20_000)
 
-      get simulation_path(discounted)
-
-      doc = Nokogiri::HTML(response.body)
-      sale = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-10-statement #micro_foncier-year-10-sale")
+      sale = statement_doc(discounted, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
       lines = sale.css(".statement-detail-line").map { |line| line.at_css(".statement-detail-label").text.strip }
 
       expect(lines.first(2)).to eq([I18n.t("views.simulations.show.detail_purchase_price"),
@@ -457,7 +437,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       rent = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td")[2]
-      charges = doc.css("#panel-micro_foncier dialog#micro_foncier-year-1-statement .statement-line")[1]
+      charges = statement_doc(let_out, :micro_foncier, 1).css(".statement-line")[1]
 
       expect(rent.text.gsub(/\s+/, " ").strip).to eq(currency(12_000).gsub(/\s+/, " "))
       expect(charges.at_css(".statement-note").text.gsub(/\s+/, " ").strip)
@@ -475,8 +455,9 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(let_out)
 
       doc = Nokogiri::HTML(response.body)
-      rent = doc.css("#panel-micro_bic dialog#micro_bic-year-1-statement .statement-line")[0]
-      charges = doc.css("#panel-micro_bic dialog#micro_bic-year-1-statement .statement-line")[1]
+      lines = statement_doc(let_out, :micro_bic, 1).css(".statement-line")
+      rent = lines[0]
+      charges = lines[1]
 
       expect(doc.at_css("#panel-micro_bic thead th:nth-child(3)").text.strip)
         .to eq(I18n.t("views.simulations.show.annual_rent_including_charges_column"))
@@ -502,7 +483,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       cells = doc.css("#panel-foncier_reel tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
-      statement = doc.at_css("#panel-foncier_reel dialog#foncier_reel-year-1-statement")
+      statement = statement_doc(simulation, :foncier_reel, 1)
       amounts = statement.css(".statement-line").to_h do |line|
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
@@ -528,12 +509,13 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       cells = doc.css("#panel-micro_bic tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
-      amounts = doc.at_css("#panel-micro_bic dialog#micro_bic-year-1-statement")
-                   .css("#micro_bic-year-1-result .statement-line").to_h do |line|
+      regime_tab = doc.at_css("#regime-micro_bic")
+      amounts = statement_doc(simulation, :micro_bic, 1)
+                  .css("#micro_bic-year-1-result .statement-line").to_h do |line|
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      expect(doc.at_css("#regime-micro_bic")).not_to be_nil
+      expect(regime_tab).not_to be_nil
       expect(cells).to eq([
         "1",
         "mar.-2026",
@@ -550,12 +532,9 @@ RSpec.describe "Simulations", type: :request do
 
     # La même année sous quatre régimes : le meublé y met sa prime de loyer, sa CFE et son impôt.
     it "renders the same year under every regime, the furnished rent and the tax apart" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
       statements = Taxation::NAMES.index_with do |regime|
-        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement")
-           .css("##{regime}-year-1-result .statement-line").to_h do |line|
+        statement_doc(simulation, regime, 1)
+          .css("##{regime}-year-1-result .statement-line").to_h do |line|
           # Le libellé seul : les notes qui le suivent disent justement ce qui distingue le régime.
           [line.at_css(".statement-label").children.first.text.strip,
            line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
@@ -580,12 +559,9 @@ RSpec.describe "Simulations", type: :request do
                                                 monthly_rent: 1_000, occupancy_months: 11,
                                                 property_tax: 700, marginal_tax_rate: 30)
 
-      get simulation_path(taxed)
-
-      doc = Nokogiri::HTML(response.body)
       amounts = Taxation::NAMES.index_with do |regime|
-        doc.at_css("#panel-#{regime} dialog##{regime}-year-1-statement")
-           .css("##{regime}-year-1-result .statement-line").to_h do |line|
+        statement_doc(taxed, regime, 1)
+          .css("##{regime}-year-1-result .statement-line").to_h do |line|
           [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
       end
@@ -981,10 +957,7 @@ RSpec.describe "Simulations", type: :request do
 
       # Intérêts et prime sont une charge, le capital rendu non : il passe sous le résultat net.
       it "splits the annuity between the interest it charges and the capital it gives back" do
-        get simulation_path(on_credit)
-
-        doc = Nokogiri::HTML(response.body)
-        statement = doc.at_css("#panel-micro_foncier dialog#micro_foncier-year-1-statement")
+        statement = statement_doc(on_credit, :micro_foncier, 1)
         amounts = statement.css(".statement-line").to_h do |line|
           [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
@@ -1137,6 +1110,55 @@ RSpec.describe "Simulations", type: :request do
       other = create(:simulation, user: create(:user))
 
       get simulation_path(other)
+
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
+  describe "GET /simulations/:id/annee" do
+    let(:simulation) do
+      create(:simulation, user: user, purchase_date: Date.new(2025, 3, 10), purchase_price: 200_000,
+                          initial_works: 20_000, monthly_rent: 1_000, occupancy_months: 11)
+    end
+
+    # Les cent vingt-quatre fiches d'année pesaient quatre-vingts pour cent de la page : elles se demandent.
+    it "leaves the statements out of the listing until one is asked for" do
+      get simulation_path(simulation)
+
+      expect(response.body).not_to include("micro_foncier-year-1-statement")
+      expect(response.body).to include("panel-micro_foncier")
+    end
+
+    # Rendue seule, la fiche ne coûte que son régime et porte la même année que le tableau.
+    it "renders the statement of one year under one regime" do
+      get statement_simulation_path(simulation, regime: :foncier_reel, year: 1)
+
+      doc = Nokogiri::HTML(response.body)
+      statement = doc.at_css("dialog#foncier_reel-year-1-statement")
+
+      expect(response).to have_http_status(:success)
+      expect(doc.css("dialog").size).to eq(1)
+      expect(statement["data-year"]).to eq("1")
+      expect(statement.at_css("#foncier_reel-year-1-result .statement-amount").text.gsub(/\s+/, " ").strip)
+        .to eq(currency(11_000).gsub(/\s+/, " "))
+    end
+
+    it "answers a year outside the horizon with a not found" do
+      get statement_simulation_path(simulation, regime: :foncier_reel, year: Projection::HORIZON_YEARS + 1)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "answers an unknown regime with a not found" do
+      get statement_simulation_path(simulation, regime: "impot_sur_les_societes", year: 1)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "refuses the statement of a simulation held by someone else" do
+      other = create(:simulation, user: create(:user))
+
+      get statement_simulation_path(other, regime: :foncier_reel, year: 1)
 
       expect(response).to redirect_to(root_path)
     end

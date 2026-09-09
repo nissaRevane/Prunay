@@ -32,6 +32,9 @@ Prunay::Application.routes.draw do
     # Changer l'année de revente ne redessine qu'un graphique : le reste de la fiche ne bouge pas.
     get :tax_burden, on: :member, path: "impot"
 
+    # La fiche d'une année ne se rend qu'ouverte : les cent vingt-quatre pèsent plus que tout le reste.
+    get :statement, on: :member, path: "annee"
+
     resource :economic_conditions, only: [:update], module: :simulations, path: "conditions-economiques"
   end
 end

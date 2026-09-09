@@ -1,12 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Le compte de résultat d'une année de la projection : la ligne cliquée ouvre sa fiche,
-// rendue par le serveur, en pop-in modale. Les flèches y passent d'une année à l'autre.
+// Le compte de résultat d'une année de la projection : la ligne cliquée demande sa fiche au
+// serveur, qui la rend en pop-in modale et la garde. Les flèches y passent d'une année à l'autre.
 export default class extends Controller {
-  static targets = ["statement"]
+  static targets = ["statement", "statements"]
+  static values = { url: String }
 
-  open(event) {
-    this.statementFor(event.params.year)?.showModal()
+  async open(event) {
+    (await this.statementFor(event.params.year))?.showModal()
   }
 
   close(event) {
@@ -31,8 +32,8 @@ export default class extends Controller {
   }
 
   // L'année voisine s'ouvre là où on avait laissé celle-ci : même lecture, même finesse.
-  shift(statement, step) {
-    const target = this.statementFor(Number(statement.dataset.year) + step)
+  async shift(statement, step) {
+    const target = await this.statementFor(Number(statement.dataset.year) + step)
     if (!target) return
 
     target.dataset.statementViewValue = statement.dataset.statementViewValue
@@ -41,7 +42,24 @@ export default class extends Controller {
     target.showModal()
   }
 
-  statementFor(year) {
+  // Une fiche déjà demandée reste dans la page : on ne la redemande pas.
+  async statementFor(year) {
+    return this.rendered(year) || (await this.fetchStatement(year))
+  }
+
+  rendered(year) {
     return this.statementTargets.find((statement) => statement.dataset.year === String(year))
+  }
+
+  async fetchStatement(year) {
+    const url = new URL(this.urlValue, window.location.origin)
+    url.searchParams.set("year", year)
+
+    const response = await fetch(url, { headers: { Accept: "text/html" } })
+    if (!response.ok) return null
+
+    this.statementsTarget.insertAdjacentHTML("beforeend", await response.text())
+
+    return this.rendered(year)
   }
 }

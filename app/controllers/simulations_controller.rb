@@ -1,7 +1,7 @@
 class SimulationsController < ApplicationController
   include RendersSimulation
 
-  before_action :set_simulation, only: [:show, :tax_burden, :edit, :update, :destroy]
+  before_action :set_simulation, only: [:show, :tax_burden, :statement, :edit, :update, :destroy]
 
   # Le dernier bien acheté d'abord.
   def index = @simulations = current_user.simulations.order(purchase_date: :desc)
@@ -14,6 +14,17 @@ class SimulationsController < ApplicationController
   def tax_burden
     render partial: "simulations/tax_burden",
            locals: { simulation: @simulation, projections: @simulation.projections, exit_year: exit_year }
+  end
+
+  # Ouverte seule, une fiche d'année ne coûte qu'un régime : les cent vingt-quatre pesaient
+  # quatre-vingts pour cent de la page pour une année que personne n'ouvre.
+  def statement
+    return head :not_found unless Taxation::NAMES.include?(params[:regime].to_s.to_sym)
+
+    projection = @simulation.projection(params[:regime])
+    year = projection.year(params[:year].to_i) or return head :not_found
+
+    render partial: "simulations/statement", locals: { projection: projection, year: year }
   end
 
   # La création vit dans Simulations::StepsController : entrer ici oublie le brouillon et rouvre la première page.

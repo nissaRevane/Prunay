@@ -54,7 +54,7 @@ class Projection
     def sale_profit = sale_proceeds - immobilized_capital
   end
 
-  attr_reader :regime
+  attr_reader :simulation, :regime
 
   def initialize(simulation, regime)
     @simulation = simulation
