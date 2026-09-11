@@ -185,6 +185,7 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
+        close: Fermer
         under_regime: "Au %{regime}"
         best_exit: "revendu la %{year}ᵉ année (%{date})"
         no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.

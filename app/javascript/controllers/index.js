@@ -9,6 +9,9 @@ application.register("credit", CreditController)
 import ExitYearController from "controllers/exit_year_controller"
 application.register("exit-year", ExitYearController)
 
+import ExpressFormController from "controllers/express_form_controller"
+application.register("express-form", ExpressFormController)
+
 import InlineEditController from "controllers/inline_edit_controller"
 application.register("inline-edit", InlineEditController)
 

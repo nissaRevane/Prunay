@@ -3,8 +3,11 @@ class SimulationsController < ApplicationController
 
   before_action :set_simulation, only: [:show, :tax_burden, :statement, :edit, :update, :destroy]
 
-  # Le dernier bien acheté d'abord.
-  def index = @simulations = current_user.simulations.order(purchase_date: :desc)
+  # Le dernier bien acheté d'abord, et de quoi en ajouter un sans quitter la liste.
+  def index
+    @simulations = current_user.simulations.order(purchase_date: :desc)
+    @new_simulation = current_user.simulations.build
+  end
 
   # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.
   def show = assign_detail

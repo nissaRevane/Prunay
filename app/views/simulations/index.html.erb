@@ -1,12 +1,31 @@
 <%# Le bouton se réduit à un plus plutôt que de passer sous le titre : l'écran étroit n'a pas
     une ligne à donner à ce qu'on a déjà lu. %>
-<div class="page-header page-header-inline">
-  <h1><%= t("views.simulations.index.title") %></h1>
-  <%= link_to new_express_simulation_path, class: "btn btn-primary",
-              aria: { label: t("views.simulations.index.new") } do %>
-    <span class="hide-on-mobile"><%= t("views.simulations.index.new") %></span>
-    <span class="show-on-mobile" aria-hidden="true">+</span>
-  <% end %>
+<div data-controller="express-form">
+  <div class="page-header page-header-inline">
+    <h1><%= t("views.simulations.index.title") %></h1>
+    <button type="button" class="btn btn-primary" data-action="express-form#open"
+            aria-label="<%= t("views.simulations.index.new") %>">
+      <span class="hide-on-mobile"><%= t("views.simulations.index.new") %></span>
+      <span class="show-on-mobile" aria-hidden="true">+</span>
+    </button>
+  </div>
+
+  <%# La création rapide s'ouvre ici plutôt que sur sa page : on ne quitte pas la liste pour
+      cinq réponses. %>
+  <dialog class="express-modal" data-express-form-target="dialog"
+          data-action="click->express-form#dismiss" aria-labelledby="express-modal-title">
+    <div class="express-modal-header">
+      <h2 class="express-modal-title" id="express-modal-title"><%= t("views.simulations.index.new") %></h2>
+      <button type="button" class="statement-close" data-action="express-form#close"
+              aria-label="<%= t("views.simulations.index.close") %>">&times;</button>
+    </div>
+
+    <div class="express-modal-body">
+      <%= turbo_frame_tag "express_form" do %>
+        <%= render "simulations/express/form", simulation: @new_simulation %>
+      <% end %>
+    </div>
+  </dialog>
 </div>
 
 <% if @simulations.any? %>

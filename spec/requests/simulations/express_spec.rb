@@ -76,6 +76,22 @@ RSpec.describe "Express simulations", type: :request do
                                                        inflation_rate: 3)
     end
 
+    # Ouvert en pop-in, le formulaire répond dans son cadre : c'est le flux qui en fait sortir.
+    it "sends a turbo stream out of the frame when the pop-in asked" do
+      post express_simulations_path, params: { simulation: ANSWERS }, as: :turbo_stream
+
+      expect(response.media_type).to eq(Mime[:turbo_stream].to_s)
+      expect(Nokogiri::HTML(response.body).at_css("turbo-stream[action=redirect]")["target"])
+        .to eq(simulation_path(user.simulations.last))
+    end
+
+    it "keeps the errors in the frame rather than reopening the home page" do
+      post express_simulations_path, params: { simulation: ANSWERS.merge(surface: "") }, as: :turbo_stream
+
+      expect(response.media_type).to eq("text/html")
+      expect(Nokogiri::HTML(response.body).at_css("turbo-frame#express_form .alert-danger")).to be_present
+    end
+
     it "reopens the form when an answer is missing" do
       expect { post express_simulations_path, params: { simulation: ANSWERS.merge(surface: "") } }
         .not_to change(user.simulations, :count)

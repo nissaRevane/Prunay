@@ -150,11 +150,24 @@ RSpec.describe "Simulations", type: :request do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      action = doc.at_css(".page-header a.btn-primary")
+      action = doc.at_css(".page-header button.btn-primary")
 
       expect(action["aria-label"]).to eq(I18n.t("views.simulations.index.new"))
       expect(action.at_css(".hide-on-mobile").text.strip).to eq(I18n.t("views.simulations.index.new"))
       expect(action.at_css(".show-on-mobile").text.strip).to eq("+")
+    end
+
+    # Cinq réponses ne valent pas qu'on quitte la liste : le formulaire rapide s'y ouvre en pop-in.
+    it "carries the express form in a pop-in rather than sending to another page" do
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+      form = doc.at_css("dialog.express-modal turbo-frame#express_form form")
+
+      expect(form["action"]).to eq(express_simulations_path)
+      expect(form.css("input, select").map { |field| field["id"] }.compact.grep(/^simulation_/))
+        .to eq(%w[simulation_property_type simulation_city simulation_surface
+                  simulation_purchase_price simulation_monthly_rent])
     end
 
     it "says plainly when there is nothing to list" do
