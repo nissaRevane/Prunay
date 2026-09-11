@@ -17,9 +17,9 @@ registry:
   password:
     - KAMAL_REGISTRY_PASSWORD
 
-# CAX11 = ARM ; passer à amd64 si le serveur choisi est un CX.
+# Le VPS OVH est x86 : un build sur un Mac ARM passe par l'émulation.
 builder:
-  arch: arm64
+  arch: amd64
 
 env:
   clear:
