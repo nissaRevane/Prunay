@@ -84,7 +84,7 @@ class Simulation::BestReturn
 
   # Deux sorties se départagent sans qu'on calcule leur taux : chaque milieu de l'encadrement les
   # actualise toutes deux, et la première à passer sous zéro a perdu. L'encadrement qui reste
-  # sert au duel suivant — c'est ce qui fait tenir tout le balayage en une seule dichotomie.
+  # sert au duel suivant, qui part donc de bien plus haut que le plancher.
   def duel(champion, challenger)
     return outright(challenger) if challenger.above?(@high)
 
