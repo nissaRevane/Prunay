@@ -128,6 +128,7 @@ fr:
   views:
     nav:
       menu: Menu
+      simulations: Mes simulations
       economic_conditions: Conditions économiques
       sign_out: Déconnexion
       sign_in: Connexion
@@ -184,7 +185,8 @@ fr:
         monthly_rent: Loyer mensuel charges comprises
         create: Créer la simulation
         detailed: Renseigner tous les détails
-        cancel: Annuler
+        recent: Dernières simulations
+        all: Toutes
       steps:
         title: Nouvelle simulation
         next: Continuer

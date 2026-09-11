@@ -6,9 +6,10 @@ Prunay::Application.routes.draw do
     get "mon-compte", to: "users/registrations#edit", as: :account
   end
 
-  # Pas de tableau de bord : tant que la seule chose à voir est la liste, une page au-dessus n'a rien à dire.
+  # L'accueil d'un connecté, c'est le formulaire rapide et ses deux dernières simulations : la
+  # liste complète se prend dans le menu.
   authenticated :user do
-    root "simulations#index", as: :authenticated_root
+    root "simulations/express#new", as: :authenticated_root
   end
 
   root "pages#home"

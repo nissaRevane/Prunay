@@ -18,13 +18,13 @@ RSpec.describe "Home", type: :request do
       expect(doc.at_css(".navbar-menu a[href='#{new_user_session_path}']")).not_to be_nil
     end
 
-    # La racine sert la vitrine au visiteur et la liste des simulations à l'utilisateur connecté.
-    it "is the simulations list for a signed-in user" do
+    # La racine sert la vitrine au visiteur et la création rapide à l'utilisateur connecté.
+    it "is the quick creation form for a signed-in user" do
       sign_in create(:user)
 
       get root_path
 
-      expect(response.body).to include(I18n.t("views.simulations.index.title"))
+      expect(response.body).to include(I18n.t("views.simulations.express.title"))
       expect(response.body).not_to include(I18n.t("views.pages.home.subtitle"))
     end
   end

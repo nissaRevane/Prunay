@@ -30,14 +30,6 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    # La liste EST l'accueil d'un utilisateur connecté : pas de tableau de bord au-dessus d'elle.
-    it "is what the root serves to a signed-in user" do
-      get root_path
-
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include(I18n.t("views.simulations.index.title"))
-    end
-
     # Le dernier bien acheté d'abord, quel que soit son taux.
     it "lays the cards out most recent purchase first" do
       create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
@@ -1264,13 +1256,14 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "the navigation shell" do
-    # La marque mène à la liste : le menu ne porte que ce qu'elle ne mène pas déjà.
-    it "carries the general settings alone in the top menu of a signed-in user" do
+    # La marque mène à l'accueil : la liste des simulations se prend dans le menu.
+    it "carries the simulations and the general settings in the top menu of a signed-in user" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".navbar-logo")["href"]).to eq(root_path)
-      expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] }).to eq([edit_economic_conditions_path])
+      expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] })
+        .to eq([simulations_path, edit_economic_conditions_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
       expect(doc.at_css(".nav-user-name").text).to eq(user.full_name)
     end

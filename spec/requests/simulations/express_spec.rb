@@ -24,6 +24,27 @@ RSpec.describe "Express simulations", type: :request do
 
       expect(response.body).to include(new_simulation_path)
     end
+
+    # L'accueil d'un connecté : le formulaire, et de quoi rouvrir les deux derniers biens.
+    it "shows the two most recent purchases and the way to the whole list" do
+      create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
+      create(:simulation, user: user, city: "Nantes", purchase_date: Date.new(2026, 1, 15))
+      create(:simulation, user: user, city: "Brest", purchase_date: Date.new(2025, 7, 9))
+
+      get root_path
+
+      doc = Nokogiri::HTML(response.body)
+      cards = doc.css(".recent-simulations .simulation-card .simulation-card-link")
+
+      expect(cards.map { |link| link.text.strip }).to eq(["🏢 Nante-50", "🏢 Brest-50"])
+      expect(doc.at_css(".recent-simulations a[href='#{simulations_path}']")).not_to be_nil
+    end
+
+    it "leaves the recent section out when nothing has been simulated yet" do
+      get root_path
+
+      expect(Nokogiri::HTML(response.body).at_css(".recent-simulations")).to be_nil
+    end
   end
 
   describe "POST /simulations/rapide" do

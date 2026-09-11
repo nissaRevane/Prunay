@@ -875,6 +875,15 @@ a.icon-btn:hover {
   margin-top: 1rem;
 }
 
+/* Les deux dernières simulations, sous le formulaire rapide de l'accueil. */
+.recent-simulations {
+  margin-top: 3rem;
+}
+
+.recent-simulations .page-header h2 {
+  font-size: 1.25rem;
+}
+
 /* La liste des simulations : une carte par bien, la grille se replie seule sur une colonne
    plutôt que de faire scroller un tableau. Le taux y domine, c'est par lui qu'on compare. */
 .simulation-grid {

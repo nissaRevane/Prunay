@@ -39,6 +39,19 @@
   <div class="form-actions">
     <%= f.submit t("views.simulations.express.create"), class: "btn btn-primary" %>
     <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline" %>
-    <%= link_to t("views.simulations.express.cancel"), simulations_path, class: "btn btn-outline" %>
   </div>
+<% end %>
+
+<%# Deux cartes pour rouvrir ce qu'on vient d'étudier ; la liste entière se prend dans le menu. %>
+<% if @recent.any? %>
+  <section class="recent-simulations">
+    <div class="page-header page-header-inline">
+      <h2><%= t("views.simulations.express.recent") %></h2>
+      <%= link_to t("views.simulations.express.all"), simulations_path, class: "btn btn-outline btn-sm" %>
+    </div>
+
+    <div class="simulation-grid">
+      <%= render partial: "simulations/card", collection: @recent, as: :simulation %>
+    </div>
+  </section>
 <% end %>
