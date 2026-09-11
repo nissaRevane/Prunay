@@ -29,7 +29,9 @@ module Taxation
     end
 
     # Les frais d'acquisition suivent le bien qu'ils ont payé, part du terrain comprise.
-    def bases = { building: (price + acquisition_fees) * (1 - LAND_SHARE), works: works, furniture: furniture }
+    def bases
+      @bases ||= { building: (price + acquisition_fees) * (1 - LAND_SHARE), works: works, furniture: furniture }
+    end
 
     def annuity(component) = annuity_of(bases.fetch(component), COMPONENTS.fetch(component), 1)
 
@@ -37,7 +39,8 @@ module Taxation
     def capitalized(year)
       return {} unless year.positive?
 
-      without_zeros(CAPITALIZED_SHARES.to_h do |component, share|
+      @capitalized ||= {}
+      @capitalized[year] ||= without_zeros(CAPITALIZED_SHARES.to_h do |component, share|
         [component, (upkeep_of(component) * share * (1 + inflation_rate / 100)**(year - 1)).round(2)]
       end)
     end
@@ -47,7 +50,8 @@ module Taxation
 
     # Rien le jour de l'achat ; le départ tant que sa durée court, et chaque tranche encore vivante.
     def lines(year)
-      without_zeros(COMPONENTS.to_h do |component, years|
+      @lines ||= {}
+      @lines[year] ||= without_zeros(COMPONENTS.to_h do |component, years|
         [component, initial_line(component, years, year) + tranches(component, years, year)]
       end)
     end

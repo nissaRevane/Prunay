@@ -49,24 +49,66 @@ class Simulation::BestReturn
     found
   end
 
-  # On ne cherche pas les cent vingt-quatre taux mais le plus haut : l'actualisation tranche au
-  # taux exact, là où deux taux arrondis à la décimale se seraient dits égaux, et seule la sortie
-  # qui bat le record vaut une dichotomie.
+  # On ne cherche pas les cent vingt-quatre taux mais le plus haut : un seul encadrement les
+  # départage tous, resserré duel après duel, et le vainqueur seul finit par une dichotomie.
   def scan
-    Taxation::NAMES.reduce(nil) do |found, regime|
+    @low = InternalRateOfReturn::LOWEST_RATE
+    @high = InternalRateOfReturn::HIGHEST_RATE
+    champion = nil
+    won = nil
+
+    Taxation::NAMES.each do |regime|
       scanned = projection(regime)
 
       scanned.years.each do |year|
-        next if found && !scanned.beats?(year, found.rate)
+        challenger = scanned.rate_of_return(year)
+        next unless contender?(challenger)
+        next if champion && duel(champion, challenger).equal?(champion)
 
-        rate = scanned.internal_rate_of_return(year)
-        next unless rate
-
-        found = Exit.new(rate: rate, regime: regime, year: year.number, date: year.date)
+        champion = challenger
+        won = [regime, year]
       end
-
-      found
     end
+
+    return unless champion
+
+    regime, year = won
+    Exit.new(rate: champion.percentage, regime: regime, year: year.number, date: year.date)
+  end
+
+  # Une sortie sans flux de signes opposés n'a pas de taux, et une sortie sous le plancher de
+  # l'encadrement est déjà battue : ni l'une ni l'autre ne vaut un duel.
+  def contender?(candidate)
+    candidate.above?(@low) && !candidate.above?(InternalRateOfReturn::HIGHEST_RATE)
+  end
+
+  # Deux sorties se départagent sans qu'on calcule leur taux : chaque milieu de l'encadrement les
+  # actualise toutes deux, et la première à passer sous zéro a perdu. L'encadrement qui reste
+  # sert au duel suivant — c'est ce qui fait tenir tout le balayage en une seule dichotomie.
+  def duel(champion, challenger)
+    return outright(challenger) if challenger.above?(@high)
+
+    while @high - @low > InternalRateOfReturn::PRECISION
+      middle = (@low + @high) / 2
+      champion_above = champion.above?(middle)
+
+      if champion_above == challenger.above?(middle)
+        champion_above ? @low = middle : @high = middle
+      else
+        @low = middle
+        return champion_above ? champion : challenger
+      end
+    end
+
+    champion
+  end
+
+  # Au-dessus du plafond de l'encadrement, la sortie l'emporte sans duel et en ouvre un nouveau.
+  def outright(challenger)
+    @low = @high
+    @high = InternalRateOfReturn::HIGHEST_RATE
+
+    challenger
   end
 
   # Le balayage les construit toutes : celle du régime qui l'emporte se relit sans se refaire.

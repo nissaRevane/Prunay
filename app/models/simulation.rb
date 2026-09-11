@@ -180,7 +180,7 @@ class Simulation < ApplicationRecord
   # Ce que le LMNP amortit : le bâti frais de notaire compris, les travaux et les meubles, et chaque
   # année la part de l'entretien qui achète du durable.
   def depreciation_plan
-    Taxation::DepreciationPlan.new(price: purchase_price, acquisition_fees: notary_fees, works: initial_works,
+    @depreciation_plan ||= Taxation::DepreciationPlan.new(price: purchase_price, acquisition_fees: notary_fees, works: initial_works,
                                    furniture: furniture, maintenance: maintenance,
                                    furniture_maintenance: furniture_maintenance, inflation_rate: inflation_rate)
   end

@@ -122,11 +122,13 @@ class Projection
   def cumulative_cash_flow(year) = cash_flows.take(year.number + 1).sum
 
   # Le taux annuel qu'aurait rendu l'opération revendue cette année-là, en pourcentage.
-  def internal_rate_of_return(year) = rate_of_return_at(year).percentage
+  def internal_rate_of_return(year) = rate_of_return(year).percentage
 
-  # Revendre cette année-là rend-il plus que ce taux ? Une actualisation le dit, là où le taux lui-même
-  # se cherche par dichotomie : c'est tout ce qu'il faut pour départager deux sorties.
-  def beats?(year, percentage) = rate_of_return_at(year).above?(percentage.to_d / 100)
+  # Le taux lui-même, que Simulation::BestReturn départage par actualisation sans le calculer.
+  def rate_of_return(year)
+    @rates_of_return ||= {}
+    @rates_of_return[year.number] ||= InternalRateOfReturn.new(exit_cash_flows(year))
+  end
 
   # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
   def monthly_rent_of(year) = indexed(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, year)
@@ -153,11 +155,6 @@ class Projection
   end
 
   private
-
-  def rate_of_return_at(year)
-    @rates_of_return ||= {}
-    @rates_of_return[year.number] ||= InternalRateOfReturn.new(exit_cash_flows(year))
-  end
 
   # Ce que l'opération encaisse et débourse si elle s'arrête cette année-là : l'investissement
   # du premier jour, les cash-flows des années tenues, et le produit de la revente sur la dernière.
