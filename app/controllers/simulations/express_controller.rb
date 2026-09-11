@@ -3,7 +3,7 @@ module Simulations
   # le reste avec les défauts du parcours complet, et la fiche étant modifiable au clic, un
   # chiffre qui ne convient pas se corrige après coup plutôt qu'avant.
   class ExpressController < ApplicationController
-    RECENT = 2
+    RECENT = 1
 
     before_action :set_recent
 
@@ -21,7 +21,7 @@ module Simulations
 
     private
 
-    # La page est l'accueil d'un connecté : le formulaire, et les derniers biens pour y revenir.
+    # La page est l'accueil d'un connecté : le formulaire, et le dernier bien pour y revenir.
     def set_recent = @recent = current_user.simulations.order(purchase_date: :desc).limit(RECENT)
 
     # Aucune page ne les demande : la simulation naît avec celles de l'utilisateur.

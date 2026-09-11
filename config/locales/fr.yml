@@ -181,16 +181,14 @@ fr:
           other:
             title: Divers
       express:
-        title: Simulation rapide
         property_type: Type
         city: Ville
         surface: Surface
         purchase_price: Prix
         monthly_rent: Loyer
-        create: Créer la simulation
+        create: Simuler
         detailed: Tous les détails
-        recent: Dernières simulations
-        all: Toutes
+        all: Voir toutes mes simulations
       steps:
         title: Nouvelle simulation
         next: Continuer

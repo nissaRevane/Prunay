@@ -9,7 +9,7 @@ RSpec.describe "Authentication", type: :request do
 
       expect(response).to redirect_to(root_path)
       follow_redirect!
-      expect(response.body).to include(I18n.t("views.simulations.express.title"))
+      expect(response.body).to include(I18n.t("views.simulations.express.create"))
     end
 
     it "rejects a wrong password without saying which field is wrong" do

@@ -24,7 +24,7 @@ RSpec.describe "Home", type: :request do
 
       get root_path
 
-      expect(response.body).to include(I18n.t("views.simulations.express.title"))
+      expect(response.body).to include(I18n.t("views.simulations.express.create"))
       expect(response.body).not_to include(I18n.t("views.pages.home.subtitle"))
     end
   end
