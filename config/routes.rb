@@ -1,4 +1,6 @@
 Prunay::Application.routes.draw do
+  get "up", to: "rails/health#show", as: :rails_health_check
+
   devise_for :users, controllers: { registrations: "users/registrations" }
 
   # /mon-compte gathers the identity and the password change instead of scattering them in the navbar.

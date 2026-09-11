@@ -13,7 +13,10 @@ Rails.application.configure do
     .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
   config.log_tags = [:request_id]
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "localhost") }
+  # Aucun mail ne part : le lien de réinitialisation de Devise se récupère à la console.
+  config.action_mailer.perform_deliveries = false
+  config.action_mailer.raise_delivery_errors = false
   config.active_support.report_deprecations = false
   config.active_record.dump_schema_after_migration = false
 end

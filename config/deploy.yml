@@ -1,0 +1,46 @@
+service: prunay
+image: nissarevane/prunay
+
+# L'IP du VPS, à reporter aussi sur l'accessoire db : les deux tournent sur la même machine.
+servers:
+  web:
+    - REMPLACER_PAR_L_IP
+
+proxy:
+  ssl: true
+  host: prunay.REMPLACER-PAR-L-IP.sslip.io
+  app_port: 3000
+
+registry:
+  server: ghcr.io
+  username: nissaRevane
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# CAX11 = ARM ; passer à amd64 si le serveur choisi est un CX.
+builder:
+  arch: arm64
+
+env:
+  clear:
+    APP_HOST: prunay.REMPLACER-PAR-L-IP.sslip.io
+  secret:
+    - SECRET_KEY_BASE
+    - DATABASE_URL
+
+accessories:
+  db:
+    image: postgres:16-alpine
+    host: REMPLACER_PAR_L_IP
+    env:
+      clear:
+        POSTGRES_USER: prunay
+        POSTGRES_DB: prunay_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  logs: app logs --follow
