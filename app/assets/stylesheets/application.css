@@ -875,9 +875,19 @@ a.icon-btn:hover {
   margin-top: 1rem;
 }
 
-/* Les deux dernières simulations, sous le formulaire rapide de l'accueil. */
-.recent-simulations {
-  margin-top: 3rem;
+/* L'accueil : le formulaire rapide, et les deux dernières simulations à côté dès qu'un écran
+   est assez large pour les tenir sans rétrécir le formulaire. */
+.home {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .home {
+    grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
+    gap: 3rem;
+  }
 }
 
 .recent-simulations .page-header h2 {
