@@ -86,9 +86,6 @@ fr:
         sale_diagnostics: "Diagnostics à la revente"
         sale_refurbishment: "Remise en état à la revente"
       user:
-        firstname: Prénom
-        lastname: Nom
-        full_name: Nom
         email: Email
         password: Mot de passe
         password_confirmation: Confirmation du mot de passe

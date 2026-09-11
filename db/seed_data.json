@@ -1,8 +1,6 @@
 {
   "user": {
     "email": "demo@prunay.app",
-    "firstname": "Demo",
-    "lastname": "Prunay",
     "password": "password123"
   },
   "assumptions": {

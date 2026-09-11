@@ -1287,7 +1287,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] })
         .to eq([simulations_path, edit_assumptions_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
-      expect(doc.at_css(".nav-user-name").text).to eq(user.full_name)
+      expect(doc.at_css(".nav-user-name").text).to eq(user.email)
     end
 
     # Sur mobile le burger commande le panneau : le compte et la déconnexion y sont avec les liens.

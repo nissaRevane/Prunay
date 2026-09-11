@@ -12,8 +12,6 @@ seed_data = JSON.parse(File.read(Rails.root.join("db", "seed_data.json")))
 
 user_data = seed_data["user"]
 user = User.find_or_create_by!(email: user_data["email"]) do |u|
-  u.firstname = user_data["firstname"]
-  u.lastname = user_data["lastname"]
   u.password = user_data["password"]
   u.password_confirmation = user_data["password"]
 end

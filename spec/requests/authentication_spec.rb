@@ -25,21 +25,18 @@ RSpec.describe "Authentication", type: :request do
       post user_registration_path, params: { user: attributes }
     end
 
-    it "creates an account with a firstname and a lastname" do
+    it "creates an account from an email and a password" do
       expect {
-        sign_up(firstname: "Jean", lastname: "Dupont", email: "jean@example.com",
-                password: "password123", password_confirmation: "password123")
+        sign_up(email: "jean@example.com", password: "password123", password_confirmation: "password123")
       }.to change(User, :count).by(1)
 
-      expect(User.last).to have_attributes(firstname: "Jean", lastname: "Dupont")
+      expect(User.last.email).to eq("jean@example.com")
       expect(response).to redirect_to(root_path)
     end
 
-    # firstname/lastname are not Devise attributes: without the sanitizer they are dropped silently.
-    it "rejects a sign-up without a name" do
+    it "rejects a sign-up without an email" do
       expect {
-        sign_up(email: "sans-nom@example.com", password: "password123",
-                password_confirmation: "password123")
+        sign_up(password: "password123", password_confirmation: "password123")
       }.not_to change(User, :count)
 
       expect(response).to have_http_status(:unprocessable_entity)

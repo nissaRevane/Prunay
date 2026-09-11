@@ -1,16 +1,14 @@
 require "rails_helper"
 
 RSpec.describe AccountExport do
-  let(:user) { create(:user, email: "quentin@example.com", firstname: "Quentin", lastname: "GIRARD") }
+  let(:user) { create(:user, email: "quentin@example.com") }
 
   describe "#to_h" do
     it "exports the account identity without the real password" do
       data = described_class.new(user).to_h
 
       expect(data["user"]).to include(
-        "email" => "quentin@example.com",
-        "firstname" => "Quentin",
-        "lastname" => "GIRARD"
+        "email" => "quentin@example.com"
       )
       expect(data["user"]["password"]).to be_present
       expect(user.valid_password?(data["user"]["password"])).to be false

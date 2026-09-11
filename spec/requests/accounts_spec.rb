@@ -17,7 +17,6 @@ RSpec.describe "Account", type: :request do
         get account_path
 
         expect(response).to have_http_status(:success)
-        expect(response.body).to include(user.full_name)
         expect(response.body).to include(user.email)
       end
     end

@@ -980,8 +980,10 @@ body:has(.home) main.container {
   text-decoration: none;
 }
 
+/* La seconde colonne n'existe que si un bien est là : sans elle, le formulaire tiendrait la
+   gauche d'une grille restée à deux colonnes. */
 @media (min-width: 900px) {
-  .home {
+  .home:has(.recent-simulations) {
     grid-template-columns: repeat(2, 22rem);
     gap: 3rem;
   }

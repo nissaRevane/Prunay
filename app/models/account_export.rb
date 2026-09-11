@@ -32,8 +32,6 @@ class AccountExport
   def user_data
     {
       "email" => @user.email,
-      "firstname" => @user.firstname,
-      "lastname" => @user.lastname,
       "password" => Devise.friendly_token(PASSWORD_LENGTH)
     }
   end
