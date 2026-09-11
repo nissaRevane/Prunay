@@ -13,10 +13,11 @@ RSpec.describe "Assumptions", type: :request do
 
       expect(response).to have_http_status(:success)
 
+      # Un taux rond se lit en entier : le champ montre 1 et non 1,0.
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css("#assumptions_rent_growth_rate")["value"]).to eq("1.0")
-      expect(doc.at_css("#assumptions_property_growth_rate")["value"]).to eq("1.0")
-      expect(doc.at_css("#assumptions_inflation_rate")["value"]).to eq("2.0")
+      expect(doc.at_css("#assumptions_rent_growth_rate")["value"]).to eq("1")
+      expect(doc.at_css("#assumptions_property_growth_rate")["value"]).to eq("1")
+      expect(doc.at_css("#assumptions_inflation_rate")["value"]).to eq("2")
       # La tranche se choisit dans le barème : cinq options, celle de la plupart des foyers cochée.
       options = doc.css("#assumptions_marginal_tax_rate option")
       expect(options.map { |option| option["value"] }).to eq(%w[0 11 30 41 45])
@@ -28,7 +29,7 @@ RSpec.describe "Assumptions", type: :request do
 
       get edit_assumptions_path
 
-      expect(Nokogiri::HTML(response.body).at_css("#assumptions_rent_growth_rate")["value"]).to eq("3.0")
+      expect(Nokogiri::HTML(response.body).at_css("#assumptions_rent_growth_rate")["value"]).to eq("3")
     end
 
     # Une valeur que la page n'offrirait pas resterait hors d'atteinte : elles y sont toutes.

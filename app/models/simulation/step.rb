@@ -25,11 +25,8 @@ module Simulation::Step
     when "rental" then rental_defaults(simulation)
     when "charges" then charge_defaults(simulation)
     else {}
-    end.transform_values { |value| whole(value) }
+    end.transform_values { |value| Assumptions.whole(value) }
   end
-
-  # Un montant rond se propose en entier : le formulaire montre 500 et non 500,0.
-  def whole(value) = value.is_a?(BigDecimal) && value.frac.zero? ? value.to_i : value
 
   def purchase_defaults(simulation)
     {

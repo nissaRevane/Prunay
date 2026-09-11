@@ -60,6 +60,9 @@ class Assumptions < ApplicationRecord
 
   validates :purchase_delay_months, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
+  # Un montant rond se lit en entier : un champ montre 2 110 et non 2 110,0.
+  def self.whole(value) = value.is_a?(BigDecimal) && value.frac.zero? ? value.to_i : value
+
   # Celles de l'utilisateur, ou les valeurs par défaut tant qu'il n'y a pas touché.
   def self.for(user)
     return new if user.nil?

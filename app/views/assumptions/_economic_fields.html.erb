@@ -1,27 +1,12 @@
 <%# Les trois taux dans le même ordre partout — les loyers, le bien, puis les charges —, et
-    la tranche d'imposition du foyer après eux. Le même partiel sert aux conditions par défaut
-    et à celles d'une simulation : ce sont les mêmes colonnes des deux côtés. %>
-<div class="form-group">
-  <%= f.label :rent_growth_rate %>
-  <%= f.number_field :rent_growth_rate, step: "0.01", min: Assumptions::MIN_RATE,
-      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
-</div>
+    la tranche d'imposition du foyer après eux. %>
+<%= assumption_grid do %>
+  <% Assumptions::RATES.each do |rate| %>
+    <%= assumption_field f, rate, min: Assumptions::MIN_RATE, max: Assumptions::MAX_RATE %>
+  <% end %>
 
-<div class="form-group">
-  <%= f.label :property_growth_rate %>
-  <%= f.number_field :property_growth_rate, step: "0.01", min: Assumptions::MIN_RATE,
-      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
-</div>
-
-<div class="form-group">
-  <%= f.label :inflation_rate %>
-  <%= f.number_field :inflation_rate, step: "0.01", min: Assumptions::MIN_RATE,
-      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
-</div>
-
-<%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
-<div class="form-group">
-  <%= f.label :marginal_tax_rate %>
-  <%# Aucune option vide : la colonne porte toujours une tranche, ne serait-ce que celle à zéro. %>
-  <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
-</div>
+  <%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
+  <%= assumption_line f, :marginal_tax_rate do %>
+    <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
+  <% end %>
+<% end %>

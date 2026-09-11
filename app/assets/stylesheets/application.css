@@ -270,6 +270,40 @@ a.nav-user-name:hover {
   font-size: 0.8125rem;
 }
 
+/* Une hypothèse tient sur une ligne : un libellé et le nombre qu'il annonce. Les empiler
+   étirerait la page de vingt-cinq hauteurs de champ sans rien dire de plus. La grille rend
+   la colonne quand la fenêtre ne peut plus en tenir deux. */
+.assumption-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 0.25rem 2rem;
+}
+
+.assumption-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.375rem 0;
+}
+
+.assumption-field label {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.assumption-field .form-control {
+  width: 7.5rem;
+  flex: none;
+  text-align: right;
+}
+
+.assumption-field select.form-control {
+  width: 7.5rem;
+  text-align: left;
+}
+
 /* Les charges annuelles, par groupe : la détention du bien, son exploitation, le régime
    meublé et le reste. Un intertitre par groupe — neuf montants d'affilée ne diraient pas
    d'où ils viennent. Le champ qu'aucune condition ne justifie porte `hidden`, et la règle

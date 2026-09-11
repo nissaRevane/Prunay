@@ -22,55 +22,55 @@
     <fieldset class="form-fieldset">
       <legend><%= t("views.simulations.steps.purchase.title") %></legend>
 
-      <div class="form-row">
+      <%= assumption_grid do %>
         <%= assumption_field f, :purchase_delay_months, step: "1" %>
         <%= assumption_field f, :down_payment_share, max: 100 %>
-      </div>
-
-      <%= assumption_row f, :furniture %>
+        <%= assumption_field f, :furniture %>
+      <% end %>
     </fieldset>
 
     <fieldset class="form-fieldset">
       <legend><%= t("views.simulations.steps.credit.title") %></legend>
 
-      <div class="form-row">
+      <%= assumption_grid do %>
         <%= assumption_field f, :loan_rate, max: 100 %>
         <%= assumption_field f, :loan_duration_years, step: "1", min: 1, max: Simulation::MAX_LOAN_DURATION_YEARS %>
-      </div>
-
-      <%= assumption_row f, :loan_insurance_rate, :loan_guarantee_rate, max: 100 %>
-
-      <div class="form-row">
+        <%= assumption_field f, :loan_insurance_rate, max: 100 %>
+        <%= assumption_field f, :loan_guarantee_rate, max: 100 %>
         <%= assumption_field f, :loan_application_rate, max: 100 %>
         <%= assumption_field f, :loan_application_fees_floor %>
-      </div>
+      <% end %>
     </fieldset>
 
     <fieldset class="form-fieldset">
       <legend><%= t("views.simulations.steps.rental.title") %></legend>
 
-      <%= assumption_row f, :monthly_rent, :monthly_charges %>
-
-      <div class="form-row">
+      <%= assumption_grid do %>
+        <%= assumption_field f, :monthly_rent %>
+        <%= assumption_field f, :monthly_charges %>
         <%= assumption_field f, :occupancy_months, step: "0.5", max: Simulation::MONTHS_PER_YEAR %>
-      </div>
+      <% end %>
     </fieldset>
 
     <fieldset class="form-fieldset">
       <legend><%= t("views.simulations.steps.charges.title") %></legend>
 
-      <%= assumption_row f, :property_tax, :insurance %>
-      <%= assumption_row f, :maintenance, :condominium_fees %>
-      <%= assumption_row f, :management_fees, :rent_guarantee %>
-      <%= assumption_row f, :accounting_fees, :furniture_maintenance %>
-      <%= assumption_row f, :other_charges %>
+      <%= assumption_grid do %>
+        <%# Dans l'ordre des groupes du formulaire : une charge de plus s'y ajoute et se retrouve ici. %>
+        <% Simulation::CHARGE_GROUPS.values.flatten.each do |charge| %>
+          <%= assumption_field f, charge %>
+        <% end %>
+      <% end %>
     </fieldset>
 
     <fieldset class="form-fieldset">
       <legend><%= t("views.assumptions.edit.sale") %></legend>
       <p class="form-hint"><%= t("views.assumptions.edit.sale_hint") %></p>
 
-      <%= assumption_row f, :sale_diagnostics, :sale_refurbishment %>
+      <%= assumption_grid do %>
+        <%= assumption_field f, :sale_diagnostics %>
+        <%= assumption_field f, :sale_refurbishment %>
+      <% end %>
     </fieldset>
 
     <div class="form-actions">
