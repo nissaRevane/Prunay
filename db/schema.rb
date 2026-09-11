@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000021) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000022) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,13 +37,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000021) do
     t.decimal "loan_application_fees_floor", precision: 12, scale: 2, default: "500.0", null: false
     t.decimal "sale_diagnostics", precision: 12, scale: 2, default: "400.0", null: false
     t.decimal "sale_refurbishment", precision: 12, scale: 2, default: "500.0", null: false
-    t.decimal "notary_fees_base", precision: 12, scale: 2, default: "1772.0", null: false
     t.decimal "down_payment_share", precision: 6, scale: 3, default: "10.0", null: false
     t.decimal "loan_rate", precision: 6, scale: 3, default: "3.6", null: false
     t.decimal "loan_insurance_rate", precision: 6, scale: 3, default: "0.12", null: false
     t.decimal "loan_guarantee_rate", precision: 6, scale: 3, default: "1.667", null: false
     t.decimal "loan_application_rate", precision: 6, scale: 3, default: "1.0", null: false
-    t.decimal "notary_fees_rate", precision: 6, scale: 3, default: "7.42", null: false
     t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
     t.integer "loan_duration_years", default: 20, null: false
     t.integer "purchase_delay_months", default: 3, null: false

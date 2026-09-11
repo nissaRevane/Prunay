@@ -113,14 +113,14 @@ docker compose run --rm web bundle exec rspec
   bracket. *The amounts proposed* — the references the creation pages pre-fill, the credit
   the bank is supposed to offer (3,6 % over twenty years, the insurance at 0,12 % of the
   capital a year, the guarantee at 1,667 %, the application fees at 1 % with a 500 € floor),
-  and the months let. *The rules of the calculation* — the notary fees (7,42 % of the price
-  plus 1 772 €) and what a resale costs (400 € of diagnostics, 500 € of refurbishment for
-  50 m²); these last are read afresh every time a page is drawn, so correcting one recomputes
-  every simulation, where the first two only reach the simulations still to be created. The
-  taxation is the one thing that does not settle here: a bracket is chosen from the scale,
-  the rest of it is the law (see `Taxation`).
-  The economic conditions live in two places. Every simulation then carries its own copy of the three, taken from those defaults
-  the day it is created — correcting the defaults afterwards never rewrites a projection
+  and the months let. *What a resale costs* — 400 € of diagnostics and 500 € of refurbishment
+  for 50 m²; these two are read afresh every time a page is drawn, so correcting one
+  recomputes every simulation, where the first two kinds only reach the simulations still to
+  be created. The taxation is the one thing that does not settle here: a bracket is chosen
+  from the scale, the rest of it is the law — the notary's fees included (see `Taxation` and
+  `Simulation::NOTARY_FEES_RATE`).
+  The economic conditions live in two places. Every simulation carries its own copy of the
+  four, taken from those defaults the day it is created — correcting the defaults afterwards never rewrites a projection
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, one rate at a time like
   every other value, and the page comes back on that tab (`?tab=economic_conditions`). That

@@ -53,15 +53,15 @@ RSpec.describe "Assumptions", type: :request do
         .to have_attributes(rent_growth_rate: 1.5, property_growth_rate: 2.5, inflation_rate: 3.5)
     end
 
-    # Le loyer de référence, la durée du crédit et le taux des frais de notaire se règlent
-    # comme les taux : une seule page pour tout ce qu'un compte suppose.
-    it "writes the amounts proposed, the credit and the rules of the calculation" do
+    # Le loyer de référence, la durée du crédit et le coût d'une revente se règlent comme les
+    # taux : une seule page pour tout ce qu'un compte suppose.
+    it "writes the amounts proposed, the credit and what a resale costs" do
       patch assumptions_path,
             params: { assumptions: { monthly_rent: "900", loan_duration_years: "25",
-                                     notary_fees_rate: "8" } }
+                                     sale_diagnostics: "600" } }
 
       expect(user.reload.assumptions)
-        .to have_attributes(monthly_rent: 900, loan_duration_years: 25, notary_fees_rate: 8)
+        .to have_attributes(monthly_rent: 900, loan_duration_years: 25, sale_diagnostics: 600)
     end
 
     it "corrects those he had already given" do

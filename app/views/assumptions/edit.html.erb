@@ -1,6 +1,6 @@
 <%# Tout ce qu'un compte suppose, dans l'ordre où une simulation le rencontre : l'économie,
-    l'achat, le crédit, la location, les charges. Les règles de calcul viennent en dernier
-    parce qu'elles seules pèsent sur les simulations déjà écrites. %>
+    l'achat, le crédit, la location, les charges, la revente. Cette dernière vient à part
+    parce qu'elle seule pèse sur les simulations déjà écrites. %>
 <div class="page-header">
   <div>
     <h1><%= t("views.assumptions.edit.title") %></h1>
@@ -67,13 +67,8 @@
     </fieldset>
 
     <fieldset class="form-fieldset">
-      <legend><%= t("views.assumptions.edit.rules") %></legend>
-      <p class="form-hint"><%= t("views.assumptions.edit.rules_hint") %></p>
-
-      <div class="form-row">
-        <%= assumption_field f, :notary_fees_rate, max: 100 %>
-        <%= assumption_field f, :notary_fees_base %>
-      </div>
+      <legend><%= t("views.assumptions.edit.sale") %></legend>
+      <p class="form-hint"><%= t("views.assumptions.edit.sale_hint") %></p>
 
       <%= assumption_row f, :sale_diagnostics, :sale_refurbishment %>
     </fieldset>

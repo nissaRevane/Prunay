@@ -36,7 +36,7 @@ RSpec.describe AccountExport do
 
       expect(exported.keys).to eq(Assumptions::EDITABLE.map(&:to_s))
       expect(exported).to include("rent_growth_rate" => 1, "monthly_rent" => 650, "loan_rate" => 3.6,
-                                  "notary_fees_rate" => 7.42)
+                                  "sale_diagnostics" => 400)
     end
 
     it "exports every simulation field, in creation order" do

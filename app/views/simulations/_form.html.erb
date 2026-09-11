@@ -41,8 +41,8 @@
   <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.purchase.title") %></legend>
 
-    <div data-controller="notary-fees" data-notary-fees-rate-value="<%= notary_fees_rate(simulation) %>"
-         data-notary-fees-base-value="<%= simulation.assumptions.notary_fees_base %>">
+    <div data-controller="notary-fees" data-notary-fees-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
+         data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>">
       <div class="form-row">
         <div class="form-group form-group-half">
           <%= f.label :purchase_price %>

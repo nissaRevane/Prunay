@@ -15,6 +15,11 @@ class Simulation < ApplicationRecord
     other: %i[other_charges]
   }.freeze
 
+  # Droits, émoluments et débours suivent le prix d'assez près pour qu'une droite en tienne lieu.
+  NOTARY_FEES_RATE = BigDecimal("0.0742")
+
+  NOTARY_FEES_BASE = 1_772
+
   # Les charges qu'un seul type de régime paie : il les porte lui-même (voir Taxation::Bic et
   # Taxation::Lmnp) et elles restent hors du total que tous les autres supportent.
   REGIME_CHARGES = %i[accounting_fees furniture_maintenance].freeze
@@ -118,7 +123,7 @@ class Simulation < ApplicationRecord
   def notary_fees
     return 0 if purchase_price.blank?
 
-    (purchase_price * assumptions.notary_fees_rate / 100 + assumptions.notary_fees_base).round(2)
+    (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
   end
 
   # Ce que le bien vaut vraiment : le prix payé plus la décote obtenue. La revente en part, l'achat non.

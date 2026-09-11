@@ -1,8 +1,8 @@
 # Ce qu'un compte suppose tant qu'il n'en décide autrement : les conditions économiques dont
-# hérite chaque nouvelle simulation, les montants que le formulaire propose, et les règles de
-# calcul qui s'appliquent à toutes les simulations. Les premières sont recopiées à la création
-# — les corriger ne touche pas aux simulations déjà écrites —, les dernières sont relues à
-# chaque affichage. La fiscalité, elle, ne se règle pas : elle est dans Taxation.
+# hérite chaque nouvelle simulation, les montants que le formulaire propose, et ce qu'une
+# revente coûte. Les premières sont recopiées à la création — les corriger ne touche pas aux
+# simulations déjà écrites —, la dernière est relue à chaque affichage. La fiscalité, elle, ne
+# se règle pas : les droits du notaire comme l'impôt sont la loi.
 class Assumptions < ApplicationRecord
   RATES = %i[rent_growth_rate property_growth_rate inflation_rate].freeze
 
@@ -23,12 +23,12 @@ class Assumptions < ApplicationRecord
   LOAN = %i[loan_rate loan_duration_years loan_insurance_rate loan_guarantee_rate
             loan_application_rate loan_application_fees_floor].freeze
 
-  # Ce qui ne se propose pas mais se calcule : ces valeurs pèsent sur toutes les simulations.
-  RULES = %i[notary_fees_rate notary_fees_base sale_diagnostics sale_refurbishment].freeze
+  # Ce qui ne se propose pas mais se calcule : ces deux-là pèsent sur toutes les simulations.
+  SALE = %i[sale_diagnostics sale_refurbishment].freeze
 
   PURCHASE = %i[purchase_delay_months down_payment_share].freeze
 
-  EDITABLE = [*ECONOMIC, *PROPOSED_AMOUNTS, *PURCHASE, *LOAN, :occupancy_months, *RULES].freeze
+  EDITABLE = [*ECONOMIC, *PROPOSED_AMOUNTS, *PURCHASE, *LOAN, :occupancy_months, *SALE].freeze
 
   # Au-delà, ce n'est plus une hypothèse économique : un loyer doublerait en deux ans.
   MIN_RATE = -50
@@ -36,11 +36,10 @@ class Assumptions < ApplicationRecord
   MAX_RATE = 50
 
   # Un montant ne se propose pas en négatif, et aucun taux de frais ne dépasse le capital.
-  POSITIVE_AMOUNTS = [*PROPOSED_AMOUNTS, :loan_application_fees_floor, :notary_fees_base,
-                      :sale_diagnostics, :sale_refurbishment].freeze
+  POSITIVE_AMOUNTS = [*PROPOSED_AMOUNTS, :loan_application_fees_floor, *SALE].freeze
 
   SHARES = %i[down_payment_share loan_rate loan_insurance_rate loan_guarantee_rate
-              loan_application_rate notary_fees_rate].freeze
+              loan_application_rate].freeze
 
   belongs_to :user
 

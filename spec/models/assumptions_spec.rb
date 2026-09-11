@@ -20,7 +20,7 @@ RSpec.describe Assumptions, type: :model do
 
     # Un montant proposé en négatif n'aurait aucun sens, et une part ne dépasse pas le tout.
     it { is_expected.to validate_numericality_of(:monthly_rent).is_greater_than_or_equal_to(0) }
-    it { is_expected.to validate_numericality_of(:notary_fees_base).is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:sale_diagnostics).is_greater_than_or_equal_to(0) }
     it { is_expected.to validate_numericality_of(:down_payment_share).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(100) }
     it { is_expected.to validate_numericality_of(:occupancy_months).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(Simulation::MONTHS_PER_YEAR) }
     it { is_expected.to validate_numericality_of(:loan_duration_years).is_greater_than(0).is_less_than_or_equal_to(Simulation::MAX_LOAN_DURATION_YEARS) }
@@ -36,14 +36,13 @@ RSpec.describe Assumptions, type: :model do
                                              marginal_tax_rate: 30)
     end
 
-    # Ce que les pages de la création proposent, et les règles qui valent pour toutes les simulations.
-    it "proposes the reference amounts, the credit and the rules of the calculation" do
+    # Ce que les pages de la création proposent, et ce qu'une revente coûte.
+    it "proposes the reference amounts, the credit and what a resale costs" do
       expect(described_class.for(user)).to have_attributes(monthly_rent: 650, furniture: 2_110, accounting_fees: 500,
                                                            occupancy_months: 11, down_payment_share: 10,
                                                            purchase_delay_months: 3, loan_rate: BigDecimal("3.6"),
-                                                           loan_duration_years: 20,
-                                                           notary_fees_rate: BigDecimal("7.42"),
-                                                           notary_fees_base: 1_772, sale_diagnostics: 400)
+                                                           loan_duration_years: 20, sale_diagnostics: 400,
+                                                           sale_refurbishment: 500)
     end
 
     it "is what the user has decided once he has decided it" do

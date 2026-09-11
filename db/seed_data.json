@@ -31,8 +31,6 @@
     "loan_application_rate": 1,
     "loan_application_fees_floor": 500,
     "occupancy_months": 11,
-    "notary_fees_rate": 7.42,
-    "notary_fees_base": 1772,
     "sale_diagnostics": 400,
     "sale_refurbishment": 500
   },

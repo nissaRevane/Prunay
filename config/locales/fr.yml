@@ -83,8 +83,6 @@ fr:
         accounting_fees: Comptabilité
         furniture_maintenance: Entretien et renouvellement des meubles
         other_charges: Autres frais
-        notary_fees_rate: "Frais de notaire (% du prix)"
-        notary_fees_base: "Frais de notaire fixes"
         sale_diagnostics: "Diagnostics à la revente"
         sale_refurbishment: "Remise en état à la revente"
       user:
@@ -174,8 +172,8 @@ fr:
         subtitle: "Ce que Prunay propose à chaque nouvelle simulation. Les montants qui suivent la surface sont énoncés pour %{surface} m²."
         economic: Conditions économiques
         economic_hint: "Recopiées le jour de la création : les corriger ne touche pas aux simulations déjà enregistrées."
-        rules: Règles de calcul
-        rules_hint: "Relues à chaque affichage : les corriger recalcule toutes vos simulations."
+        sale: La revente
+        sale_hint: "Relus à chaque affichage : les corriger recalcule toutes vos simulations."
         save: Enregistrer les hypothèses
     pages:
       home:

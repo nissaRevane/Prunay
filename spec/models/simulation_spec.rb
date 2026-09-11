@@ -193,13 +193,6 @@ RSpec.describe Simulation, type: :model do
       expect(build(:simulation, purchase_price: nil).notary_fees).to eq(0)
     end
 
-    # Un achat dans le neuf se négocie autour de 3 % : 6 000 € et la part fixe font 7 772 €.
-    it "reads the rule the account has settled" do
-      simulation = build(:simulation, purchase_price: 200_000)
-      create(:assumptions, user: simulation.user, notary_fees_rate: 3)
-
-      expect(simulation.notary_fees).to eq(7_772)
-    end
   end
 
   # Le plan du LMNP lit le prix, les frais de notaire, les travaux et les meubles de la simulation.
