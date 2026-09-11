@@ -927,9 +927,18 @@ a.icon-btn:hover {
 
 .simulation-card-header {
   display: flex;
-  align-items: start;
-  justify-content: space-between;
+  align-items: baseline;
   gap: 0.5rem;
+}
+
+/* La date se lit à côté du nom : la ligne qu'elle occupait ne portait qu'elle. */
+.simulation-card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .simulation-card-name {
@@ -954,6 +963,7 @@ a.icon-btn:hover {
 .simulation-card-remove {
   position: relative;
   flex-shrink: 0;
+  align-self: start;
 }
 
 .simulation-card-meta {
@@ -966,29 +976,31 @@ a.icon-btn:hover {
 }
 
 .simulation-card-date {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+/* Le taux se lit à hauteur du nom : la carte n'a pas trois lignes à donner à un seul chiffre. */
+.simulation-card-rate {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .simulation-card-return {
   display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  margin: 0.5rem 0;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.375rem;
+  font-size: 0.8125rem;
+  margin: 0;
 }
 
 .simulation-card-regime {
-  font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-text-muted);
-}
-
-.simulation-card-rate {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
 }
 
 .simulation-card-exit {
@@ -997,13 +1009,21 @@ a.icon-btn:hover {
 }
 
 .simulation-card-figures {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   margin: 0;
   margin-top: auto;
-  padding-top: 0.75rem;
+  padding-top: 0.625rem;
   border-top: 1px solid var(--color-border);
+}
+
+/* Libellé et montant sur la même ligne, chacun sur son bord : deux chiffres, deux lignes. */
+.simulation-card-figure {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .simulation-card-figure dt {
@@ -1018,14 +1038,14 @@ a.icon-btn:hover {
   font-size: 1.0625rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   margin: 0;
 }
 
-/* L'année du montant, à côté de lui plutôt que dans un libellé qu'elle allongeait. */
 .simulation-card-figure-note {
-  font-size: 0.75rem;
   font-weight: 400;
-  color: var(--color-text-muted);
+  text-transform: none;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
@@ -1404,7 +1424,7 @@ a.icon-btn:hover {
   }
 
   .simulation-card-rate {
-    font-size: 1.75rem;
+    font-size: 1.375rem;
   }
 }
 

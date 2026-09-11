@@ -67,14 +67,14 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-rate").text.strip).to eq(return_percentage(4))
+      expect(doc.at_css(".simulation-card-header .simulation-card-rate").text.strip).to eq(return_percentage(4))
       expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
         I18n.t("views.simulations.index.best_exit", date: 2055, year: 30)
       )
     end
 
-    # Les trois chiffres se lisent sous le même régime : il se nomme une fois, en tête du bloc,
-    # et la ligne de revente ne le reprend pas — elle n'en cadrait qu'un tiers.
+    # Les trois chiffres se lisent sous le même régime : il se nomme une fois, devant la revente,
+    # et celle-ci ne le reprend pas — elle n'en cadrait qu'un tiers.
     it "names the winning regime once, above the figures it frames" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -90,8 +90,7 @@ RSpec.describe "Simulations", type: :request do
     end
 
     # 216 612 € engagés le premier jour et 9 070,19 € la première année pleine, soit 755,85 € par
-    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale. L'année du
-    # cash-flow se tient à côté de son montant, le libellé s'allongeant trop pour la porter.
+    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale.
     it "shows what the winning regime asks up front and leaves each month" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -102,22 +101,32 @@ RSpec.describe "Simulations", type: :request do
 
       expect(figures).to eq([
         currency(216_612, precision: 0).gsub(/\s+/, " "),
-        "#{currency(756, precision: 0).gsub(/\s+/, ' ')} #{I18n.t('views.simulations.index.first_full_year')}"
+        currency(756, precision: 0).gsub(/\s+/, " ")
       ])
     end
 
-    # La date d'achat reste sur la carte : elle situe l'horizon, elle ne regroupe plus rien.
-    it "carries the purchase date and the address of each property" do
+    # La date d'achat situe l'horizon et se lit à côté du nom ; l'adresse, quand elle est saisie,
+    # tient la ligne suivante à elle seule.
+    it "carries the purchase date beside the name, and the address below it" do
       create(:simulation, user: user, purchase_date: Date.new(2026, 6, 30), address: "14 rue du Beau Laurier")
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      meta = doc.at_css(".simulation-card-meta")
 
-      expect(meta.at_css(".simulation-card-date").text.strip).to eq(I18n.l(Date.new(2026, 6, 30),
-                                                                          format: :month_year))
-      expect(meta.at_css(".simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
+      expect(doc.at_css(".simulation-card-title .simulation-card-date").text.strip).to eq(
+        I18n.l(Date.new(2026, 6, 30), format: :month_year)
+      )
+      expect(doc.at_css(".simulation-card-meta .simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
+    end
+
+    # Sans adresse, la ligne qui la portait ne se rend pas : elle aurait coûté sa hauteur pour rien.
+    it "drops the address line of a property that has none" do
+      create(:simulation, user: user, address: nil)
+
+      get simulations_path
+
+      expect(Nokogiri::HTML(response.body).at_css(".simulation-card-meta")).to be_nil
     end
 
     # On ne modifie rien depuis la liste : la fiche corrige chaque valeur d'un clic. Reste la
