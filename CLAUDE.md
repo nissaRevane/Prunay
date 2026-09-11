@@ -60,7 +60,7 @@ Frais de notaire, capital emprunté, mensualité, tableau d'amortissement, proje
 tous recalculés. N'ajouter une colonne que pour une réponse que l'utilisateur donne lui-même.
 
 ### Où vivent les choses
-- `Simulation`, `User`, `EconomicConditions` : les seuls ActiveRecord.
+- `Simulation`, `User`, `Assumptions` : les seuls ActiveRecord.
 - `Loan`, `AmortizationSchedule`, `Projection`, `Taxation::*`, `Simulation::Estimate`,
   `Simulation::Step` : des objets simples, hors base, chacun responsable d'un calcul.
 - Une constante vit sur l'objet qu'elle concerne (`Loan::DEFAULT_RATE`,

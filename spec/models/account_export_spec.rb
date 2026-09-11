@@ -22,23 +22,21 @@ RSpec.describe AccountExport do
       expect(passwords.uniq.size).to eq(2)
     end
 
-    it "exports the economic conditions of the account" do
-      create(:economic_conditions, user: user, rent_growth_rate: 1.5, property_growth_rate: 2,
-             inflation_rate: 3, marginal_tax_rate: 41)
+    it "exports the assumptions of the account" do
+      create(:assumptions, user: user, rent_growth_rate: 1.5, marginal_tax_rate: 41, monthly_rent: 900)
 
-      expect(described_class.new(user).to_h["economic_conditions"]).to eq(
-        "rent_growth_rate" => 1.5, "property_growth_rate" => 2,
-        "inflation_rate" => 3, "marginal_tax_rate" => 41
-      )
+      expect(described_class.new(user).to_h["assumptions"])
+        .to include("rent_growth_rate" => 1.5, "marginal_tax_rate" => 41, "monthly_rent" => 900)
     end
 
-    # Les conditions sont absentes tant que l'utilisateur n'y a pas touché : l'export porte
-    # alors ce dont Prunay habille une simulation, pas un trou.
-    it "falls back to the default conditions when the account has none" do
-      expect(described_class.new(user).to_h["economic_conditions"]).to eq(
-        "rent_growth_rate" => 1, "property_growth_rate" => 1,
-        "inflation_rate" => 2, "marginal_tax_rate" => 30
-      )
+    # Les hypothèses sont absentes tant que l'utilisateur n'y a pas touché : l'export porte
+    # alors ce que Prunay suppose, pas un trou.
+    it "falls back to the default assumptions when the account has none" do
+      exported = described_class.new(user).to_h["assumptions"]
+
+      expect(exported.keys).to eq(Assumptions::EDITABLE.map(&:to_s))
+      expect(exported).to include("rent_growth_rate" => 1, "monthly_rent" => 650, "loan_rate" => 3.6,
+                                  "notary_fees_rate" => 7.42)
     end
 
     it "exports every simulation field, in creation order" do
@@ -92,7 +90,7 @@ RSpec.describe AccountExport do
 
       expect(data.keys).to eq(seed_data.keys)
       expect(data["user"].keys).to match_array(seed_data["user"].keys)
-      expect(data["economic_conditions"].keys).to eq(seed_data["economic_conditions"].keys)
+      expect(data["assumptions"].keys).to eq(seed_data["assumptions"].keys)
       expect(data["simulations"].first.keys).to eq(seed_data["simulations"].first.keys)
     end
   end

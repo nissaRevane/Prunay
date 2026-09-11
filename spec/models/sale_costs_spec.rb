@@ -20,4 +20,11 @@ RSpec.describe SaleCosts do
   it "still owes the whole diagnostics on a small surface" do
     expect(described_class.new(surface: 12.5).total).to eq(650)
   end
+
+  # Un vendeur qui passe par une agence énonce ce que sa revente lui coûte.
+  it "charges what the account has settled" do
+    costs = described_class.new(surface: 50, diagnostics: 600, refurbishment: 1_200)
+
+    expect(costs.total).to eq(1_800)
+  end
 end

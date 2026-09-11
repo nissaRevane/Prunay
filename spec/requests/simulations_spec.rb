@@ -1272,7 +1272,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".navbar-logo")["href"]).to eq(root_path)
       expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] })
-        .to eq([simulations_path, edit_economic_conditions_path])
+        .to eq([simulations_path, edit_assumptions_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
       expect(doc.at_css(".nav-user-name").text).to eq(user.full_name)
     end

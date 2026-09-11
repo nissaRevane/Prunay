@@ -9,10 +9,10 @@
   <% url = simulation_economic_conditions_path(simulation, regime: params[:regime]) %>
 
   <dl class="detail-grid">
-    <% EconomicConditions::RATES.each do |rate| %>
+    <% Assumptions::RATES.each do |rate| %>
       <%= editable_detail simulation, rate, number_to_percentage(simulation.public_send(rate), precision: 2, strip_insignificant_zeros: true), url: url do |f| %>
-        <%= f.number_field rate, step: "0.01", min: EconomicConditions::MIN_RATE,
-            max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
+        <%= f.number_field rate, step: "0.01", min: Assumptions::MIN_RATE,
+            max: Assumptions::MAX_RATE, class: "form-control", required: true %>
       <% end %>
     <% end %>
 

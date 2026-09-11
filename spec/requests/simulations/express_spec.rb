@@ -68,8 +68,7 @@ RSpec.describe "Express simulations", type: :request do
 
     # Les conditions économiques ne se demandent pas plus ici que dans l'assistant.
     it "inherits the economic conditions of the user" do
-      EconomicConditions.for(user).update!(rent_growth_rate: 1.5, property_growth_rate: 2.5,
-                                          inflation_rate: 3)
+      Assumptions.for(user).update!(rent_growth_rate: 1.5, property_growth_rate: 2.5, inflation_rate: 3)
 
       post express_simulations_path, params: { simulation: ANSWERS }
 

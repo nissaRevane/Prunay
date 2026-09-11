@@ -2,11 +2,7 @@
     seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
     l'assistant. %>
 <%= form_with(model: simulation, class: "form",
-                  data: { controller: "credit",
-                          credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f,
-                          credit_base_value: Simulation::NOTARY_FEES_BASE,
-                          credit_share_value: Simulation::Estimate::DOWN_PAYMENT_SHARE.to_f,
-                          credit_rounding_value: Simulation::Estimate::ROUNDING }) do |f| %>
+                  data: { controller: "credit", **credit_values(simulation) }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <fieldset class="form-fieldset">
@@ -45,9 +41,8 @@
   <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.purchase.title") %></legend>
 
-    <div data-controller="notary-fees"
-         data-notary-fees-rate-value="<%= Simulation::NOTARY_FEES_RATE.to_f %>"
-         data-notary-fees-base-value="<%= Simulation::NOTARY_FEES_BASE %>">
+    <div data-controller="notary-fees" data-notary-fees-rate-value="<%= notary_fees_rate(simulation) %>"
+         data-notary-fees-base-value="<%= simulation.assumptions.notary_fees_base %>">
       <div class="form-row">
         <div class="form-group form-group-half">
           <%= f.label :purchase_price %>

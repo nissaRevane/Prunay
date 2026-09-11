@@ -7,12 +7,6 @@ module Simulation::Step
   # La page du crédit ne s'ouvre qu'à qui en a coché un : un achat comptant n'a que quatre pages.
   CONDITIONS = { "credit" => :credit? }.freeze
 
-  # Trois mois entre la simulation et la signature — le temps d'un compromis.
-  PURCHASE_DELAY_MONTHS = 3
-
-  # Onze mois sur douze : la vacance moyenne d'un bien correctement loué.
-  OCCUPANCY_MONTHS = 11
-
   module_function
 
   def all_for(simulation) = NAMES.select { |name| applicable?(name, simulation) }
@@ -31,12 +25,15 @@ module Simulation::Step
     when "rental" then rental_defaults(simulation)
     when "charges" then charge_defaults(simulation)
     else {}
-    end
+    end.transform_values { |value| whole(value) }
   end
+
+  # Un montant rond se propose en entier : le formulaire montre 500 et non 500,0.
+  def whole(value) = value.is_a?(BigDecimal) && value.frac.zero? ? value.to_i : value
 
   def purchase_defaults(simulation)
     {
-      "purchase_date" => Date.current >> PURCHASE_DELAY_MONTHS,
+      "purchase_date" => Date.current >> simulation.assumptions.purchase_delay_months,
       "initial_works" => 0,
       "furniture" => simulation.estimate(:furniture),
       "down_payment" => down_payment(simulation)
@@ -45,13 +42,15 @@ module Simulation::Step
 
   def credit_defaults(simulation)
     capital = simulation.borrowed_capital
+    assumptions = simulation.assumptions
 
     {
-      "loan_rate" => Loan::DEFAULT_RATE,
-      "loan_duration_years" => Loan::DEFAULT_DURATION_YEARS,
-      "loan_insurance" => Loan.default_insurance(capital),
-      "loan_guarantee_fees" => Loan.default_guarantee_fees(capital),
-      "loan_application_fees" => Loan.default_application_fees(capital)
+      "loan_rate" => assumptions.loan_rate,
+      "loan_duration_years" => assumptions.loan_duration_years,
+      "loan_insurance" => Loan.default_insurance(capital, assumptions.loan_insurance_rate),
+      "loan_guarantee_fees" => Loan.default_guarantee_fees(capital, assumptions.loan_guarantee_rate),
+      "loan_application_fees" => Loan.default_application_fees(capital, assumptions.loan_application_rate,
+                                                               assumptions.loan_application_fees_floor)
     }
   end
 
@@ -59,7 +58,7 @@ module Simulation::Step
     {
       "monthly_rent" => simulation.estimate(:monthly_rent),
       "monthly_charges" => simulation.estimate(:monthly_charges),
-      "occupancy_months" => OCCUPANCY_MONTHS
+      "occupancy_months" => simulation.assumptions.occupancy_months
     }
   end
 
@@ -71,6 +70,6 @@ module Simulation::Step
   def down_payment(simulation)
     return 0 if simulation.purchase_price.blank? || simulation.initial_works.blank?
 
-    Simulation::Estimate.down_payment(simulation.total_investment)
+    Simulation::Estimate.new(simulation.assumptions).down_payment(simulation.total_investment)
   end
 end

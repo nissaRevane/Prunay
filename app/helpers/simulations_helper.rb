@@ -27,6 +27,18 @@ module SimulationsHelper
   # Un mot de la phrase n'est pas un bouton : le clavier l'ouvre comme le clic.
   WORD_ACTIONS = "click->inline-edit#open keydown.enter->inline-edit#open keydown.space->inline-edit#open".freeze
 
+  # Les hypothèses du compte, dans la forme que les contrôleurs Stimulus attendent : un taux
+  # s'y lit en fraction là où la page le montre en pourcents.
+  def notary_fees_rate(simulation) = (simulation.assumptions.notary_fees_rate / 100).to_f
+
+  def credit_values(simulation)
+    assumptions = simulation.assumptions
+
+    { credit_rate_value: notary_fees_rate(simulation), credit_base_value: assumptions.notary_fees_base,
+      credit_share_value: (assumptions.down_payment_share / 100).to_f,
+      credit_rounding_value: Simulation::Estimate::ROUNDING }
+  end
+
   # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
   def property_type_options
     Simulation::PROPERTY_TYPES.map { |type| [t("simulations.property_types.#{type}"), type] }

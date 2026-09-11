@@ -3,20 +3,20 @@
     et à celles d'une simulation : ce sont les mêmes colonnes des deux côtés. %>
 <div class="form-group">
   <%= f.label :rent_growth_rate %>
-  <%= f.number_field :rent_growth_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
-      max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
+  <%= f.number_field :rent_growth_rate, step: "0.01", min: Assumptions::MIN_RATE,
+      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
 </div>
 
 <div class="form-group">
   <%= f.label :property_growth_rate %>
-  <%= f.number_field :property_growth_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
-      max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
+  <%= f.number_field :property_growth_rate, step: "0.01", min: Assumptions::MIN_RATE,
+      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
 </div>
 
 <div class="form-group">
   <%= f.label :inflation_rate %>
-  <%= f.number_field :inflation_rate, step: "0.01", min: EconomicConditions::MIN_RATE,
-      max: EconomicConditions::MAX_RATE, class: "form-control", required: true %>
+  <%= f.number_field :inflation_rate, step: "0.01", min: Assumptions::MIN_RATE,
+      max: Assumptions::MAX_RATE, class: "form-control", required: true %>
 </div>
 
 <%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>

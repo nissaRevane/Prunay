@@ -6,21 +6,6 @@ class Loan
 
   PAYMENT_DAY = 5
 
-  DEFAULT_RATE = BigDecimal("3.6")
-
-  DEFAULT_DURATION_YEARS = 20
-
-  # La prime proposée : un dix-millième du capital emprunté par mois, soit 0,12 % par an.
-  DEFAULT_INSURANCE_DIVISOR = 10_000
-
-  # Un soixantième du capital emprunté : l'ordre de grandeur d'une caution bancaire comme d'une hypothèque.
-  DEFAULT_GUARANTEE_FEES_DIVISOR = 60
-
-  DEFAULT_APPLICATION_FEES_DIVISOR = 100
-
-  # Aucune banque n'ouvre un dossier pour moins : la proposition ne descend pas sous ce plancher.
-  MIN_APPLICATION_FEES = 500
-
   # Ce que la banque prend d'un crédit soldé avant terme, quand elle ne l'a pas abandonnée :
   # 3 % du capital rendu, sans dépasser six mois de ses intérêts. Sous 6 % l'an, c'est toujours
   # le plafond qui s'applique.
@@ -31,16 +16,19 @@ class Loan
   attr_reader :capital, :annual_rate, :duration_years, :insurance, :guarantee_fees, :application_fees,
               :signed_on
 
-  def self.default_insurance(capital) = (capital.to_d / DEFAULT_INSURANCE_DIVISOR).round(2)
+  # L'assurance se propose au mois, quand son taux est annoncé pour l'année.
+  def self.default_insurance(capital, annual_rate) = share(capital, annual_rate.to_d / MONTHS_PER_YEAR)
 
-  def self.default_guarantee_fees(capital) = (capital.to_d / DEFAULT_GUARANTEE_FEES_DIVISOR).round(2)
+  def self.default_guarantee_fees(capital, rate) = share(capital, rate)
 
   # Rien à emprunter, rien à instruire : le plancher ne s'applique qu'à un dossier qui existe.
-  def self.default_application_fees(capital)
+  def self.default_application_fees(capital, rate, floor)
     return 0 unless capital.to_d.positive?
 
-    [(capital.to_d / DEFAULT_APPLICATION_FEES_DIVISOR).round(2), BigDecimal(MIN_APPLICATION_FEES)].max
+    [share(capital, rate), floor.to_d].max
   end
+
+  def self.share(capital, rate) = (capital.to_d * rate.to_d / 100).round(2)
 
   def initialize(capital:, annual_rate:, duration_years:, insurance:, signed_on:,
                  guarantee_fees: 0, application_fees: 0, early_repayment_fee: true)

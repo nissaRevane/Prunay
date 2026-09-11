@@ -28,14 +28,14 @@ RSpec.describe Simulation::Preset do
     expect(simulation.borrowed_capital).to eq(194_952)
   end
 
-  # Sur ces 194 952 € : 19,50 € d'assurance mensuelle, 3 249,20 € de caution, 1 949,52 € de dossier.
+  # Sur ces 194 952 € : 19,50 € d'assurance mensuelle, 3 249,85 € de caution, 1 949,52 € de dossier.
   it "reads the loan fees on the capital borrowed" do
     expect(simulation).to have_attributes(loan_insurance: BigDecimal("19.5"),
-                                          loan_guarantee_fees: BigDecimal("3249.2"),
+                                          loan_guarantee_fees: BigDecimal("3249.85"),
                                           loan_application_fees: BigDecimal("1949.52"))
   end
 
-  # Les références de Simulation::Estimate sont énoncées pour 50 m², les meubles pour 45 m².
+  # Les références de Simulation::Estimate sont toutes énoncées pour 50 m².
   it "carries the usual charges for the surface" do
     expect(simulation).to have_attributes(property_tax: 700, insurance: 150, maintenance: 1_000,
                                           condominium_fees: 1_000, other_charges: 100,

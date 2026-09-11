@@ -1,66 +1,85 @@
 require "rails_helper"
 
-# Les conditions économiques se règlent à deux endroits : une fois pour toutes les
-# simulations à venir, et simulation par simulation dans l'onglet de chacune.
-RSpec.describe "Economic conditions", type: :request do
+# Les hypothèses d'un compte se règlent sur une page à elles ; les conditions économiques,
+# elles, se corrigent aussi simulation par simulation, dans l'onglet de chacune.
+RSpec.describe "Assumptions", type: :request do
   let(:user) { create(:user) }
 
   before { sign_in user }
 
-  describe "GET /conditions-economiques/edit" do
+  describe "GET /hypotheses/edit" do
     it "opens on what Prunay assumes as long as nothing has been decided" do
-      get edit_economic_conditions_path
+      get edit_assumptions_path
 
       expect(response).to have_http_status(:success)
 
       doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css("#economic_conditions_rent_growth_rate")["value"]).to eq("1.0")
-      expect(doc.at_css("#economic_conditions_property_growth_rate")["value"]).to eq("1.0")
-      expect(doc.at_css("#economic_conditions_inflation_rate")["value"]).to eq("2.0")
+      expect(doc.at_css("#assumptions_rent_growth_rate")["value"]).to eq("1.0")
+      expect(doc.at_css("#assumptions_property_growth_rate")["value"]).to eq("1.0")
+      expect(doc.at_css("#assumptions_inflation_rate")["value"]).to eq("2.0")
       # La tranche se choisit dans le barème : cinq options, celle de la plupart des foyers cochée.
-      options = doc.css("#economic_conditions_marginal_tax_rate option")
+      options = doc.css("#assumptions_marginal_tax_rate option")
       expect(options.map { |option| option["value"] }).to eq(%w[0 11 30 41 45])
       expect(options.find { |option| option["selected"] }["value"]).to eq("30")
     end
 
     it "opens on what the user has decided once he has decided it" do
-      create(:economic_conditions, user: user, rent_growth_rate: 3)
+      create(:assumptions, user: user, rent_growth_rate: 3)
 
-      get edit_economic_conditions_path
+      get edit_assumptions_path
 
-      expect(Nokogiri::HTML(response.body).at_css("#economic_conditions_rent_growth_rate")["value"]).to eq("3.0")
+      expect(Nokogiri::HTML(response.body).at_css("#assumptions_rent_growth_rate")["value"]).to eq("3.0")
+    end
+
+    # Une valeur que la page n'offrirait pas resterait hors d'atteinte : elles y sont toutes.
+    it "carries a field for every assumption an account can settle" do
+      get edit_assumptions_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(Assumptions::EDITABLE.map { |name| doc.at_css("#assumptions_#{name}") }).to all(be_present)
     end
   end
 
-  describe "PATCH /conditions-economiques" do
-    it "writes the conditions of a user who had none" do
+  describe "PATCH /hypotheses" do
+    it "writes the assumptions of a user who had none" do
       expect {
-        patch economic_conditions_path,
-              params: { economic_conditions: { rent_growth_rate: "1.5", property_growth_rate: "2.5",
-                                               inflation_rate: "3.5" } }
-      }.to change(EconomicConditions, :count).by(1)
+        patch assumptions_path,
+              params: { assumptions: { rent_growth_rate: "1.5", property_growth_rate: "2.5",
+                                     inflation_rate: "3.5" } }
+      }.to change(Assumptions, :count).by(1)
 
-      expect(response).to redirect_to(edit_economic_conditions_path)
-      expect(user.reload.economic_conditions)
+      expect(response).to redirect_to(edit_assumptions_path)
+      expect(user.reload.assumptions)
         .to have_attributes(rent_growth_rate: 1.5, property_growth_rate: 2.5, inflation_rate: 3.5)
     end
 
+    # Le loyer de référence, la durée du crédit et le taux des frais de notaire se règlent
+    # comme les taux : une seule page pour tout ce qu'un compte suppose.
+    it "writes the amounts proposed, the credit and the rules of the calculation" do
+      patch assumptions_path,
+            params: { assumptions: { monthly_rent: "900", loan_duration_years: "25",
+                                     notary_fees_rate: "8" } }
+
+      expect(user.reload.assumptions)
+        .to have_attributes(monthly_rent: 900, loan_duration_years: 25, notary_fees_rate: 8)
+    end
+
     it "corrects those he had already given" do
-      create(:economic_conditions, user: user, inflation_rate: 2)
+      create(:assumptions, user: user, inflation_rate: 2)
 
       expect {
-        patch economic_conditions_path, params: { economic_conditions: { inflation_rate: "4" } }
-      }.not_to change(EconomicConditions, :count)
+        patch assumptions_path, params: { assumptions: { inflation_rate: "4" } }
+      }.not_to change(Assumptions, :count)
 
-      expect(user.reload.economic_conditions.inflation_rate).to eq(4)
+      expect(user.reload.assumptions.inflation_rate).to eq(4)
     end
 
     it "explains in French what it refuses, and writes nothing" do
-      patch economic_conditions_path, params: { economic_conditions: { rent_growth_rate: "" } }
+      patch assumptions_path, params: { assumptions: { rent_growth_rate: "" } }
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to include("doit être rempli(e)")
-      expect(user.reload.economic_conditions).to be_nil
+      expect(user.reload.assumptions).to be_nil
     end
   end
 
@@ -89,7 +108,7 @@ RSpec.describe "Economic conditions", type: :request do
       expect(panel.css("form").map { |form| form["action"] }.uniq)
         .to eq([simulation_economic_conditions_path(simulation)])
       expect(panel.css("input[type=submit], button[type=submit]")).to be_empty
-      expect(panel.css(".detail-item").size).to eq(EconomicConditions::ASSUMPTIONS.size + 1)
+      expect(panel.css(".detail-item").size).to eq(Assumptions::ECONOMIC.size + 1)
     end
 
     # Un taux corrigé refait la projection : la fiche revient entière, sur son onglet.
@@ -197,7 +216,7 @@ RSpec.describe "Economic conditions", type: :request do
     it "is left untouched when the general conditions change" do
       simulation
 
-      patch economic_conditions_path, params: { economic_conditions: { rent_growth_rate: "9" } }
+      patch assumptions_path, params: { assumptions: { rent_growth_rate: "9" } }
 
       expect(simulation.reload.rent_growth_rate).to eq(1)
     end

@@ -1,0 +1,86 @@
+<%# Tout ce qu'un compte suppose, dans l'ordre où une simulation le rencontre : l'économie,
+    l'achat, le crédit, la location, les charges. Les règles de calcul viennent en dernier
+    parce qu'elles seules pèsent sur les simulations déjà écrites. %>
+<div class="page-header">
+  <div>
+    <h1><%= t("views.assumptions.edit.title") %></h1>
+    <p class="page-header-hint"><%= t("views.assumptions.edit.subtitle", surface: Simulation::Estimate::REFERENCE_SURFACE) %></p>
+  </div>
+</div>
+
+<div class="section">
+  <%= render "shared/errors", resource: @assumptions %>
+
+  <%= form_with(model: @assumptions, url: assumptions_path, method: :patch, class: "form") do |f| %>
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.assumptions.edit.economic") %></legend>
+      <p class="form-hint"><%= t("views.assumptions.edit.economic_hint") %></p>
+
+      <%= render "assumptions/economic_fields", f: f %>
+    </fieldset>
+
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.simulations.steps.purchase.title") %></legend>
+
+      <div class="form-row">
+        <%= assumption_field f, :purchase_delay_months, step: "1" %>
+        <%= assumption_field f, :down_payment_share, max: 100 %>
+      </div>
+
+      <%= assumption_row f, :furniture %>
+    </fieldset>
+
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.simulations.steps.credit.title") %></legend>
+
+      <div class="form-row">
+        <%= assumption_field f, :loan_rate, max: 100 %>
+        <%= assumption_field f, :loan_duration_years, step: "1", min: 1, max: Simulation::MAX_LOAN_DURATION_YEARS %>
+      </div>
+
+      <%= assumption_row f, :loan_insurance_rate, :loan_guarantee_rate, max: 100 %>
+
+      <div class="form-row">
+        <%= assumption_field f, :loan_application_rate, max: 100 %>
+        <%= assumption_field f, :loan_application_fees_floor %>
+      </div>
+    </fieldset>
+
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.simulations.steps.rental.title") %></legend>
+
+      <%= assumption_row f, :monthly_rent, :monthly_charges %>
+
+      <div class="form-row">
+        <%= assumption_field f, :occupancy_months, step: "0.5", max: Simulation::MONTHS_PER_YEAR %>
+      </div>
+    </fieldset>
+
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.simulations.steps.charges.title") %></legend>
+
+      <%= assumption_row f, :property_tax, :insurance %>
+      <%= assumption_row f, :maintenance, :condominium_fees %>
+      <%= assumption_row f, :management_fees, :rent_guarantee %>
+      <%= assumption_row f, :accounting_fees, :furniture_maintenance %>
+      <%= assumption_row f, :other_charges %>
+    </fieldset>
+
+    <fieldset class="form-fieldset">
+      <legend><%= t("views.assumptions.edit.rules") %></legend>
+      <p class="form-hint"><%= t("views.assumptions.edit.rules_hint") %></p>
+
+      <div class="form-row">
+        <%= assumption_field f, :notary_fees_rate, max: 100 %>
+        <%= assumption_field f, :notary_fees_base %>
+      </div>
+
+      <%= assumption_row f, :sale_diagnostics, :sale_refurbishment %>
+    </fieldset>
+
+    <div class="form-actions">
+      <%= f.submit t("views.assumptions.edit.save"), class: "btn btn-primary" %>
+      <%= link_to t("views.simulations.form.cancel"), authenticated_root_path, class: "btn btn-outline" %>
+    </div>
+  <% end %>
+</div>

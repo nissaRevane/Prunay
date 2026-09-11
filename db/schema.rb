@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000019) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000021) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "economic_conditions", force: :cascade do |t|
+  create_table "assumptions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.decimal "rent_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
     t.decimal "property_growth_rate", precision: 5, scale: 2, default: "1.0", null: false
@@ -22,7 +22,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000019) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "marginal_tax_rate", default: 30, null: false
-    t.index ["user_id"], name: "index_economic_conditions_on_user_id", unique: true
+    t.decimal "monthly_rent", precision: 12, scale: 2, default: "650.0", null: false
+    t.decimal "property_tax", precision: 12, scale: 2, default: "700.0", null: false
+    t.decimal "insurance", precision: 12, scale: 2, default: "150.0", null: false
+    t.decimal "maintenance", precision: 12, scale: 2, default: "1000.0", null: false
+    t.decimal "condominium_fees", precision: 12, scale: 2, default: "1000.0", null: false
+    t.decimal "other_charges", precision: 12, scale: 2, default: "100.0", null: false
+    t.decimal "furniture", precision: 12, scale: 2, default: "2110.0", null: false
+    t.decimal "furniture_maintenance", precision: 12, scale: 2, default: "370.0", null: false
+    t.decimal "monthly_charges", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "management_fees", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "rent_guarantee", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "accounting_fees", precision: 12, scale: 2, default: "500.0", null: false
+    t.decimal "loan_application_fees_floor", precision: 12, scale: 2, default: "500.0", null: false
+    t.decimal "sale_diagnostics", precision: 12, scale: 2, default: "400.0", null: false
+    t.decimal "sale_refurbishment", precision: 12, scale: 2, default: "500.0", null: false
+    t.decimal "notary_fees_base", precision: 12, scale: 2, default: "1772.0", null: false
+    t.decimal "down_payment_share", precision: 6, scale: 3, default: "10.0", null: false
+    t.decimal "loan_rate", precision: 6, scale: 3, default: "3.6", null: false
+    t.decimal "loan_insurance_rate", precision: 6, scale: 3, default: "0.12", null: false
+    t.decimal "loan_guarantee_rate", precision: 6, scale: 3, default: "1.667", null: false
+    t.decimal "loan_application_rate", precision: 6, scale: 3, default: "1.0", null: false
+    t.decimal "notary_fees_rate", precision: 6, scale: 3, default: "7.42", null: false
+    t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
+    t.integer "loan_duration_years", default: 20, null: false
+    t.integer "purchase_delay_months", default: 3, null: false
+    t.index ["user_id"], name: "index_assumptions_on_user_id", unique: true
   end
 
   create_table "simulations", force: :cascade do |t|
@@ -81,6 +106,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000019) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  add_foreign_key "economic_conditions", "users"
+  add_foreign_key "assumptions", "users"
   add_foreign_key "simulations", "users"
 end

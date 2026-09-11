@@ -22,7 +22,7 @@ class AccountExport
   def to_h
     {
       "user" => user_data,
-      "economic_conditions" => economic_conditions_data,
+      "assumptions" => assumptions_data,
       "simulations" => @user.simulations.order(:id).map { |simulation| simulation_data(simulation) }
     }
   end
@@ -39,8 +39,8 @@ class AccountExport
   end
 
   # Celles de l'utilisateur, ou les valeurs par défaut tant qu'il n'y a pas touché.
-  def economic_conditions_data
-    EconomicConditions.for(@user).assumptions.transform_values { |value| serialize(value) }
+  def assumptions_data
+    Assumptions.for(@user).slice(*Assumptions::EDITABLE).transform_values { |value| serialize(value) }
   end
 
   def simulation_data(simulation) = SIMULATION_FIELDS.index_with { |field| serialize(simulation[field]) }

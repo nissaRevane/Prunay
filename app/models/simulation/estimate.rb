@@ -1,51 +1,32 @@
 # Les montants proposés au premier affichage, mis à l'échelle de la surface du bien. Ce sont
 # des ordres de grandeur, pas des vérités : le formulaire les affiche pré-remplis pour que
-# l'utilisateur les corrige, pas pour qu'il les subisse.
-module Simulation::Estimate
+# l'utilisateur les corrige, pas pour qu'il les subisse. Les références, elles, sont les
+# siennes et se règlent dans Assumptions.
+class Simulation::Estimate
   # Les références sont énoncées pour une surface de 50 m².
   REFERENCE_SURFACE = 50
-
-  AMOUNTS = {
-    monthly_rent: 650,
-    property_tax: 700,
-    insurance: 150,
-    maintenance: 1_000,
-    condominium_fees: 1_000,
-    other_charges: 100,
-    furniture: 2_000,
-    # Pour l'essentiel le renouvellement des meubles : 2 000 € tous les sept ans, et l'entretien par-dessus.
-    furniture_maintenance: 350
-  }.freeze
-
-  # Les meubles se comptent sur un logement plus petit : un T2 meublé est la référence du marché.
-  FURNISHED_REFERENCE_SURFACE = 45
-
-  REFERENCE_SURFACES = { furniture: FURNISHED_REFERENCE_SURFACE,
-                         furniture_maintenance: FURNISHED_REFERENCE_SURFACE }.freeze
-
-  # Ce qui ne suit pas la surface : la provision se lit sur l'appel de charges et le comptable
-  # facture au forfait, ni l'un ni l'autre sur des mètres carrés.
-  FIXED_AMOUNTS = { monthly_charges: 0, management_fees: 0, rent_guarantee: 0, accounting_fees: 500 }.freeze
-
-  # L'apport qu'une banque attend pour couvrir les frais de notaire sans les financer.
-  DOWN_PAYMENT_SHARE = BigDecimal("0.10")
 
   # Une estimation au centime se lirait comme un calcul, alors que ce n'en est pas un.
   ROUNDING = 10
 
-  module_function
+  attr_reader :assumptions
+
+  def initialize(assumptions)
+    @assumptions = assumptions
+  end
 
   # La racine carrée, et non la proportion : un logement double ne se loue pas au double du prix.
   def for(field, surface)
-    return FIXED_AMOUNTS.fetch(field) if FIXED_AMOUNTS.key?(field)
+    reference = assumptions.public_send(field)
+    return reference if Assumptions::FIXED_AMOUNTS.include?(field.to_sym)
 
     surface = surface.to_f
     return 0 unless surface.positive?
 
-    round(AMOUNTS.fetch(field) * Math.sqrt(surface / REFERENCE_SURFACES.fetch(field, REFERENCE_SURFACE)))
+    self.class.round(reference * Math.sqrt(surface / REFERENCE_SURFACE).to_d)
   end
 
-  def down_payment(total_investment) = round(total_investment * DOWN_PAYMENT_SHARE)
+  def down_payment(total_investment) = self.class.round(total_investment * assumptions.down_payment_share / 100)
 
-  def round(amount) = (amount / ROUNDING).round * ROUNDING
+  def self.round(amount) = (amount / ROUNDING).round * ROUNDING
 end

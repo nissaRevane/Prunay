@@ -21,11 +21,6 @@ class Simulation < ApplicationRecord
 
   ANNUAL_CHARGES = (CHARGE_GROUPS.values.flatten - REGIME_CHARGES).freeze
 
-  # Droits, émoluments et débours suivent le prix d'assez près pour qu'une droite en tienne lieu.
-  NOTARY_FEES_RATE = BigDecimal("0.0742")
-
-  NOTARY_FEES_BASE = 1_772
-
   # Cinq lettres de ville : de quoi reconnaître le lieu sans déborder d'une ligne de liste.
   NAME_CITY_LENGTH = 5
 
@@ -88,9 +83,9 @@ class Simulation < ApplicationRecord
             on: [:create, :update]
 
   # Héritées de l'utilisateur à la création : aucune page du parcours ne les demande.
-  validates(*EconomicConditions::RATES, presence: true,
-            numericality: { greater_than_or_equal_to: EconomicConditions::MIN_RATE,
-                            less_than_or_equal_to: EconomicConditions::MAX_RATE },
+  validates(*Assumptions::RATES, presence: true,
+            numericality: { greater_than_or_equal_to: Assumptions::MIN_RATE,
+                            less_than_or_equal_to: Assumptions::MAX_RATE },
             on: [:create, :update])
 
   # La tranche marginale, elle, se choisit dans le barème et non sur une échelle.
@@ -102,7 +97,12 @@ class Simulation < ApplicationRecord
 
   def defaults_for(step) = Step.defaults(step, self)
 
-  def estimate(field) = Estimate.for(field, surface)
+  # Celles du compte : ce que le formulaire propose et les règles de calcul se lisent là.
+  def assumptions
+    @assumptions ||= Assumptions.for(user)
+  end
+
+  def estimate(field) = Estimate.new(assumptions).for(field, surface)
 
   # Rien à saisir, rien à stocker : le bien se nomme par son type, sa ville et sa surface.
   def name
@@ -118,7 +118,7 @@ class Simulation < ApplicationRecord
   def notary_fees
     return 0 if purchase_price.blank?
 
-    (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
+    (purchase_price * assumptions.notary_fees_rate / 100 + assumptions.notary_fees_base).round(2)
   end
 
   # Ce que le bien vaut vraiment : le prix payé plus la décote obtenue. La revente en part, l'achat non.
@@ -205,7 +205,8 @@ class Simulation < ApplicationRecord
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
 
   # Diagnostics et remise en état : ce que la revente coûte avant même la plus-value.
-  def sale_costs = SaleCosts.new(surface: surface)
+  def sale_costs = SaleCosts.new(surface: surface, diagnostics: assumptions.sale_diagnostics,
+                                 refurbishment: assumptions.sale_refurbishment)
 
   # La plus-value se compte sur la valeur fiscale, frais de notaire compris, et s'efface avec la
   # détention ; les amortissements déjà déduits, eux, la creusent.

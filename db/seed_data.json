@@ -5,11 +5,36 @@
     "lastname": "Prunay",
     "password": "password123"
   },
-  "economic_conditions": {
+  "assumptions": {
     "rent_growth_rate": 1,
     "property_growth_rate": 1,
     "inflation_rate": 2,
-    "marginal_tax_rate": 30
+    "marginal_tax_rate": 30,
+    "monthly_rent": 650,
+    "property_tax": 700,
+    "insurance": 150,
+    "maintenance": 1000,
+    "condominium_fees": 1000,
+    "other_charges": 100,
+    "furniture": 2110,
+    "furniture_maintenance": 370,
+    "monthly_charges": 0,
+    "management_fees": 0,
+    "rent_guarantee": 0,
+    "accounting_fees": 500,
+    "purchase_delay_months": 3,
+    "down_payment_share": 10,
+    "loan_rate": 3.6,
+    "loan_duration_years": 20,
+    "loan_insurance_rate": 0.12,
+    "loan_guarantee_rate": 1.667,
+    "loan_application_rate": 1,
+    "loan_application_fees_floor": 500,
+    "occupancy_months": 11,
+    "notary_fees_rate": 7.42,
+    "notary_fees_base": 1772,
+    "sale_diagnostics": 400,
+    "sale_refurbishment": 500
   },
   "simulations": [
     {

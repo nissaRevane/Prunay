@@ -18,9 +18,9 @@ user = User.find_or_create_by!(email: user_data["email"]) do |u|
   u.password_confirmation = user_data["password"]
 end
 
-conditions = EconomicConditions.for(user)
-seed_data.fetch("economic_conditions", {}).each { |field, value| conditions[field] = value }
-conditions.save!
+assumptions = Assumptions.for(user)
+seed_data.fetch("assumptions", {}).each { |field, value| assumptions[field] = value }
+assumptions.save!
 
 # Une simulation n'a pas de nom : deux variantes d'un même bien ne diffèrent que par leurs
 # chiffres. C'est donc l'ensemble de ses champs qui l'identifie, et rejouer le fichier ne crée

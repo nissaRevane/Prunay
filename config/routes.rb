@@ -26,7 +26,7 @@ Prunay::Application.routes.draw do
   resource :export, only: [:show]
 
   # Le seul réglage général, et la seule page qui justifie une entrée de menu.
-  resource :economic_conditions, only: [:edit, :update], path: "conditions-economiques"
+  resource :assumptions, only: [:edit, :update], path: "hypotheses"
 
   # Celles d'une simulation vivent dans un onglet : elles ne se demandent pas pendant la création.
   resources :simulations, except: [:create] do

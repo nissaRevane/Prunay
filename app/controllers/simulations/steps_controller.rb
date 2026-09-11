@@ -79,7 +79,7 @@ module Simulations
 
     # Aucune page ne les demande : la simulation naît avec celles de l'utilisateur.
     def create_simulation
-      simulation = current_user.simulations.build(EconomicConditions.for(current_user).assumptions.merge(draft))
+      simulation = current_user.simulations.build(Assumptions.for(current_user).economic.merge(draft))
 
       if simulation.save
         session.delete(DRAFT_KEY)

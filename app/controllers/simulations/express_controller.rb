@@ -25,7 +25,7 @@ module Simulations
     def set_recent = @recent = current_user.simulations.order(purchase_date: :desc).limit(RECENT)
 
     # Aucune page ne les demande : la simulation naît avec celles de l'utilisateur.
-    def assumptions = EconomicConditions.for(current_user).assumptions
+    def assumptions = Assumptions.for(current_user).economic
 
     def express_params
       params.fetch(:simulation, ActionController::Parameters.new)

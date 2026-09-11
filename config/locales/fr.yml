@@ -14,7 +14,7 @@ fr:
     models:
       user: Utilisateur
       simulation: Simulation
-      economic_conditions: Conditions économiques
+      assumptions: Hypothèses
     attributes:
       simulation:
         property_type: Type de bien
@@ -57,11 +57,36 @@ fr:
         property_growth_rate: "Évolution du prix du bien (% par an)"
         inflation_rate: "Inflation des charges (% par an)"
         marginal_tax_rate: "Tranche marginale d'imposition"
-      economic_conditions:
+      assumptions:
         rent_growth_rate: "Évolution des loyers (% par an)"
         property_growth_rate: "Évolution du prix du bien (% par an)"
         inflation_rate: "Inflation des charges (% par an)"
         marginal_tax_rate: "Tranche marginale d'imposition"
+        purchase_delay_months: "Délai avant signature (mois)"
+        down_payment_share: "Apport (% du projet)"
+        furniture: Meubles
+        loan_rate: "Taux du crédit (%)"
+        loan_duration_years: "Durée du crédit (ans)"
+        loan_insurance_rate: "Assurance emprunteur (% du capital par an)"
+        loan_guarantee_rate: "Cautionnement (% du capital)"
+        loan_application_rate: "Frais de dossier (% du capital)"
+        loan_application_fees_floor: "Frais de dossier minimum"
+        monthly_rent: Loyer mensuel
+        monthly_charges: "Charges/mois"
+        occupancy_months: "Mois loués"
+        property_tax: Taxe foncière
+        insurance: Assurance PNO
+        maintenance: Entretien et gros travaux
+        condominium_fees: Copropriété
+        management_fees: Gestion
+        rent_guarantee: "Loyers impayés"
+        accounting_fees: Comptabilité
+        furniture_maintenance: Entretien et renouvellement des meubles
+        other_charges: Autres frais
+        notary_fees_rate: "Frais de notaire (% du prix)"
+        notary_fees_base: "Frais de notaire fixes"
+        sale_diagnostics: "Diagnostics à la revente"
+        sale_refurbishment: "Remise en état à la revente"
       user:
         firstname: Prénom
         lastname: Nom
@@ -129,7 +154,7 @@ fr:
     nav:
       menu: Menu
       simulations: Mes simulations
-      economic_conditions: Conditions économiques
+      assumptions: Hypothèses
       sign_out: Déconnexion
       sign_in: Connexion
       sign_up: Inscription
@@ -141,13 +166,17 @@ fr:
         new_password: Nouveau mot de passe
         update_password: Changer mon mot de passe
         data: Mes données
-        export_hint: Téléchargez l'intégralité de votre compte (vos conditions économiques et vos simulations) dans un fichier JSON réutilisable pour ré-alimenter Prunay.
+        export_hint: Téléchargez l'intégralité de votre compte (vos hypothèses et vos simulations) dans un fichier JSON réutilisable pour ré-alimenter Prunay.
         export: Exporter mes données
-    economic_conditions:
+    assumptions:
       edit:
-        title: Conditions économiques
-        subtitle: "Les hypothèses dont hérite chaque nouvelle simulation."
-        save: Enregistrer les conditions
+        title: Hypothèses
+        subtitle: "Ce que Prunay propose à chaque nouvelle simulation. Les montants qui suivent la surface sont énoncés pour %{surface} m²."
+        economic: Conditions économiques
+        economic_hint: "Recopiées le jour de la création : les corriger ne touche pas aux simulations déjà enregistrées."
+        rules: Règles de calcul
+        rules_hint: "Relues à chaque affichage : les corriger recalcule toutes vos simulations."
+        save: Enregistrer les hypothèses
     pages:
       home:
         title: Bienvenue sur Prunay
@@ -356,8 +385,8 @@ fr:
         delete: Supprimer
         confirm_delete: Êtes-vous sûr ?
   flash:
-    economic_conditions:
-      updated: Conditions économiques mises à jour.
+    assumptions:
+      updated: Hypothèses mises à jour.
     simulations:
       created: Simulation créée avec succès.
       updated: Simulation mise à jour avec succès.

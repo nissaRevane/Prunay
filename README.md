@@ -49,14 +49,14 @@ docker compose run --rm web bundle exec rspec
   Every controller is behind `authenticate_user!` by default (`ApplicationController`);
   the public landing page is the single explicit opt-out.
 - **Account page** (`/mon-compte`): identity, password change, and the JSON export of the
-  whole account (`/export`) — the economic conditions and every simulation, written in the
+  whole account (`/export`) — the assumptions and every simulation, written in the
   exact shape `db/seeds.rb` reads back, so an export can re-feed a database. The password is
   never exported: Devise only keeps a digest, and a random one takes its place.
 - **Landing page:** the public shop window, for visitors.
 - **Simulations** (`/simulations`, and the home page of a signed-in user): the full CRUD,
   grouped by purchase year in the same accordion Milly uses for its bilans. There is no
   dashboard above the list: the brand leads to it, and the top menu carries only what the
-  brand does not — the default economic conditions, the single general setting.
+  brand does not — the assumptions, the single general setting.
 - **Creation page by page** (`/simulations/new`, which opens `/simulations/new/property`):
   the property, the purchase, the credit *if there is one*, the letting, the annual charges.
   Nothing is written to the database before the last page — the answers accumulate in the
@@ -80,9 +80,10 @@ docker compose run --rm web bundle exec rspec
   the surface and rounded to the nearest ten euros — orders of magnitude to correct, not a
   calculation. Three of them do not follow the surface at all: an accountant's fee is flat,
   and a letting agent or a rent guarantee is proposed at zero because neither can be
-  assumed. The furniture and its upkeep are read on 45 m² instead of 50
-  (`Estimate::FURNISHED_REFERENCE_SURFACE`), the size of the flats that are actually let
-  furnished: 2 000 € to furnish it and 200 € a year to keep it furnished.
+  assumed. The furniture and its upkeep are read on the same 50 m²: 2 110 € to furnish it
+  and 370 € a year to keep it furnished. Every one of these references is the account's own
+  (`Assumptions`) — what is described here is what Prunay supposes until its owner says
+  otherwise.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page — proposed at a tenth of the project cost, recomputed in the browser as the price is
   typed — and the credit page asks only for a rate, a duration and the borrower's insurance
@@ -96,19 +97,29 @@ docker compose run --rm web bundle exec rspec
   between the 1st and the 5th, the fifth of the month after when it is signed later. The
   table is a tab of its own on the simulation page.
 - **The borrower's insurance** (`loan_insurance`): a bank does not lend without it, so the
-  credit page asks for the premium it charges every month, proposed at a ten-thousandth of
-  the capital borrowed (`Simulation::DEFAULT_LOAN_INSURANCE_DIVISOR` — 0.12 % a year) and
+  credit page asks for the premium it charges every month, proposed at the rate the account
+  settles (`Assumptions#loan_insurance_rate` — 0,12 % of the capital borrowed a year) and
   corrected as soon as the loan offer states the real figure. The
   premium is the same from the first payment to the last: it is read on the capital
   borrowed on day one, not on the outstanding capital, and it repays none of it. It sits in
   its own column of the schedule, adds itself to what the bank actually debits each month,
   and is counted apart from the interest — what the credit costs is the two together.
-- **The economic conditions** (`EconomicConditions`): three annual rates that make a
-  simulation age — what the rents gain each year (1 % by default), what the property gains in
-  value (1 %), and the inflation that weighs on the charges (2 %). They live in two places.
-  `/conditions-economiques`, reachable from the top menu, holds a user's defaults; nothing is
-  written there until he changes something, and until then the page opens on what Prunay
-  assumes. Every simulation then carries its own copy of the three, taken from those defaults
+- **The assumptions** (`Assumptions`): everything an account supposes, held on one page,
+  `/hypotheses`, reachable from the top menu. Nothing is written there until its owner
+  changes something, and until then the page opens on what Prunay assumes. Three kinds live
+  side by side there. *The economic conditions* — three annual rates that make a simulation
+  age: what the rents gain each year (1 % by default), what the property gains in value
+  (1 %), and the inflation that weighs on the charges (2 %), plus the household's tax
+  bracket. *The amounts proposed* — the references the creation pages pre-fill, the credit
+  the bank is supposed to offer (3,6 % over twenty years, the insurance at 0,12 % of the
+  capital a year, the guarantee at 1,667 %, the application fees at 1 % with a 500 € floor),
+  and the months let. *The rules of the calculation* — the notary fees (7,42 % of the price
+  plus 1 772 €) and what a resale costs (400 € of diagnostics, 500 € of refurbishment for
+  50 m²); these last are read afresh every time a page is drawn, so correcting one recomputes
+  every simulation, where the first two only reach the simulations still to be created. The
+  taxation is the one thing that does not settle here: a bracket is chosen from the scale,
+  the rest of it is the law (see `Taxation`).
+  The economic conditions live in two places. Every simulation then carries its own copy of the three, taken from those defaults
   the day it is created — correcting the defaults afterwards never rewrites a projection
   already read. None of the creation pages asks for them: they are corrected, once the
   simulation exists, from a tab of its own on the simulation page, one rate at a time like
@@ -180,8 +191,8 @@ docker compose run --rm web bundle exec rspec
     regime; the LMNP alone deducts only the remainder at once and opens, every year, a tranche
     of works over 12 years and one of furniture over 7 at the price of the year, so that the
     deduction of the durable share is delayed rather than lost — and, unlike a charge, carried
-    forward when the year cannot hold it. The default upkeep of the furniture (350 € for 45 m²)
-    is sized for that: 2 000 € of furniture every seven years, and the upkeep on top. The depreciation cannot create a deficit: it is deducted within the result before
+    forward when the year cannot hold it. The default upkeep of the furniture (370 € for 50 m²)
+    is sized for that: the furniture renewed every seven years, and the upkeep on top. The depreciation cannot create a deficit: it is deducted within the result before
     depreciation — receipts less charges, the regime's own and the interest — and what does not
     fit is carried forward without limit of time (art. 39 C CGI), component by component, to be
     deducted the first year that has room for it; this is precisely what makes the LMNP pay no
@@ -285,9 +296,9 @@ docker compose run --rm web bundle exec rspec
 ```
 app/
 ├── controllers/        # ApplicationController (auth guard), Pages, Simulations,
-│                       # Simulations::Steps (the four-page creation), EconomicConditions and
+│                       # Simulations::Steps (the four-page creation), Assumptions and
 │                       # Simulations::EconomicConditions, Users::Registrations
-├── models/             # User, Simulation, EconomicConditions, Loan, Projection,
+├── models/             # User, Simulation, Assumptions, Loan, Projection,
 │                       # AmortizationSchedule, Taxation, LineChart
 ├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
 ├── javascript/         # Stimulus controllers
@@ -308,10 +319,12 @@ spec/
 
 ## Data Model
 
-- **User** (firstname, lastname, email) — has at most one **EconomicConditions**, the
-  defaults every simulation he creates inherits: rent_growth_rate, property_growth_rate,
-  inflation_rate and marginal_tax_rate. The row only exists once he has changed something;
-  `EconomicConditions.for` stands in for it until then.
+- **User** (firstname, lastname, email) — has at most one **Assumptions**, everything his
+  account supposes: the four economic conditions every simulation he creates inherits
+  (rent_growth_rate, property_growth_rate, inflation_rate, marginal_tax_rate), the amounts
+  and the credit the creation pages propose, and the rules every one of his simulations is
+  computed with. The row only exists once he has changed something; `Assumptions.for` stands
+  in for it until then, and the columns carry the defaults.
 - **Simulation** — belongs to a user, and has no name of its own: it reads as
   "Appartement à Nantes", from its type and its city.
   - *the property:* property_type, address, city, energy_rating, surface
@@ -332,7 +345,7 @@ spec/
       out of `ANNUAL_CHARGES`: the regime pays them, not the property
     - *the rest:* other_charges
   - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
-    marginal_tax_rate — the same four columns as `EconomicConditions`, copied from the user's
+    marginal_tax_rate — the same four columns as `Assumptions`, copied from the user's
     defaults at the creation and corrected afterwards for this simulation alone, plus
     purchase_discount, which belongs to this simulation only and is corrected in the same tab
 

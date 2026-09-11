@@ -263,6 +263,13 @@ a.nav-user-name:hover {
   padding: 0 0.5rem;
 }
 
+/* Ce qu'une section d'hypothèses dit d'elle-même : à qui ses valeurs s'appliquent. */
+.form-hint {
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
 /* Les charges annuelles, par groupe : la détention du bien, son exploitation, le régime
    meublé et le reste. Un intertitre par groupe — neuf montants d'affilée ne diraient pas
    d'où ils viennent. Le champ qu'aucune condition ne justifie porte `hidden`, et la règle

@@ -146,7 +146,7 @@ RSpec.describe "Simulation steps", type: :request do
 
     # La tranche d'imposition est héritée comme les taux : un champ de plus à ne trouver nulle part.
     it "asks for none of them along the way" do
-      names = EconomicConditions::ASSUMPTIONS.map { |assumption| "simulation[#{assumption}]" }
+      names = Assumptions::ECONOMIC.map { |assumption| "simulation[#{assumption}]" }
 
       { "property" => PROPERTY, "purchase" => PURCHASE, "rental" => RENTAL, "charges" => CHARGES }.each do |step, answers|
         get new_simulation_step_path(step: step)
@@ -158,7 +158,7 @@ RSpec.describe "Simulation steps", type: :request do
     end
 
     it "gives the new simulation those of the user who creates it" do
-      create(:economic_conditions, user: user, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,
+      create(:assumptions, user: user, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,
                                    marginal_tax_rate: 41)
 
       walk
@@ -170,7 +170,8 @@ RSpec.describe "Simulation steps", type: :request do
     it "falls back on what Prunay assumes for a user who has never decided" do
       walk
 
-      expect(Simulation.last).to have_attributes(EconomicConditions::DEFAULTS)
+      expect(Simulation.last).to have_attributes(rent_growth_rate: 1, property_growth_rate: 1,
+                                                 inflation_rate: 2, marginal_tax_rate: 30)
     end
   end
 
@@ -232,7 +233,24 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
-    # Vingt ans à 3,6 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 526,87 € et 2 116,12 € de frais.
+    # Les références sont celles du compte : 900 € pour 50 m² en font 1 800 pour 200 m².
+    it "proposes what the user has settled rather than what Prunay assumes" do
+      create(:assumptions, user: user, monthly_rent: 900, occupancy_months: 12, property_tax: 1_000)
+
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "rental")
+
+      expect(field_value("simulation_monthly_rent")).to eq("1800")
+      expect(field_value("simulation_occupancy_months")).to eq("12")
+
+      submit("rental", RENTAL)
+      get new_simulation_step_path(step: "charges")
+
+      expect(field_value("simulation_property_tax")).to eq("2000")
+    end
+
+    # Vingt ans à 3,6 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 527,57 € et 2 116,12 € de frais.
     it "proposes twenty years at 3.6 % and the amounts the capital borrowed dictates" do
       submit("purchase", ON_CREDIT)
 
@@ -241,7 +259,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_loan_rate")).to eq("3.6")
       expect(field_value("simulation_loan_duration_years")).to eq("20")
       expect(field_value("simulation_loan_insurance")).to eq("21.16")
-      expect(field_value("simulation_loan_guarantee_fees")).to eq("3526.87")
+      expect(field_value("simulation_loan_guarantee_fees")).to eq("3527.57")
       expect(field_value("simulation_loan_application_fees")).to eq("2116.12")
     end
 
