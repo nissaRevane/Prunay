@@ -194,7 +194,7 @@ fr:
         next: Continuer
         back: Retour
         cancel: Annuler
-        create: Créer la simulation
+        create: Simuler
         property:
           title: Le bien
           energy_rating_blank: Non renseigné
