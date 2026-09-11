@@ -1,47 +1,49 @@
-<div class="page-header">
-  <h1><%= t("views.simulations.express.title") %></h1>
-</div>
-
 <div class="home">
-  <%= form_with(model: @simulation, scope: :simulation, url: express_simulations_path, class: "form") do |f| %>
-    <%= render "shared/errors", resource: @simulation %>
-
-    <div class="wizard-panel">
-      <div class="form-row">
-        <div class="form-group form-group-half">
-          <%= f.label :property_type %>
-          <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true %>
-        </div>
-
-        <div class="form-group form-group-half">
-          <%= f.label :city %>
-          <%= f.text_field :city, class: "form-control", required: true %>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group form-group-half">
-          <%= f.label :surface %>
-          <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
-        </div>
-
-        <div class="form-group form-group-half">
-          <%= f.label :purchase_price %>
-          <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <%= f.label :monthly_rent, t("views.simulations.express.monthly_rent") %>
-        <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
-      </div>
+  <div class="home-form">
+    <div class="page-header">
+      <h1><%= t("views.simulations.express.title") %></h1>
     </div>
 
-    <div class="form-actions">
-      <%= f.submit t("views.simulations.express.create"), class: "btn btn-primary" %>
-      <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline" %>
-    </div>
-  <% end %>
+    <%= form_with(model: @simulation, scope: :simulation, url: express_simulations_path, class: "form") do |f| %>
+      <%= render "shared/errors", resource: @simulation %>
+
+      <div class="wizard-panel">
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <%= f.label :property_type %>
+            <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true %>
+          </div>
+
+          <div class="form-group form-group-half">
+            <%= f.label :city %>
+            <%= f.text_field :city, class: "form-control", required: true %>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <%= f.label :surface %>
+            <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+          </div>
+
+          <div class="form-group form-group-half">
+            <%= f.label :purchase_price %>
+            <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :monthly_rent, t("views.simulations.express.monthly_rent") %>
+          <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit t("views.simulations.express.create"), class: "btn btn-primary" %>
+        <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline" %>
+      </div>
+    <% end %>
+  </div>
 
   <%# Deux cartes pour rouvrir ce qu'on vient d'étudier ; la liste entière se prend dans le menu. %>
   <% if @recent.any? %>

@@ -883,6 +883,12 @@ a.icon-btn:hover {
   align-items: start;
 }
 
+/* Les deux colonnes ouvrent sur un en-tête de même hauteur : les titres se répondent. */
+.home .page-header {
+  min-height: 2.25rem;
+  margin-bottom: 1.5rem;
+}
+
 @media (min-width: 900px) {
   .home {
     grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
