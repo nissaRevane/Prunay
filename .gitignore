@@ -14,4 +14,4 @@ node_modules/
 .env
 .memorai
 .DS_Store
-.kamal/secrets
+.kamal/env.local

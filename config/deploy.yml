@@ -8,8 +8,12 @@ servers:
 
 proxy:
   ssl: true
-  host: prunay.REMPLACER-PAR-L-IP.sslip.io
+  host: REMPLACER_PAR_LE_HOSTNAME_OVH
   app_port: 3000
+
+# OVH n'ouvre pas root : l'utilisateur est dans le groupe docker, Kamal n'a pas besoin de sudo.
+ssh:
+  user: debian
 
 registry:
   server: ghcr.io
@@ -23,7 +27,7 @@ builder:
 
 env:
   clear:
-    APP_HOST: prunay.REMPLACER-PAR-L-IP.sslip.io
+    APP_HOST: REMPLACER_PAR_LE_HOSTNAME_OVH
   secret:
     - SECRET_KEY_BASE
     - DATABASE_URL
