@@ -280,6 +280,28 @@ a.nav-user-name:hover {
   margin-bottom: 0.75rem;
 }
 
+/* Le formulaire rapide : cinq lignes, le libellé à gauche du champ. Il n'est pas plus large
+   que ce qu'il faut à une ville de quinze caractères, le plus long des champs. */
+.form-inline .form-group {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Le type de bien se lit dans ses options : il prend la ligne entière, sans libellé. */
+.form-inline .form-group-full {
+  grid-template-columns: 1fr;
+}
+
+.form-inline .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-inline .form-group label {
+  margin-bottom: 0;
+}
+
 .form-group[hidden],
 .form-row[hidden] {
   display: none;
@@ -883,6 +905,10 @@ a.icon-btn:hover {
   align-items: start;
 }
 
+.home-form {
+  max-width: 22rem;
+}
+
 /* Les deux colonnes ouvrent sur un en-tête de même hauteur : les titres se répondent. */
 .home .page-header {
   min-height: 2.25rem;
@@ -891,7 +917,7 @@ a.icon-btn:hover {
 
 @media (min-width: 900px) {
   .home {
-    grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
     gap: 3rem;
   }
 }

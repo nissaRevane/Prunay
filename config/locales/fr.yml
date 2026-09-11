@@ -182,9 +182,13 @@ fr:
             title: Divers
       express:
         title: Simulation rapide
-        monthly_rent: Loyer mensuel charges comprises
+        property_type: Type
+        city: Ville
+        surface: Surface
+        purchase_price: Prix
+        monthly_rent: Loyer
         create: Créer la simulation
-        detailed: Renseigner tous les détails
+        detailed: Tous les détails
         recent: Dernières simulations
         all: Toutes
       steps:
