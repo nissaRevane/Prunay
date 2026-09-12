@@ -9,11 +9,11 @@
 <% end %>
 
 <% address = editable_word simulation, :address, simulation.address.presence || t("views.simulations.show.address_not_provided") do |f| %>
-  <%= f.text_field :address, class: "form-control" %>
+  <%= suggested_field f, :address %>
 <% end %>
 
 <% city = editable_word simulation, :city, simulation.city do |f| %>
-  <%= f.text_field :city, class: "form-control", required: true %>
+  <%= suggested_field f, :city, required: true %>
 <% end %>
 
 <% purchase_date = editable_word simulation, :purchase_date, l(simulation.purchase_date, format: :long) do |f| %>

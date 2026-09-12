@@ -6,12 +6,12 @@
 <div class="form-row">
   <div class="form-group form-group-half">
     <%= f.label :city %>
-    <%= f.text_field :city, class: "form-control", required: true %>
+    <%= suggested_field f, :city, required: true %>
   </div>
 
   <div class="form-group form-group-half">
     <%= f.label :address %>
-    <%= f.text_field :address, class: "form-control" %>
+    <%= suggested_field f, :address %>
   </div>
 </div>
 

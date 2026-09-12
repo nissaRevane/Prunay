@@ -3,6 +3,9 @@ import { application } from "controllers/application"
 import AlertController from "controllers/alert_controller"
 application.register("alert", AlertController)
 
+import AutocompleteController from "controllers/autocomplete_controller"
+application.register("autocomplete", AutocompleteController)
+
 import CreditController from "controllers/credit_controller"
 application.register("credit", CreditController)
 

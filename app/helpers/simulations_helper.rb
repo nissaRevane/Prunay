@@ -19,6 +19,13 @@ module SimulationsHelper
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
                         "submit->inline-edit#lock turbo:submit-end->inline-edit#release".freeze
 
+  SUGGESTION_TYPES = { city: "municipality", address: "housenumber" }.freeze
+
+  SUGGESTION_ACTIONS = "input->autocomplete#search keydown->autocomplete#navigate " \
+                       "focusout->autocomplete#close".freeze
+
+  CITY_FIELD = "#simulation_city".freeze
+
   WORD_ACTIONS = "click->inline-edit#open keydown.enter->inline-edit#open keydown.space->inline-edit#open".freeze
 
   def credit_values(simulation)
@@ -127,6 +134,20 @@ module SimulationsHelper
                title: Simulation.human_attribute_name(field), role: "button", tabindex: 0,
                data: { inline_edit_target: "display", action: WORD_ACTIONS }) +
         inline_edit_form(simulation, parameters_url(simulation), &block)
+    end
+  end
+
+  def suggested_field(form, attribute, **options)
+    list_id = "#{form.field_id(attribute)}_suggestions"
+
+    tag.div(class: "autocomplete", data: { controller: "autocomplete", action: "mousedown->autocomplete#pick",
+                                           autocomplete_city_field_value: CITY_FIELD,
+                                           autocomplete_type_value: SUGGESTION_TYPES.fetch(attribute) }) do
+      form.text_field(attribute, class: "form-control", autocomplete: "off", role: "combobox",
+                      aria: { autocomplete: "list", expanded: false, controls: list_id },
+                      data: { autocomplete_target: "input", action: SUGGESTION_ACTIONS }, **options) +
+        tag.ul(class: "autocomplete-list", id: list_id, role: "listbox", hidden: true,
+               data: { autocomplete_target: "list" })
     end
   end
 

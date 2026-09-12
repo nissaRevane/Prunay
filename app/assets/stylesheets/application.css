@@ -1903,3 +1903,51 @@ body:has(.home) main.container {
     margin-top: 0;
   }
 }
+
+/* La liste des suggestions se pose sur la page : elle ne doit pas pousser le champ suivant. */
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  list-style: none;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.autocomplete-option {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.autocomplete-option:hover,
+.autocomplete-option[aria-selected="true"] {
+  background-color: var(--color-bg);
+}
+
+.autocomplete-context {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Dans une phrase de la fiche, le champ est étroit : la liste, elle, garde sa largeur. */
+.inline-word .autocomplete {
+  display: inline-block;
+}
+
+.inline-word .autocomplete-list {
+  right: auto;
+  min-width: 18rem;
+}

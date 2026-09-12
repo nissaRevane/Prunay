@@ -8,7 +8,7 @@
 
     <div class="form-group">
       <%= f.label :city, t("views.simulations.express.city") %>
-      <%= f.text_field :city, class: "form-control", required: true %>
+      <%= suggested_field f, :city, required: true %>
     </div>
 
     <div class="form-group">
