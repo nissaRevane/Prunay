@@ -1046,6 +1046,19 @@ body:has(.home) main.container {
   gap: 1rem;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pagination-position {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .simulation-card {
   position: relative;
   display: flex;

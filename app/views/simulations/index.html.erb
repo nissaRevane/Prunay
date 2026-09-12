@@ -32,6 +32,18 @@
   <div class="simulation-grid">
     <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
   </div>
+
+  <% if @pages > 1 %>
+    <nav class="pagination" aria-label="<%= t("views.simulations.index.pagination") %>">
+      <% if @page > 1 %>
+        <%= link_to t("views.simulations.index.previous_page"), simulations_path(page: @page - 1), class: "btn btn-outline" %>
+      <% end %>
+      <span class="pagination-position"><%= t("views.simulations.index.page", page: @page, pages: @pages) %></span>
+      <% if @page < @pages %>
+        <%= link_to t("views.simulations.index.next_page"), simulations_path(page: @page + 1), class: "btn btn-outline" %>
+      <% end %>
+    </nav>
+  <% end %>
 <% else %>
   <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
 <% end %>

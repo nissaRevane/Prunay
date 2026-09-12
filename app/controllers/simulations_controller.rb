@@ -1,11 +1,18 @@
 class SimulationsController < ApplicationController
   include RendersSimulation
 
+  # Une carte coûte le balayage des quatre régimes sur trente ans : la liste s'en tient à une page.
+  PER_PAGE = 12
+
   before_action :set_simulation, only: [:show, :tax_burden, :statement, :edit, :update, :destroy]
 
   # Le dernier bien acheté d'abord, et de quoi en ajouter un sans quitter la liste.
   def index
-    @simulations = current_user.simulations.order(purchase_date: :desc)
+    owned = current_user.simulations.order(purchase_date: :desc)
+
+    @pages = [(owned.count / PER_PAGE.to_f).ceil, 1].max
+    @page = params[:page].to_i.clamp(1, @pages)
+    @simulations = owned.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
     @new_simulation = current_user.simulations.build
   end
 

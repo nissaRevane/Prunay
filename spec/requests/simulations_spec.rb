@@ -44,6 +44,38 @@ RSpec.describe "Simulations", type: :request do
       expect(cities).to eq(["🏢 Nante-50", "🏢 Brest-50", "🏢 Renne-50"])
     end
 
+    # Une page de cartes à la fois : chacune balaie les quatre régimes sur trente ans.
+    context "when the account holds more than a page of them" do
+      before do
+        stub_const("SimulationsController::PER_PAGE", 2)
+        create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
+        create(:simulation, user: user, city: "Nantes", purchase_date: Date.new(2026, 1, 15))
+        create(:simulation, user: user, city: "Brest", purchase_date: Date.new(2025, 7, 9))
+      end
+
+      def cards = Nokogiri::HTML(response.body).css(".simulation-grid .simulation-card-link").map { |link| link.text.strip }
+
+      it "lays out one page and points to the next" do
+        get simulations_path
+
+        expect(cards).to eq(["🏢 Nante-50", "🏢 Brest-50"])
+        expect(Nokogiri::HTML(response.body).at_css(".pagination a")["href"]).to eq(simulations_path(page: 2))
+      end
+
+      it "gives the rest on the second page" do
+        get simulations_path(page: 2)
+
+        expect(cards).to eq(["🏢 Renne-50"])
+      end
+
+      # Une page inventée dans l'adresse rend la dernière plutôt qu'une liste vide.
+      it "clamps a page number beyond the last one" do
+        get simulations_path(page: 9)
+
+        expect(cards).to eq(["🏢 Renne-50"])
+      end
+    end
+
     # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
     it "names each card after the property it describes" do
       simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)

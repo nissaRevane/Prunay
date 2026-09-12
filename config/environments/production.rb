@@ -6,6 +6,10 @@ Rails.application.configure do
   config.consider_all_requests_local = false
   config.public_file_server.headers = { "Cache-Control" => "public, max-age=#{1.year.to_i}" }
   config.active_storage.service = :local
+  # Les compteurs du rate limiting vivent là : un seul conteneur, des fichiers suffisent, et
+  # les voir repartir de zéro à chaque déploiement ne coûte rien.
+  config.cache_store = :file_store, Rails.root.join("tmp/cache")
+
   config.force_ssl = true
   config.assume_ssl = true
   config.logger = ActiveSupport::Logger.new(STDOUT)

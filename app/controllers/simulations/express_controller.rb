@@ -5,6 +5,8 @@ module Simulations
   class ExpressController < ApplicationController
     RECENT = 1
 
+    throttle name: "create", to: 20, within: 1.minute, only: :create
+
     before_action :set_recent
 
     def new = @simulation = current_user.simulations.build

@@ -29,6 +29,9 @@ class Simulation < ApplicationRecord
   # Cinq lettres de ville : de quoi reconnaître le lieu sans déborder d'une ligne de liste.
   NAME_CITY_LENGTH = 5
 
+  # Chaque carte de la liste coûte le balayage de BestReturn : un compte ne s'étend pas sans fin.
+  MAX_PER_USER = 50
+
   # Un crédit plus long que la projection porterait une annuité au-delà de sa dernière ligne.
   MAX_LOAN_DURATION_YEARS = Projection::HORIZON_YEARS
 
@@ -96,6 +99,8 @@ class Simulation < ApplicationRecord
   # La tranche marginale, elle, se choisit dans le barème et non sur une échelle.
   validates :marginal_tax_rate, presence: true, inclusion: { in: Taxation::MARGINAL_TAX_RATES },
             on: [:create, :update]
+
+  validate :within_quota, on: :create
 
   # Les pages que CETTE simulation traverse : le parcours et la barre de progression lisent #steps.
   def steps = Step.all_for(self)
@@ -230,6 +235,10 @@ class Simulation < ApplicationRecord
   end
 
   private
+
+  def within_quota
+    errors.add(:base, :quota_exceeded, count: MAX_PER_USER) if user && user.simulations.count >= MAX_PER_USER
+  end
 
   def short_city = city.to_s.strip.first(NAME_CITY_LENGTH)
 

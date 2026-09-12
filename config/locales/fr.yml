@@ -97,6 +97,10 @@ fr:
           attributes:
             email:
               taken: est déjà utilisé
+        simulation:
+          attributes:
+            base:
+              quota_exceeded: "Vous avez atteint la limite de %{count} simulations : supprimez-en une pour en ajouter une autre."
   errors:
     messages:
       blank: doit être rempli(e)
@@ -186,6 +190,10 @@ fr:
         monthly_cash_flow: Cash-flow / mois
         first_full_year: "(1ʳᵉ année)"
         destroy: Supprimer cette simulation
+        pagination: Pages de simulations
+        page: "Page %{page} sur %{pages}"
+        previous_page: "← Précédentes"
+        next_page: "Suivantes →"
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
@@ -385,6 +393,7 @@ fr:
       destroyed: Simulation supprimée avec succès.
     errors:
       not_found: La ressource demandée est introuvable.
+      throttled: Trop de demandes en peu de temps. Patientez quelques minutes avant de réessayer.
   number:
     format:
       delimiter: " "

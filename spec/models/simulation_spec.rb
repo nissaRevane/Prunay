@@ -34,6 +34,29 @@ RSpec.describe Simulation, type: :model do
       end
     end
 
+    # Chaque carte de la liste coûte le balayage des quatre régimes : un compte a sa limite.
+    context "of an account already at its quota" do
+      let(:user) { create(:user) }
+
+      before do
+        stub_const("Simulation::MAX_PER_USER", 2)
+        2.times { create(:simulation, user: user) }
+      end
+
+      it "refuses one more simulation" do
+        simulation = build(:simulation, user: user)
+
+        expect(simulation).not_to be_valid
+        expect(simulation.errors[:base])
+          .to eq(["Vous avez atteint la limite de 2 simulations : supprimez-en une pour en ajouter une autre."])
+      end
+
+      # La limite ne vaut qu'à la création : un chiffre de la fiche se corrige toujours.
+      it "still lets an existing simulation be corrected" do
+        expect(user.simulations.first.update(monthly_rent: 900)).to be(true)
+      end
+    end
+
     it "asks nothing of the credit of a purchase paid outright" do
       expect(build(:simulation, credit: false, loan_rate: 0, loan_duration_years: 0)).to be_valid(:credit)
     end
