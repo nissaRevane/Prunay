@@ -1,6 +1,5 @@
-<%# Tout ce qu'un compte suppose, dans l'ordre où une simulation le rencontre : l'économie,
-    l'achat, le crédit, la location, les charges, la revente. Cette dernière vient à part
-    parce qu'elle seule pèse sur les simulations déjà écrites. %>
+<%# Tout ce qu'un compte suppose, dans l'ordre où une simulation le rencontre. La revente vient
+    à part : elle seule pèse sur les simulations déjà écrites. %>
 <div class="page-header">
   <div>
     <h1><%= t("views.assumptions.edit.title") %></h1>
@@ -56,7 +55,6 @@
       <legend><%= t("views.simulations.steps.charges.title") %></legend>
 
       <%= assumption_grid do %>
-        <%# Dans l'ordre des groupes du formulaire : une charge de plus s'y ajoute et se retrouve ici. %>
         <% Simulation::CHARGE_GROUPS.values.flatten.each do |charge| %>
           <%= assumption_field f, charge %>
         <% end %>

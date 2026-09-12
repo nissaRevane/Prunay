@@ -1,5 +1,5 @@
-<%# Le bouton se réduit à un plus plutôt que de passer sous le titre : l'écran étroit n'a pas
-    une ligne à donner à ce qu'on a déjà lu. %>
+<%# Le bouton se réduit à un plus plutôt que de passer sous le titre, et la création rapide
+    s'ouvre en pop-in : on ne quitte pas la liste pour cinq réponses. %>
 <div data-controller="express-form">
   <div class="page-header page-header-inline">
     <h1><%= t("views.simulations.index.title") %></h1>
@@ -10,8 +10,6 @@
     </button>
   </div>
 
-  <%# La création rapide s'ouvre ici plutôt que sur sa page : on ne quitte pas la liste pour
-      cinq réponses. %>
   <dialog class="express-modal" data-express-form-target="dialog"
           data-action="click->express-form#dismiss" aria-labelledby="express-modal-title">
     <div class="express-modal-header">

@@ -1,7 +1,5 @@
-<%# L'onglet titre déjà la projection, et le tableau s'en tient à ce qu'on y cherche : ce que
-    l'année déclare, ce qu'elle laisse et ce qui reste engagé. C'est le régime qui dit si le
-    loyer s'y montre charges comprises et les charges en entier. Le clic sur une ligne demande
-    au serveur la fiche de l'année, qui vient se ranger ici et y reste. %>
+<%# Ce que l'année déclare, ce qu'elle laisse et ce qui reste engagé. Le clic sur une ligne
+    demande au serveur la fiche de l'année, qui vient se ranger ici. %>
 <div class="section" data-controller="projection"
      data-projection-url-value="<%= statement_simulation_path(projection.simulation, regime: projection.regime) %>">
   <div class="table-scroll">
@@ -21,7 +19,6 @@
           <tr class="row-expandable" data-action="click->projection#open"
               data-projection-year-param="<%= year.number %>">
             <td>
-              <%# Le bouton est là pour le clavier : le clic sur la ligne entière ouvre la même fiche. %>
               <button type="button" class="row-toggle" aria-haspopup="dialog"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>

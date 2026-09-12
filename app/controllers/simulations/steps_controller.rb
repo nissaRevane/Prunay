@@ -1,11 +1,5 @@
 module Simulations
-  # La création d'une simulation, page par page. Rien n'est écrit en base avant la dernière :
-  # les réponses s'accumulent en session et chaque page ne valide que ses propres champs, d'où
-  # les contextes de validation nommés comme les étapes. Les pages ne sont pas les mêmes pour
-  # tout le monde — celle du crédit ne s'ouvre qu'à qui en a coché un —, aussi la liste se
-  # demande-t-elle au brouillon (Simulation#steps) après chaque réponse, et non à la constante.
   class StepsController < ApplicationController
-    # Ce que chaque page a le droit de demander, et ce que le brouillon garde d'elle.
     STEP_ATTRIBUTES = {
       "property" => [:property_type, :address, :city, :energy_rating, :surface],
       "purchase" => [:purchase_price, :initial_works, :furniture, :purchase_date, :credit, :down_payment],
@@ -31,7 +25,6 @@ module Simulations
 
       session[DRAFT_KEY] = draft.merge(step_params)
 
-      # C'est la page de l'achat qui dit s'il y a un crédit : le parcours se relit sur le brouillon.
       @steps = steps
 
       last_step? ? create_simulation : redirect_to(new_simulation_step_path(step: next_step))
@@ -39,7 +32,6 @@ module Simulations
 
     private
 
-    # Une page que ce brouillon-là ne traverse pas est traitée comme une page qui n'existe pas.
     def set_step
       @steps = steps
       @step = params[:step]
@@ -50,7 +42,6 @@ module Simulations
       @previous_step = @steps[@step_index - 1] if @step_index.positive?
     end
 
-    # Une adresse tapée à la main renvoie là où le brouillon s'est arrêté.
     def ensure_step_reachable
       pending = first_pending_step
       return if pending.nil? || @step_index <= @steps.index(pending)
@@ -68,7 +59,6 @@ module Simulations
       current_user.simulations.build(draft).steps
     end
 
-    # Le brouillon, recouvert par le formulaire, complété par les défauts : un champ vidé reste vide.
     def build_simulation(overrides = {})
       answers = draft.merge(overrides)
       simulation = current_user.simulations.build(answers)
@@ -77,7 +67,6 @@ module Simulations
       simulation
     end
 
-    # Aucune page ne les demande : la simulation naît avec celles de l'utilisateur.
     def create_simulation
       simulation = current_user.simulations.build(Assumptions.for(current_user).economic.merge(draft))
 

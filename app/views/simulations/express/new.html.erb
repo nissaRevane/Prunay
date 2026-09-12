@@ -1,12 +1,10 @@
 <div class="home">
   <div class="home-form">
-    <%# Le même cadre que la pop-in de la liste : les erreurs reviennent là où le formulaire est posé. %>
     <%= turbo_frame_tag "express_form" do %>
       <%= render "simulations/express/form", simulation: @simulation %>
     <% end %>
   </div>
 
-  <%# Une carte pour rouvrir ce qu'on vient d'étudier, une seconde pour la liste entière. %>
   <% if @recent.any? %>
     <section class="recent-simulations">
       <%= render partial: "simulations/card", collection: @recent, as: :simulation %>

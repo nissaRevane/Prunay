@@ -1,15 +1,12 @@
-# Une courbe par régime fiscal, ramenée aux coordonnées d'un SVG : la vue n'a plus qu'à tracer
-# les points. L'échelle verticale englobe toujours le zéro — capital engagé comme bénéfice le
-# traversent, et c'est ce passage-là qu'on vient lire.
+# Une courbe par régime fiscal, ramenée aux coordonnées d'un SVG. L'échelle verticale englobe
+# toujours le zéro : c'est le passage du capital engagé au bénéfice qu'on vient y lire.
 class LineChart
   WIDTH = 960
   HEIGHT = 320
   MARGIN = { top: 16, right: 24, bottom: 32, left: 88 }.freeze
 
-  # Assez de repères pour situer un montant, pas assez pour brouiller les courbes.
   GRID_LINES = 4
 
-  # Trente et une années sur un axe : une graduation tous les cinq ans, l'origine comprise.
   X_LABEL_STEP = 5
 
   Series = Struct.new(:name, :label, :values, keyword_init: true) do
@@ -22,8 +19,6 @@ class LineChart
     @series = series
   end
 
-  # Une mesure peut manquer une année : la courbe se rend alors en autant de tronçons que de
-  # suites d'années renseignées, coupés là où l'année suivante ne l'est pas.
   def segments(one)
     one.values.each_with_index.reject { |value, _| value.nil? }
        .slice_when { |(_, index), (_, following)| following > index + 1 }
@@ -62,7 +57,6 @@ class LineChart
 
   def high = bounds.last
 
-  # Les bornes tombent sur un multiple du pas : les repères se lisent en chiffres ronds.
   def bounds
     @bounds ||= [(extremes.first / step).floor * step, (extremes.last / step).ceil * step]
   end
@@ -71,7 +65,7 @@ class LineChart
     @step ||= nice_step(extremes.last - extremes.first)
   end
 
-  # Le pas d'un axe se prend dans la suite 1, 2, 5 : c'est là que les chiffres restent ronds.
+  # Le pas se prend dans la suite 1, 2, 5 : les chiffres y restent ronds.
   def nice_step(range)
     return 1 if range.zero?
 

@@ -1,8 +1,5 @@
-<%# La case qui déclare le crédit et l'apport qu'elle fait apparaître, partagés par la page de
-    l'achat et par le formulaire de modification. L'apport écarté reste dans la page, masqué et
-    désactivé : requis et invisible il bloquerait l'envoi, et le modèle remet à zéro ce qu'il ne
-    reçoit pas. Le cadre — le contrôleur `credit` et les montants d'où l'apport se déduit — reste
-    à l'appelant : c'est lui qui porte le prix et les travaux. %>
+<%# La case qui déclare le crédit et l'apport qu'elle fait apparaître. L'apport écarté reste
+    masqué et désactivé : requis et invisible, il bloquerait l'envoi. %>
 <div class="form-group form-check">
   <%= f.check_box :credit, data: { credit_target: "toggle", action: "change->credit#refresh" } %>
   <%= f.label :credit %>

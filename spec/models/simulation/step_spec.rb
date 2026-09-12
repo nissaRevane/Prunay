@@ -5,7 +5,6 @@ RSpec.describe Simulation::Step do
     Simulation.new(user: build(:user), **answers)
   end
 
-  # La page du crédit ne s'ouvre qu'à qui en a coché un sur la page de l'achat.
   describe ".all_for" do
     it "walks the credit page only when there is a credit" do
       expect(described_class.all_for(build(:simulation, :with_credit)))
@@ -16,7 +15,6 @@ RSpec.describe Simulation::Step do
   end
 
   describe ".defaults" do
-    # La première page n'a aucune réponse derrière elle : rien à en déduire.
     it "proposes nothing on the property page" do
       expect(described_class.defaults("property", draft(surface: 50))).to eq({})
     end
@@ -28,12 +26,10 @@ RSpec.describe Simulation::Step do
       expect(defaults["initial_works"]).to eq(0)
     end
 
-    # 2 000 € pour 45 m² : 50 m² en valent 2 108, arrondis à la dizaine d'euros.
     it "proposes furniture scaled on the surface" do
       expect(described_class.defaults("purchase", draft(surface: 50))["furniture"]).to eq(2_110)
     end
 
-    # La page de l'achat s'ouvre avant que le prix n'y soit tapé : aucun apport à proposer alors.
     it "proposes a tenth of the project cost as a down payment" do
       priced = draft(purchase_price: 200_000, initial_works: 0)
 
@@ -41,7 +37,6 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("purchase", draft)["down_payment"]).to eq(0)
     end
 
-    # Sur 193 224 € empruntés : 19,32 € d'assurance, 3 221,04 € de cautionnement, 1 932,24 € de dossier.
     it "proposes twenty years at 3.6 % and the amounts read on the capital borrowed" do
       expect(described_class.defaults("credit", draft)).to eq(
         "loan_rate" => BigDecimal("3.6"), "loan_duration_years" => 20, "loan_insurance" => 0,
@@ -61,7 +56,6 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("rental", draft(surface: 50))["occupancy_months"]).to eq(11)
     end
 
-    # 50 m² : chaque charge y vaut son montant plein, sauf l'entretien des meubles, compté sur 45 m².
     it "estimates every annual charge" do
       expect(described_class.defaults("charges", draft(surface: 50))).to eq(
         "property_tax" => 700, "insurance" => 150, "maintenance" => 1_000,

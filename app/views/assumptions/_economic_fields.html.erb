@@ -1,11 +1,10 @@
-<%# Les trois taux dans le même ordre partout — les loyers, le bien, puis les charges —, et
-    la tranche d'imposition du foyer après eux. %>
+<%# Les trois taux dans le même ordre partout — les loyers, le bien, puis les charges —,
+    et la tranche d'imposition du foyer après eux. %>
 <%= assumption_grid do %>
   <% Assumptions::RATES.each do |rate| %>
     <%= assumption_field f, rate, min: Assumptions::MIN_RATE, max: Assumptions::MAX_RATE %>
   <% end %>
 
-  <%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
   <%= assumption_line f, :marginal_tax_rate do %>
     <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
   <% end %>

@@ -1,5 +1,5 @@
-<%# La fiche entière, en-tête comprise : tout y est dérivé, et une valeur corrigée dans un
-    onglet en refait plusieurs ailleurs. Le serveur la renvoie donc d'un bloc. %>
+<%# La fiche entière : tout y est dérivé, une valeur corrigée dans un onglet en refait ailleurs.
+    Le serveur la renvoie d'un bloc, et `tab` dit quel panneau s'ouvre. %>
 <div class="page-header">
   <div>
     <div class="page-title">
@@ -11,7 +11,6 @@
   </div>
 </div>
 
-<%# Tous les panneaux sont rendus par le serveur ; `tab` dit lequel s'ouvre au chargement. %>
 <% panels = simulation_panels(schedule) %>
 <% opened = panels.include?(tab) ? tab : panels.first %>
 

@@ -1,7 +1,4 @@
 module Simulations
-  # Les conditions économiques d'une simulation, corrigées depuis son onglet. Elles ne
-  # touchent qu'elle : les valeurs par défaut de l'utilisateur sont ailleurs, et une
-  # simulation les a copiées une fois pour toutes le jour de sa création.
   class EconomicConditionsController < ApplicationController
     include RendersSimulation
 
@@ -25,7 +22,6 @@ module Simulations
 
     private
 
-    # L'onglet se rouvre sur ses erreurs, les autres panneaux restant ceux de la fiche.
     def render_simulation
       flash_error
       assign_detail(TAB)

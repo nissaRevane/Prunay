@@ -1,6 +1,5 @@
-<%# Le graphique est rendu par le serveur, sans bibliothèque : une polyligne par régime sur une
-    grille en valeurs rondes, et la ligne du zéro appuyée — c'est elle qu'on cherche. Une
-    courbe interrompue là où la mesure manque se rend en plusieurs tronçons. %>
+<%# Le graphique est rendu par le serveur, sans bibliothèque : une polyligne par régime, et la
+    ligne du zéro appuyée — c'est elle qu'on cherche. %>
 <div class="chart">
   <svg class="chart-svg" viewBox="0 0 <%= LineChart::WIDTH %> <%= LineChart::HEIGHT %>"
        role="img" aria-label="<%= title %>">

@@ -1,7 +1,5 @@
 require "rails_helper"
 
-# Les hypothèses d'un compte se règlent sur une page à elles ; les conditions économiques,
-# elles, se corrigent aussi simulation par simulation, dans l'onglet de chacune.
 RSpec.describe "Assumptions", type: :request do
   let(:user) { create(:user) }
 
@@ -13,12 +11,10 @@ RSpec.describe "Assumptions", type: :request do
 
       expect(response).to have_http_status(:success)
 
-      # Un taux rond se lit en entier : le champ montre 1 et non 1,0.
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#assumptions_rent_growth_rate")["value"]).to eq("1")
       expect(doc.at_css("#assumptions_property_growth_rate")["value"]).to eq("1")
       expect(doc.at_css("#assumptions_inflation_rate")["value"]).to eq("2")
-      # La tranche se choisit dans le barème : cinq options, celle de la plupart des foyers cochée.
       options = doc.css("#assumptions_marginal_tax_rate option")
       expect(options.map { |option| option["value"] }).to eq(%w[0 11 30 41 45])
       expect(options.find { |option| option["selected"] }["value"]).to eq("30")
@@ -32,7 +28,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(Nokogiri::HTML(response.body).at_css("#assumptions_rent_growth_rate")["value"]).to eq("3")
     end
 
-    # Une valeur que la page n'offrirait pas resterait hors d'atteinte : elles y sont toutes.
     it "carries a field for every assumption an account can settle" do
       get edit_assumptions_path
 
@@ -54,8 +49,6 @@ RSpec.describe "Assumptions", type: :request do
         .to have_attributes(rent_growth_rate: 1.5, property_growth_rate: 2.5, inflation_rate: 3.5)
     end
 
-    # Le loyer de référence, la durée du crédit et le coût d'une revente se règlent comme les
-    # taux : une seule page pour tout ce qu'un compte suppose.
     it "writes the amounts proposed, the credit and what a resale costs" do
       patch assumptions_path,
             params: { assumptions: { monthly_rent: "900", loan_duration_years: "25",
@@ -84,7 +77,6 @@ RSpec.describe "Assumptions", type: :request do
     end
   end
 
-  # Les défauts ne rattrapent pas une simulation écrite : sa projection ne doit pas changer seule.
   describe "the conditions of a simulation" do
     let(:simulation) { create(:simulation, user: user, rent_growth_rate: 1, inflation_rate: 2) }
 
@@ -99,7 +91,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
     end
 
-    # Le contexte se corrige comme les paramètres : au clic sur la valeur, et sans bouton.
     it "carries one self-saving field per assumption, and one for the discount" do
       get simulation_path(simulation)
 
@@ -112,7 +103,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(panel.css(".detail-item").size).to eq(Assumptions::ECONOMIC.size + 1)
     end
 
-    # Un taux corrigé refait la projection : la fiche revient entière, sur son onglet.
     it "returns the whole page on that tab once a rate is saved" do
       patch simulation_economic_conditions_path(simulation),
             params: { simulation: { rent_growth_rate: "3" } }, as: :turbo_stream
@@ -125,7 +115,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(doc.at_css("#panel-economic_conditions")["hidden"]).to be_nil
     end
 
-    # Un taux refusé ne renvoie que son message : la fiche garde celui qu'elle portait.
     it "answers a refused rate with the message alone" do
       patch simulation_economic_conditions_path(simulation),
             params: { simulation: { inflation_rate: "" } }, as: :turbo_stream
@@ -138,7 +127,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(doc.at_css(".alert-danger").text).to include("doit être rempli(e)")
     end
 
-    # La tranche marginale se corrige avec le reste du contexte, et la projection s'en trouve refaite.
     it "carries the tax bracket of the household next to the rates" do
       taxed = create(:simulation, user: user, marginal_tax_rate: 30)
 
@@ -153,7 +141,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(taxed.reload.marginal_tax_rate).to eq(41)
     end
 
-    # La décote se corrige là aussi : elle ne tient de personne et ne vaut que pour cette simulation.
     it "carries the discount obtained at the purchase next to the rates" do
       get simulation_path(simulation)
 
@@ -165,7 +152,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(simulation.reload.purchase_discount).to eq(15_000)
     end
 
-    # Une décote négative n'est pas une décote : le bien ne vaut pas moins que ce qu'il a coûté.
     it "refuses a discount that would put the property under its price" do
       patch simulation_economic_conditions_path(simulation), params: { simulation: { purchase_discount: "-1000" } }
 
@@ -173,7 +159,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(simulation.reload.purchase_discount).to eq(0)
     end
 
-    # Une tranche que le barème ne connaît pas n'est pas une hypothèse : c'est une faute.
     it "refuses a bracket the scale does not know" do
       taxed = create(:simulation, user: user, marginal_tax_rate: 30)
 
@@ -204,7 +189,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(response.body).to include("doit être rempli(e)")
     end
 
-    # La simulation d'un autre n'est pas la sienne, pas même par ses conditions.
     it "does not correct the simulation of another user" do
       others = create(:simulation, rent_growth_rate: 1)
 
@@ -213,7 +197,6 @@ RSpec.describe "Assumptions", type: :request do
       expect(others.reload.rent_growth_rate).to eq(1)
     end
 
-    # Corriger les défauts ne doit pas réécrire une simulation déjà projetée : chacune porte les siennes.
     it "is left untouched when the general conditions change" do
       simulation
 

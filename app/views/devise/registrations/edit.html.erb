@@ -6,7 +6,6 @@
     </div>
 
     <div class="page-header-actions">
-      <%# Turbo Drive avalerait la réponse : on laisse le navigateur prendre le fichier. %>
       <%= link_to t("views.account.show.export"), export_path, class: "btn btn-outline", data: { turbo: false } %>
     </div>
   </div>
@@ -14,7 +13,6 @@
   <div class="account">
     <%= render "shared/errors", resource: resource %>
 
-    <%# Les libellés tiennent dans les champs : ils restent posés pour les lecteurs d'écran. %>
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "form" }) do |f| %>
       <div class="form-group">
         <%= f.label :current_password %>

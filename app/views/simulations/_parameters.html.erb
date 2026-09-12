@@ -1,7 +1,5 @@
-<%# Les hypothèses de la simulation, sur deux colonnes : à gauche l'opération — ce que la
-    signature du bien coûte et comment elle se finance —, à droite l'année — ce que le bien
-    rapporte et ce qu'il dépense. Le bien lui-même se lit dans l'en-tête de la fiche. Chaque
-    valeur saisie se corrige d'un clic ; ce qui se calcule, lui, ne se clique pas. %>
+<%# Les hypothèses de la simulation : à gauche l'opération, à droite l'année. Chaque valeur saisie
+    se corrige d'un clic ; ce qui se calcule ne se clique pas. %>
 <div class="parameters">
 <div>
 <div class="section">
@@ -23,8 +21,6 @@
       <%= f.number_field :initial_works, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <%# Les meubles ne s'achètent que sous un régime du meublé : la ligne et le total suivent
-        l'onglet fiscal, comme le loyer majoré plus loin. %>
     <%= editable_detail simulation, :furniture, number_to_currency(simulation.furniture),
         regimes: regimes_furnished do |f| %>
       <%= f.number_field :furniture, step: "0.01", min: "0", class: "form-control", required: true %>
@@ -45,15 +41,12 @@
 </div>
 
 <div>
-<%# Le loyer est saisi au mois, comme un bail l'énonce : hors charges d'un côté, provision de l'autre. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
   </div>
 
   <dl class="rows sum">
-    <%# Le loyer se saisit nu, et c'est ainsi que les régimes du nu le lisent ; le meublé lui
-        substitue le sien, majoré de sa prime, et ne se corrige que sous un régime nu. %>
     <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent),
         value_class: "text-success", regimes: regimes_without_rent_premium do |f| %>
       <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
@@ -102,8 +95,6 @@
       <% end %>
     <% end %>
 
-    <%# Le comptable et la CFE ne pèsent que sur les régimes qui les paient : le serveur rend les
-        deux lignes et l'onglet fiscal n'ouvre que celles du régime choisi, total compris. %>
     <% Simulation::REGIME_CHARGES.each do |charge| %>
       <%= editable_detail simulation, charge, number_to_currency(simulation.public_send(charge)),
           regimes: regimes_paying(simulation, charge) do |f| %>

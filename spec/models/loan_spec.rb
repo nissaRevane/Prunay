@@ -1,7 +1,6 @@
 require "rails_helper"
 
 RSpec.describe Loan do
-  # 193 224 € empruntés sur vingt ans à 3 %, signés le 15 janvier 2025.
   subject(:loan) do
     described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20, insurance: 0,
                         signed_on: Date.new(2025, 1, 15))
@@ -12,7 +11,6 @@ RSpec.describe Loan do
       described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20, insurance: 0, signed_on: date)
     end
 
-    # Le remboursement commence le 5 : celui du mois de l'acte s'il est signé du 1er au 5, le suivant sinon.
     it "starts repaying on the fifth that follows the signature" do
       expect(signed_on(Date.new(2025, 3, 10)).first_payment_on).to eq(Date.new(2025, 4, 5))
       expect(signed_on(Date.new(2025, 3, 31)).first_payment_on).to eq(Date.new(2025, 4, 5))
@@ -20,7 +18,6 @@ RSpec.describe Loan do
       expect(signed_on(Date.new(2025, 3, 5)).first_payment_on).to eq(Date.new(2025, 3, 5))
     end
 
-    # Un acte signé en décembre après le 5 rembourse en janvier de l'année suivante.
     it "rolls over the year when the purchase is signed late in December" do
       expect(signed_on(Date.new(2025, 12, 20)).first_payment_on).to eq(Date.new(2026, 1, 5))
     end
@@ -38,7 +35,6 @@ RSpec.describe Loan do
       expect(loan.annual_payment).to eq(BigDecimal("1071.62") * 12)
     end
 
-    # L'assurance ne rembourse rien : sa prime s'ajoute à la mensualité, et l'annuité la porte douze fois.
     it "adds the insurance premium to what the credit takes each month" do
       insured = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20,
                                     insurance: BigDecimal("19.32"), signed_on: Date.new(2025, 1, 15))
@@ -48,7 +44,6 @@ RSpec.describe Loan do
       expect(insured.annual_payment).to eq(BigDecimal("1090.94") * 12)
     end
 
-    # L'un est le prix du capital, l'autre celui de la garantie : le coût du crédit les additionne.
     it "counts the insurance in what the credit costs, next to its interest" do
       insured = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20,
                                     insurance: BigDecimal("19.32"), signed_on: Date.new(2025, 1, 15))
@@ -57,7 +52,6 @@ RSpec.describe Loan do
       expect(insured.total_cost).to eq(insured.total_interest + insured.total_insurance)
     end
 
-    # Payés une fois à la signature : ils ne touchent ni la mensualité ni les intérêts.
     it "counts the fees the signature costs without touching what it takes each month" do
       with_fees = described_class.new(capital: 193_224, annual_rate: 3, duration_years: 20, insurance: 0,
                                       guarantee_fees: 3_220, application_fees: 1_932,
@@ -69,14 +63,12 @@ RSpec.describe Loan do
     end
   end
 
-  # Sans capital, sans durée ou sans signature, rien à amortir : c'est l'état d'un achat comptant.
   describe "a loan with nothing to amortize" do
     subject(:loan) do
       described_class.new(capital: 0, annual_rate: 0, duration_years: 0, insurance: 0,
                           guarantee_fees: 500, application_fees: 500, signed_on: nil)
     end
 
-    # Un achat comptant peut porter des colonnes qu'une case décochée n'a pas encore remises à zéro.
     it "has no schedule and takes nothing" do
       expect(loan).not_to be_amortizable
       expect(loan.schedule).to be_nil
@@ -89,7 +81,6 @@ RSpec.describe Loan do
   end
 
   describe ".default_insurance" do
-    # Le taux est annoncé pour l'année : 0,12 % des 193 224 € empruntés font 19,32 € par mois.
     it "reads a premium on the capital borrowed" do
       expect(described_class.default_insurance(BigDecimal("193224"), BigDecimal("0.12"))).to eq(BigDecimal("19.32"))
       expect(described_class.default_insurance(0, BigDecimal("0.12"))).to eq(0)
@@ -97,7 +88,6 @@ RSpec.describe Loan do
   end
 
   describe ".default_guarantee_fees" do
-    # 1,667 % des 193 224 € empruntés font 3 221,04 €.
     it "reads the guarantee on the capital borrowed" do
       expect(described_class.default_guarantee_fees(BigDecimal("193224"), BigDecimal("1.667")))
         .to eq(BigDecimal("3221.04"))
@@ -106,17 +96,14 @@ RSpec.describe Loan do
   end
 
   describe ".default_application_fees" do
-    # Un centième des 193 224 € empruntés fait 1 932,24 €.
     it "reads the fees on the capital borrowed" do
       expect(described_class.default_application_fees(BigDecimal("193224"), 1, 500)).to eq(BigDecimal("1932.24"))
     end
 
-    # Un centième d'un petit emprunt passerait sous le plancher : la banque le facture quand même.
     it "never proposes less than the floor a bank charges" do
       expect(described_class.default_application_fees(BigDecimal("30000"), 1, 500)).to eq(500)
     end
 
-    # Un brouillon qui n'emprunte encore rien n'a pas de dossier à faire instruire.
     it "proposes nothing when there is nothing to borrow" do
       expect(described_class.default_application_fees(0, 1, 500)).to eq(0)
     end
@@ -127,22 +114,18 @@ RSpec.describe Loan do
       described_class.new(capital: 100_000, annual_rate: rate, duration_years: 20, insurance: 0,
                           early_repayment_fee: early_repayment_fee, signed_on: Date.new(2025, 1, 15))
 
-    # À 3 % l'an, six mois d'intérêts font 1,5 % : moins que les 3 % du capital, c'est eux qui s'appliquent.
     it "caps the indemnity at six months of the interest it saves" do
       expect(loan(3).early_repayment_fee(100_000)).to eq(1_500)
     end
 
-    # À 9 % l'an, six mois feraient 4,5 % : les 3 % du capital sont le maximum légal.
     it "never takes more than 3 % of the capital repaid" do
       expect(loan(9).early_repayment_fee(100_000)).to eq(3_000)
     end
 
-    # Un crédit soldé ne doit plus rien : la revente d'une année d'après ne coûte pas d'indemnité.
     it "owes nothing once there is no capital left" do
       expect(loan(3).early_repayment_fee(0)).to eq(0)
     end
 
-    # Une indemnité négociée à la signature : la revente ne la paie plus, quel que soit le capital.
     it "owes nothing when the indemnity has been waived" do
       expect(loan(3, early_repayment_fee: false).early_repayment_fee(100_000)).to eq(0)
     end

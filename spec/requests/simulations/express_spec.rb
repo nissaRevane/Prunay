@@ -1,6 +1,5 @@
 require "rails_helper"
 
-# La création rapide : une page, cinq réponses, une simulation complète en base.
 RSpec.describe "Express simulations", type: :request do
   let(:user) { create(:user) }
 
@@ -25,7 +24,6 @@ RSpec.describe "Express simulations", type: :request do
       expect(response.body).to include(new_simulation_path)
     end
 
-    # L'accueil d'un connecté : le formulaire, et de quoi rouvrir le dernier bien.
     it "shows the most recent purchase and the way to the whole list" do
       create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
       create(:simulation, user: user, city: "Nantes", purchase_date: Date.new(2026, 1, 15))
@@ -55,7 +53,6 @@ RSpec.describe "Express simulations", type: :request do
       expect(response).to redirect_to(user.simulations.last)
     end
 
-    # Les défauts se posent en base, sans qu'aucune page ne les ait demandés.
     it "completes the answers with the usual defaults" do
       post express_simulations_path, params: { simulation: ANSWERS }
 
@@ -66,7 +63,6 @@ RSpec.describe "Express simulations", type: :request do
       )
     end
 
-    # Les conditions économiques ne se demandent pas plus ici que dans l'assistant.
     it "inherits the economic conditions of the user" do
       Assumptions.for(user).update!(rent_growth_rate: 1.5, property_growth_rate: 2.5, inflation_rate: 3)
 
@@ -76,7 +72,6 @@ RSpec.describe "Express simulations", type: :request do
                                                        inflation_rate: 3)
     end
 
-    # Ouvert en pop-in, le formulaire répond dans son cadre : c'est le flux qui en fait sortir.
     it "sends a turbo stream out of the frame when the pop-in asked" do
       post express_simulations_path, params: { simulation: ANSWERS }, as: :turbo_stream
 

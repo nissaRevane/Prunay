@@ -1,15 +1,11 @@
 require "rails_helper"
 
-# Le micro-BIC est le forfait du meublé : la moitié des recettes échappe à l'impôt, mais les
-# recettes comptent la provision pour charges, les prélèvements sociaux montent à 18,6 % et la
-# CFE s'ajoute aux charges de l'année, hors de l'impôt sur le revenu.
 RSpec.describe Taxation::MicroBic do
   subject(:taxation) do
     described_class.new(rent_excluding_charges: 12_000, provision_for_charges: 1_200, marginal_tax_rate: 30,
                         monthly_rent: 1_000)
   end
 
-  # C'est là que le meublé s'écarte du nu : ce que le locataire verse est une recette.
   describe "#receipts" do
     it "counts the provision for charges the tenant pays on top of the rent" do
       expect(taxation.receipts).to eq(13_200)
@@ -29,13 +25,11 @@ RSpec.describe Taxation::MicroBic do
     end
   end
 
-  # 6 600 € imposables : 30 % de barème, et 18,6 % de prélèvements sociaux par-dessus.
   describe "the two levies" do
     it "applies the bracket of the household to what is taxable" do
       expect(taxation.income_tax).to eq(1_980)
     end
 
-    # La LFSS 2026 n'épargne que le foncier et la plus-value : un loyer meublé est un BIC.
     it "adds the social charges at the rate the furnished letting pays" do
       expect(taxation.social_charges_rate).to eq(BigDecimal("18.6"))
       expect(taxation.social_charges).to eq(BigDecimal("1227.60"))
@@ -46,21 +40,18 @@ RSpec.describe Taxation::MicroBic do
     end
   end
 
-  # 30 % d'un loyer mensuel de 1 000 € pour valeur locative.
   describe "#business_tax" do
     it "takes its share of a monthly rent, whatever the allowance left of the receipts" do
       expect(taxation.business_tax).to eq(300)
       expect(described_class::BUSINESS_TAX_RATE).to eq(30)
     end
 
-    # Le nu ne connaît pas la CFE : c'est ce qui la distingue du barème et des prélèvements sociaux.
     it "is owed by the furnished letting alone" do
       expect(Taxation::MicroFoncier.new(rent_excluding_charges: 12_000, marginal_tax_rate: 30,
                                         monthly_rent: 1_000).business_tax).to eq(0)
     end
   end
 
-  # Le forfait tient lieu des charges réelles : les lui donner ne change rien à l'assiette.
   it "deducts neither the real charges nor the loan interest" do
     with_charges = described_class.new(rent_excluding_charges: 12_000, provision_for_charges: 1_200,
                                       marginal_tax_rate: 30, charges: 2_000, loan_interest: 5_000,
@@ -70,7 +61,6 @@ RSpec.describe Taxation::MicroBic do
     expect(with_charges.total).to eq(BigDecimal("3207.60"))
   end
 
-  # Le micro-foncier impose 8 400 € à 17,2 % quand le micro-BIC n'impose que 6 000 € à 18,6 %.
   it "costs less than the micro-foncier on the same rent, its allowance being twice as large" do
     furnished = described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 0, monthly_rent: 1_000)
 
@@ -84,7 +74,6 @@ RSpec.describe Taxation::MicroBic do
     expect(described_class.new(rent_excluding_charges: 0, marginal_tax_rate: 45).total).to eq(0)
   end
 
-  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer bracket as a rate and not as a division" do
     expect(described_class.new(rent_excluding_charges: 10_000, marginal_tax_rate: 45).income_tax).to eq(2_250)
   end

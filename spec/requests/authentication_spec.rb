@@ -65,7 +65,6 @@ RSpec.describe "Authentication", type: :request do
   end
 
   describe "the default guard" do
-    # authenticate_user! is a before_action of ApplicationController, and pages#home the single opt-out.
     it "protects every page but the public landing one" do
       get account_path
 

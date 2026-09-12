@@ -1,16 +1,13 @@
-# Le taux annuel qui annule la valeur actualisée d'une suite de flux : le premier est
-# l'investissement du premier jour, les suivants tombent chacun sur un anniversaire. On le
-# cherche par dichotomie, la formule n'ayant pas de solution littérale ; faute d'un flux
-# négatif et d'un flux positif il n'y a pas de taux, et #percentage rend nil.
+# Le taux annuel qui annule la valeur actualisée d'une suite de flux, cherché par dichotomie.
+# Sans un flux négatif et un flux positif il n'y a pas de taux : #percentage rend nil.
 class InternalRateOfReturn
   LOWEST_RATE = BigDecimal("-0.9999")
 
   HIGHEST_RATE = BigDecimal("10")
 
-  # Le cent-millième : deux chiffres sous la décimale de pourcentage qui se lit.
+  # Deux chiffres sous la décimale du pourcentage affiché.
   PRECISION = BigDecimal("0.00001")
 
-  # Vingt chiffres significatifs par opération : sans quoi l'actualisation en traîne mille.
   DIGITS = 20
 
   attr_reader :cash_flows
@@ -25,18 +22,14 @@ class InternalRateOfReturn
     @rate = solve
   end
 
-  # Le taux dépasse-t-il celui-là ? La valeur actualisée décroît quand le taux monte, donc elle est
-  # positive ici exactement quand le taux cherché est plus haut — une actualisation au lieu d'une dichotomie.
   def above?(rate) = net_present_value(rate).positive?
 
-  # En pourcentage, comme les taux que l'utilisateur saisit.
   def percentage
     found = rate
 
     (found * 100).round(1) if found
   end
 
-  # Le facteur d'actualisation se compose d'une année sur l'autre, plutôt que de s'élever à la puissance.
   def net_present_value(rate)
     discount = 1 + rate.to_d
     factor = BigDecimal(1)

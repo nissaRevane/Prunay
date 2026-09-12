@@ -1,23 +1,15 @@
-# La projection d'un investissement locatif sur trente ans, une ligne par anniversaire de
-# l'achat, précédée de l'année zéro : le jour de la signature, où rien n'a encore été encaissé
-# et où le capital vient tout juste d'être immobilisé. Les anniversaires qui suivent portent
-# chacun les loyers des douze mois écoulés, composés par les conditions économiques, et
-# l'impôt que ces loyers-là valent au foyer, dans le régime qu'on lui donne (voir Taxation).
+# La projection sur trente ans, une ligne par anniversaire, précédée de l'année zéro : la
+# signature, où rien n'est encaissé. L'impôt de chaque année revient à Taxation.
 class Projection
   HORIZON_YEARS = 30
 
-  # L'année où la liste des simulations les lit, et celle où le graphique de l'impôt revend :
-  # un crédit de vingt ans y a rendu la moitié de son capital.
   REVIEW_YEAR = 15
 
-  # Les deux lectures d'une année dans sa fiche : le nom sert d'onglet, de panneau, d'identifiant et de traduction.
   VIEWS = %w[result sale].freeze
 
-  # Tout ce que l'État prend, du plus certain au plus dépendant du résultat, la revente en dernier.
   TAX_COMPONENTS = %i[notary_fees property_tax business_tax income_tax social_charges
                       capital_gain_tax].freeze
 
-  # Le compte de résultat d'une année : hors meublé, la provision remboursée n'est ni un revenu ni une charge.
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :loan_insurance, :capital_repayment,
                     :taxation, :gain, :immobilized_capital, :property_value,
@@ -28,17 +20,15 @@ class Projection
 
     def capital_gain_tax = gain.total
 
-    # L'annuité porte les deux ensemble ; la fiche, qui les détaille, les redemande séparés.
     def interest_excluding_insurance = loan_interest - loan_insurance
 
-    # Les intérêts sont une charge ; le capital rendu, non — il ne passe qu'au cash-flow.
+    # Les intérêts sont une charge, le capital rendu non : il va au cash-flow.
     def pre_tax_result = rent_excluding_charges - charges_excluding_provision - loan_interest
 
     def net_result = pre_tax_result - taxes
 
     def cash_flow = net_result - capital_repayment
 
-    # Ce que le meublé déclare et déduit : la provision voyage alors des deux côtés du résultat.
     def rent_including_charges = rent_excluding_charges + provision_for_charges
 
     def charges_including_provision = charges_excluding_provision + provision_for_charges
@@ -50,7 +40,6 @@ class Projection
     def sale_proceeds = property_value - sale_costs - capital_gain_tax - remaining_loan_capital -
                         early_repayment_fee
 
-    # Les loyers déjà encaissés ont d'eux-mêmes entamé le capital qui reste engagé.
     def sale_profit = sale_proceeds - immobilized_capital
   end
 
@@ -67,10 +56,9 @@ class Projection
 
   def year(number) = years.find { |year| year.number == number }
 
-  # Le meublé déclare la provision et déduit tout ce qu'elle couvre ; le foncier la laisse dehors.
+  # Le meublé déclare la provision et déduit ce qu'elle couvre, le foncier non.
   def provision_in_receipts? = Taxation.regime(regime).provision_in_receipts?
 
-  # Le libellé du loyer dit ce que l'année déclare, et sert de clé de traduction dans les deux sens.
   def rent_column = provision_in_receipts? ? "annual_rent_including_charges_column" : "annual_rent_column"
 
   def rent_of(year) = provision_in_receipts? ? year.rent_including_charges : year.rent_excluding_charges
@@ -85,10 +73,6 @@ class Projection
 
   def total_taxes = years.sum(&:taxes)
 
-  # Ce qu'une opération arrêtée cette année-là aura payé d'impôt, poste par poste : les frais de
-  # notaire du premier jour, la taxe foncière et la CFE de chaque année tenue, l'IR et les
-  # prélèvements sociaux des loyers, et l'impôt que la revente coûte. Un régime qui ne paie pas
-  # un poste n'en porte pas la ligne.
   def tax_lines(exit_year)
     lines = years.take(exit_year.number + 1).each_with_object(Hash.new(0)) do |year, totals|
       totals[:property_tax] += charge_lines(year).fetch(:property_tax, 0)
@@ -101,12 +85,10 @@ class Projection
                     .merge(lines).merge(capital_gain_tax: exit_year.capital_gain_tax))
   end
 
-  # Négatif, l'investissement est récupéré.
   def final_immobilized_capital = years.last.immobilized_capital
 
   def purchase_price = @simulation.purchase_price
 
-  # Ce dont la revente part : le prix payé plus la décote, que le premier jour a déjà acquise.
   def market_value = @simulation.market_value
 
   def purchase_discount = @simulation.purchase_discount
@@ -115,27 +97,21 @@ class Projection
 
   def initial_outlay = @simulation.initial_outlay(regime)
 
-  # Chaque année recalcule son impôt pour dire son cash-flow : on ne le lui demande qu'une fois.
   def cash_flows = @cash_flows ||= years.map(&:cash_flow)
 
-  # Ce que l'année a déjà rendu de l'investissement : le capital immobilisé s'en déduit.
   def cumulative_cash_flow(year) = cash_flows.take(year.number + 1).sum
 
-  # Le taux annuel qu'aurait rendu l'opération revendue cette année-là, en pourcentage.
   def internal_rate_of_return(year) = rate_of_return(year).percentage
 
-  # Le taux lui-même, que Simulation::BestReturn départage par actualisation sans le calculer.
   def rate_of_return(year)
     @rates_of_return ||= {}
     @rates_of_return[year.number] ||= InternalRateOfReturn.new(exit_cash_flows(year))
   end
 
-  # Le loyer de l'année tel qu'il se perçoit : au mois, la provision comptée à part.
   def monthly_rent_of(year) = indexed(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, year)
 
   def monthly_provision_of(year) = indexed(@simulation.monthly_charges, @simulation.inflation_rate, year)
 
-  # Chaque poste de charge tel que l'inflation l'a porté, et ce que le régime y ajoute de lui-même.
   def charge_lines(year)
     return {} if year.number.zero?
 
@@ -146,7 +122,6 @@ class Projection
     without_zeros(lines.merge(year.taxation.own_charge_lines))
   end
 
-  # Les frais de revente suivent l'inflation depuis la signature, l'année de vente comprise.
   def sale_cost_lines(year)
     costs = @simulation.sale_costs
     lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment }
@@ -156,8 +131,6 @@ class Projection
 
   private
 
-  # Ce que l'opération encaisse et débourse si elle s'arrête cette année-là : l'investissement
-  # du premier jour, les cash-flows des années tenues, et le produit de la revente sur la dernière.
   def exit_cash_flows(year)
     return [] if year.number.zero?
 
@@ -168,7 +141,6 @@ class Projection
     flows
   end
 
-  # Les montants saisis courent sur douze mois ; le prix du bien, lui, a déjà pris une année au premier anniversaire.
   def build_years
     outlay = initial_outlay
     interest = @simulation.loan.annual_interest
@@ -190,8 +162,7 @@ class Projection
       property_value = compound(@simulation.market_value, @simulation.property_growth_rate, number)
       taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation)
       deferred_depreciation = taxation.carried_forward_depreciation
-      # Revendre reprend le bâti déduit jusque-là, l'année en cours comprise — ni les travaux, ni
-      # les meubles, ni ce qui attend encore en report.
+      # Revendre ne reprend que le bâti déduit : ni travaux ni report.
       cumulative_depreciation += taxation.deducted_depreciation_lines.fetch(:building, 0)
       gain = @simulation.capital_gain_taxation(property_value, number, depreciation: cumulative_depreciation)
 
@@ -218,10 +189,6 @@ class Projection
     end
   end
 
-  # C'est le régime qui sait quels montants il retient — la provision, par exemple, en meublé seulement.
-  # Les charges qu'il ajoute lui-même ne lui sont pas repassées : il les connaît déjà, et les déduit
-  # ou non selon qu'il est au réel ou au forfait.
-  # Les charges propres du régime suivent l'inflation comme les autres : elles se paient au prix de l'année.
   def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation = {})
     elapsed = [number - 1, 0].max
     inflation = @simulation.inflation_rate
@@ -233,7 +200,6 @@ class Projection
                                  year: number, deferred_depreciation: deferred_depreciation)
   end
 
-  # Le jour de l'achat : rien n'a couru, la ligne est là pour le capital immobilisé et le prix payé.
   def origin_year
     Year.new(
       number: 0,
@@ -254,11 +220,9 @@ class Projection
     )
   end
 
-  # Les montants saisis décrivent la première année : chaque anniversaire suivant les compose une fois de plus.
   def indexed(amount, rate, year) = compound(amount, rate, year.number - 1)
 
   def without_zeros(lines) = lines.reject { |_, amount| amount.zero? }
 
-  # `to_d` : un taux qu'un formulaire invalide vient de vider se lit comme une absence d'évolution.
   def compound(amount, annual_rate, years) = (amount.to_d * (1 + annual_rate.to_d / 100)**years).round(2)
 end

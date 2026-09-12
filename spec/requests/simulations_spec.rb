@@ -17,7 +17,6 @@ RSpec.describe "Simulations", type: :request do
     ActionController::Base.helpers.number_to_percentage(rate, precision: 1)
   end
 
-  # La fiche d'une année ne vit plus dans la page : elle se demande, et le serveur ne rend qu'elle.
   def statement_doc(simulation, regime, year)
     get statement_simulation_path(simulation, regime: regime, year: year)
 
@@ -30,7 +29,6 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    # Le dernier bien acheté d'abord, quel que soit son taux.
     it "lays the cards out most recent purchase first" do
       create(:simulation, user: user, city: "Rennes", purchase_date: Date.new(2024, 3, 1))
       create(:simulation, user: user, city: "Nantes", purchase_date: Date.new(2026, 1, 15))
@@ -44,7 +42,6 @@ RSpec.describe "Simulations", type: :request do
       expect(cities).to eq(["🏢 Nante-50", "🏢 Brest-50", "🏢 Renne-50"])
     end
 
-    # Une page de cartes à la fois : chacune balaie les quatre régimes sur trente ans.
     context "when the account holds more than a page of them" do
       before do
         stub_const("SimulationsController::PER_PAGE", 2)
@@ -68,7 +65,6 @@ RSpec.describe "Simulations", type: :request do
         expect(cards).to eq(["🏢 Renne-50"])
       end
 
-      # Une page inventée dans l'adresse rend la dernière plutôt qu'une liste vide.
       it "clamps a page number beyond the last one" do
         get simulations_path(page: 9)
 
@@ -76,7 +72,6 @@ RSpec.describe "Simulations", type: :request do
       end
     end
 
-    # Une simulation se reconnaît à son bien : son type, sa ville et sa surface.
     it "names each card after the property it describes" do
       simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
@@ -89,8 +84,6 @@ RSpec.describe "Simulations", type: :request do
       expect(link["href"]).to eq(simulation_path(simulation))
     end
 
-    # 4,04 % au LMNP revendu la trentième année, contre 3,96 au micro-BIC, 3,75 au micro-foncier et
-    # 3,51 au foncier réel : la carte annonce le meilleur des quatre régimes, et l'année qui le donne.
     it "announces the best rate across every regime and every resale year" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800,
                           purchase_date: Date.new(2025, 1, 15))
@@ -105,8 +98,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Les trois chiffres se lisent sous le même régime : il se nomme une fois, devant la revente,
-    # et celle-ci ne le reprend pas — elle n'en cadrait qu'un tiers.
     it "names the winning regime once, above the figures it frames" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -121,8 +112,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".simulation-card-exit").text).not_to include(regime)
     end
 
-    # 216 612 € engagés le premier jour et 9 070,19 € la première année pleine, soit 755,85 € par
-    # mois — l'euro près, la carte se lisant d'un coup d'œil et non à la décimale.
     it "shows what the winning regime asks up front and leaves each month" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
@@ -137,8 +126,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # La date d'achat situe l'horizon et se lit à côté du nom ; l'adresse, quand elle est saisie,
-    # tient la ligne suivante à elle seule.
     it "carries the purchase date beside the name, and the address below it" do
       create(:simulation, user: user, purchase_date: Date.new(2026, 6, 30), address: "14 rue du Beau Laurier")
 
@@ -152,7 +139,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".simulation-card-meta .simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
     end
 
-    # Sans adresse, la ligne qui la portait ne se rend pas : elle aurait coûté sa hauteur pour rien.
     it "drops the address line of a property that has none" do
       create(:simulation, user: user, address: nil)
 
@@ -161,8 +147,6 @@ RSpec.describe "Simulations", type: :request do
       expect(Nokogiri::HTML(response.body).at_css(".simulation-card-meta")).to be_nil
     end
 
-    # On ne modifie rien depuis la liste : la fiche corrige chaque valeur d'un clic. Reste la
-    # corbeille, en tête de carte, hors du lien qui couvre le reste.
     it "carries the delete button alone, in the card header" do
       simulation = create(:simulation, user: user)
 
@@ -177,7 +161,6 @@ RSpec.describe "Simulations", type: :request do
       expect(removal.at_css("button")["aria-label"]).to eq(I18n.t("views.simulations.index.destroy"))
     end
 
-    # Le plus ne dit rien de lui-même : l'action garde son libellé pour qui ne voit pas l'écran.
     it "shrinks the new-simulation label to a plus without losing it" do
       get simulations_path
 
@@ -189,7 +172,6 @@ RSpec.describe "Simulations", type: :request do
       expect(action.at_css(".show-on-mobile").text.strip).to eq("+")
     end
 
-    # Cinq réponses ne valent pas qu'on quitte la liste : le formulaire rapide s'y ouvre en pop-in.
     it "carries the express form in a pop-in rather than sending to another page" do
       get simulations_path
 
@@ -232,7 +214,6 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    # L'horizon plus la ligne de l'achat, qui ne porte que le capital immobilisé le premier jour.
     it "renders one row per year of the horizon, the purchase date opening the table" do
       get simulation_path(simulation)
 
@@ -250,14 +231,12 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Charges, impôt et annuités pèsent sur le cash-flow sans colonne à elles.
     it "renders the year, its month, its rent, its cash flow and the capital still immobilized" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
-      # 11 000 € de loyers, 2 000 € de charges et 1 324,40 € de prélèvements sociaux.
       expect(cells).to eq([
         "1",
         "mar.-2026",
@@ -268,7 +247,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # La pop-in de l'année porte le compte de résultat, du loyer au cash-flow.
     it "renders the statement of each year as a dialog, closed until its row is clicked" do
       doc = statement_doc(simulation, :micro_foncier, 2)
       statement = doc.at_css("dialog#micro_foncier-year-2-statement")
@@ -287,12 +265,10 @@ RSpec.describe "Simulations", type: :request do
         [I18n.t("views.simulations.show.capital_repayment_column"), currency(0).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.cash_flow"), currency(BigDecimal("7675.60")).gsub(/\s+/, " ")]
       ])
-      # La valeur du bien n'est ni un produit ni une charge : elle ne figure pas au compte de résultat.
       result = statement.at_css("#micro_foncier-year-2-result").text.gsub(/\s+/, " ")
       expect(result).not_to include(currency(200_000).gsub(/\s+/, " "))
     end
 
-    # On passe d'une année à l'autre sans refermer la fiche, sauf aux deux bouts de la projection.
     it "offers a step to each neighbouring year, disabled at both ends of the projection" do
       steps = ->(year) do
         statement_doc(simulation, :micro_foncier, year).css(".statement-step").map do |step|
@@ -305,7 +281,6 @@ RSpec.describe "Simulations", type: :request do
       expect(steps.call(Projection::HORIZON_YEARS)).to eq([["-1", nil], ["1", "disabled"]])
     end
 
-    # Le bien vaut toujours 200 000 € : la revente ne doit aucun impôt, mais 900 € de diagnostics et de remise en état.
     it "simulates a sale from the same statement, behind a tab of its own" do
       doc = statement_doc(simulation, :micro_foncier, 2)
       sale = doc.at_css("dialog#micro_foncier-year-2-statement #micro_foncier-year-2-sale")
@@ -327,7 +302,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Le détail se demande : replié sous chaque ligne, il en porte le calcul poste par poste.
     it "folds the calculation of each line under it, hidden until the detail is asked for" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 12,
                                     condominium_fees: 1_500, property_tax: 800,
@@ -342,8 +316,6 @@ RSpec.describe "Simulations", type: :request do
       end
 
       expect(details.map { |detail| detail["hidden"] }).to all(be_truthy)
-      # 12 000 € de loyers et 1 200 € de provision ; 2 300 € de charges dont la provision rembourse 1 200 €.
-      # Micro-foncier : 30 % d'abattement, 8 400 € imposables, 30 % de TMI et 17,2 % de prélèvements sociaux.
       expect(lines).to eq([
         [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_000), months: "12"),
          currency(12_000).gsub(/\s+/, " ")],
@@ -359,8 +331,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # Le LMNP se lit dans son détail : ce qu'il paie vraiment, puis l'amortissement qui n'est
-    # qu'une écriture — il n'apparaît nulle part ailleurs dans le compte de l'année.
     it "shows the accountant among the charges of the LMNP and its depreciation in the tax alone" do
       furnished = create(:simulation, user: user, monthly_rent: 1_000, occupancy_months: 12,
                                       purchase_price: 200_000, accounting_fees: 500, property_tax: 800,
@@ -372,8 +342,6 @@ RSpec.describe "Simulations", type: :request do
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      # 12 600 € de recettes prime de meublé comprise, 1 615 € de charges CFE et comptable compris,
-      # 5 753,76 € d'amortissement du bâti.
       expect(lines).to eq([
         [I18n.t("views.simulations.show.detail_rent_excluding_charges", amount: currency(1_050), months: "12"),
          currency(12_600).gsub(/\s+/, " ")],
@@ -389,8 +357,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # À crédit, la deuxième année : 5 481 € d'intérêts laissent 5 504 € de résultat pour 5 753,76 €
-    # d'annuité et 467,55 € reportés de la première — 717,31 € attendront la troisième, et rien n'est dû.
     it "shows what the LMNP defers and what it takes back from the years before" do
       indebted = create(:simulation, :with_credit, user: user, monthly_rent: 1_000, occupancy_months: 12,
                                                    purchase_price: 200_000, accounting_fees: 500,
@@ -410,8 +376,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # 1 000 € d'entretien et 350 € pour les meubles sont payés en entier, mais 500 € et 280 € ne se
-    # déduisent pas : ils remontent dans l'assiette et reviennent amortis, 41,67 € et 40 € la première année.
     it "shows the upkeep the LMNP capitalizes coming back through the plan" do
       upkept = create(:simulation, user: user, monthly_rent: 1_000, occupancy_months: 12, purchase_price: 200_000,
                                    accounting_fees: 500, maintenance: 1_000, furniture_maintenance: 350)
@@ -432,7 +396,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Une explication au survol, à côté du libellé : la fiche explique sans devenir un texte.
     it "carries a hover explanation beside the labels that need one" do
       hint = statement_doc(simulation, :micro_foncier, 1).at_css(".statement-hint")
 
@@ -440,7 +403,6 @@ RSpec.describe "Simulations", type: :request do
       expect(hint["aria-label"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
     end
 
-    # La revente détaille ce qu'elle coûte et l'impôt qu'elle doit, à même la fiche.
     it "details the costs and the capital gain tax of a sale" do
       growing = create(:simulation, user: user, property_growth_rate: 2)
 
@@ -450,8 +412,6 @@ RSpec.describe "Simulations", type: :request do
          line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      # 200 000 € à 2 % pendant dix ans : 243 798,88 €, pour une valeur fiscale de 246 612 € travaux forfaitaires
-      # compris — pas de plus-value, donc pas d'impôt à détailler. Dix cash-flows de 8 444,16 € sont encaissés.
       expect(lines).to eq([
         [I18n.t("views.simulations.show.detail_purchase_price"), currency(200_000).gsub(/\s+/, " ")],
         [I18n.t("views.simulations.show.detail_property_growth"), currency(BigDecimal("43798.88")).gsub(/\s+/, " ")],
@@ -463,7 +423,6 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    # 200 000 € payés pour un bien qui en vaut 220 000 : la revente le dit sur une ligne à elle.
     it "names the discount obtained at the purchase in the value of the property" do
       discounted = create(:simulation, user: user, purchase_discount: 20_000)
 
@@ -474,7 +433,6 @@ RSpec.describe "Simulations", type: :request do
                                     I18n.t("views.simulations.show.detail_purchase_discount")])
     end
 
-    # Le tableau ne montre que le loyer hors charges, et la fiche des charges allégées d'autant.
     it "shows the rent excluding charges and says discreetly what the provision took off them" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
                                     occupancy_months: 12, condominium_fees: 1_500)
@@ -492,8 +450,6 @@ RSpec.describe "Simulations", type: :request do
         .to eq(currency(-300).gsub(/\s+/, " "))
     end
 
-    # Le meublé déclare les 13 800 € encaissés, prime comprise, et déduit ses 1 815 € de charges, sans
-    # note : il déduit tout.
     it "shows the rent charges included and the whole charges under the micro-BIC" do
       let_out = create(:simulation, user: user, monthly_rent: 1_000, monthly_charges: 100,
                                     occupancy_months: 12, condominium_fees: 1_500)
@@ -513,7 +469,6 @@ RSpec.describe "Simulations", type: :request do
         .to eq(currency(-1_815).gsub(/\s+/, " "))
     end
 
-    # Deux lectures d'une seule et même projection : même horizon, régime à part.
     it "opens a tab of its own on the foncier réel projection" do
       get simulation_path(simulation)
 
@@ -534,7 +489,6 @@ RSpec.describe "Simulations", type: :request do
         [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
       end
 
-      # 9 000 € d'assiette et 1 548 € de prélèvements, là où le micro-foncier en compte 1 324,40 €.
       expect(cells).to eq([
         "1",
         "mar.-2026",
@@ -549,7 +503,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # 11 550 € de loyer prime comprise, moitié imposée à 18,6 % : 1 074,15 € d'impôt, et 315 € de CFE.
     it "opens a tab of its own on the micro-BIC projection, half the receipts taxed" do
       get simulation_path(simulation)
 
@@ -576,29 +529,24 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # La même année sous quatre régimes : le meublé y met sa prime de loyer, sa CFE et son impôt.
     it "renders the same year under every regime, the furnished rent and the tax apart" do
       statements = Taxation::NAMES.index_with do |regime|
         statement_doc(simulation, regime, 1)
           .css("##{regime}-year-1-result .statement-line").to_h do |line|
-          # Le libellé seul : les notes qui le suivent disent justement ce qui distingue le régime.
           [line.at_css(".statement-label").children.first.text.strip,
            line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
         end
       end
       taxed = ["income_tax_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
-      # Le meublé titre son loyer autrement, et sa CFE alourdit ses charges jusqu'au résultat avant impôt.
       own = taxed + ["annual_charges_column", "pre_tax_result", "annual_rent_column",
                      "annual_rent_including_charges_column"].map { |key| I18n.t("views.simulations.show.#{key}") }
 
-      # Deux loyers seulement : 11 000 € au nu, et 5 % de plus au meublé.
       expect(statements.values.map { |lines| lines.values.first })
         .to eq([11_000, 11_000, 11_550, 11_550].map { |amount| currency(amount).gsub(/\s+/, " ") })
       expect(statements.values.map { |lines| lines.except(*own) }.uniq.size).to eq(1)
       expect(statements.values.map { |lines| lines.values_at(*taxed) }.uniq.size).to eq(Taxation::NAMES.size)
     end
 
-    # C'est à 30 % de barème et à crédit que les régimes s'écartent le plus : les intérêts s'y déduisent.
     it "separates the regimes furthest when a real bracket meets deducted interest" do
       taxed = create(:simulation, :with_credit, user: user, purchase_date: Date.new(2025, 3, 10),
                                                 purchase_price: 200_000, initial_works: 0,
@@ -612,7 +560,6 @@ RSpec.describe "Simulations", type: :request do
         end
       end
 
-      # Le forfait impose 7 700 € ; le réel, les 4 601,21 € que charges et intérêts laissent des loyers.
       expect(amounts[:micro_foncier]).to include(
         I18n.t("views.simulations.show.income_tax_column") => currency(BigDecimal("-3634.40")).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.net_result") => currency(BigDecimal("966.81")).gsub(/\s+/, " "),
@@ -625,7 +572,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # La barre ne porte qu'un onglet fiscal, sur le foncier réel ; les autres régimes sont dans sa liste.
     it "carries a single taxation tab, on the real regime, and the others in its dropdown" do
       get simulation_path(simulation)
 
@@ -640,7 +586,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#regime-foncier_reel")["aria-checked"]).to eq("true")
     end
 
-    # `tab` rouvre l'onglet d'où l'on revient : son panneau est le seul que le serveur montre.
     it "opens the panel that tab names and leaves the others hidden" do
       get simulation_path(simulation, tab: "foncier_reel")
 
@@ -651,7 +596,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#tab-foncier_reel")["aria-selected"]).to eq("true")
     end
 
-    # `regime` rouvre l'onglet fiscal sur le régime choisi, même depuis un autre onglet.
     it "opens the taxation tab on the regime that regime names" do
       get simulation_path(simulation, tab: "parameters", regime: "lmnp")
 
@@ -661,11 +605,9 @@ RSpec.describe "Simulations", type: :request do
       expect(toggle["id"]).to eq("tab-lmnp")
       expect(toggle.text.strip).to eq(I18n.t("views.simulations.show.tab_lmnp"))
       expect(doc.at_css("#regime-lmnp")["aria-checked"]).to eq("true")
-      # Le panneau ouvert reste celui de l'onglet : le régime n'en change pas.
       expect(doc.at_css("#panel-parameters")["hidden"]).to be_nil
     end
 
-    # Une valeur corrigée revient sur les paramètres sans perdre le régime d'où elle part.
     it "carries the opened regime in the url of an editable value" do
       get simulation_path(simulation, tab: "parameters", regime: "lmnp")
 
@@ -675,8 +617,6 @@ RSpec.describe "Simulations", type: :request do
       expect(form["action"]).to eq(simulation_path(simulation, tab: "parameters", regime: "lmnp"))
     end
 
-    # L'en-tête dit le bien : une phrase dont chaque mot saisi se clique, sous le nom de la fiche.
-    # HTML5 parse comme le navigateur : un formulaire dans un paragraphe le fermerait, et la phrase avec.
     it "presents the property in a sentence under the name of the simulation" do
       simulation.update!(address: "14 rue du Beau Laurier")
 
@@ -690,11 +630,9 @@ RSpec.describe "Simulations", type: :request do
       expect(summary.text.gsub(/\s+/, " ").strip)
         .to eq("Appartement de 50 m² au 14 rue du Beau Laurier à Nantes. Acheté le 10 mars 2025.")
       expect(words).to eq(["Appartement", "50 m²", "14 rue du Beau Laurier", "Nantes", "10 mars 2025"])
-      # La phrase se lit depuis tous les onglets : elle vit dans l'en-tête, hors des panneaux.
       expect(doc.at_css("#panel-parameters .summary")).to be_nil
     end
 
-    # Un achat à venir ne s'annonce pas au passé : seul le verbe change, la phrase tient.
     it "announces a purchase still to come in the future" do
       date = Date.current.next_year
       simulation.update!(purchase_date: date, address: "14 rue du Beau Laurier")
@@ -710,7 +648,6 @@ RSpec.describe "Simulations", type: :request do
                "Achat prévu le #{I18n.l(date, format: :long)}.")
     end
 
-    # Le DPE se lit d'un coup d'œil à côté du nom, dans la couleur de sa classe, et s'y corrige.
     it "labels the energy rating beside the name, in the colour of its band" do
       simulation.update!(energy_rating: "E")
 
@@ -725,7 +662,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".page-title #simulation_energy_rating")).not_to be_nil
     end
 
-    # Un DPE non renseigné garde son étiquette, sans couleur de classe : c'est par elle qu'on le saisit.
     it "keeps a colourless badge to click when the energy rating is unknown" do
       get simulation_path(simulation)
 
@@ -737,7 +673,6 @@ RSpec.describe "Simulations", type: :request do
         .to eq(I18n.t("views.simulations.show.energy_rating_unknown"))
     end
 
-    # Sans adresse, la phrase le dit à sa place, et le mot reste à cliquer pour la renseigner.
     it "keeps a word to click when the address is not provided" do
       get simulation_path(simulation)
 
@@ -751,7 +686,6 @@ RSpec.describe "Simulations", type: :request do
       expect(address.at_css(".inline-edit-display").text).to eq(I18n.t("views.simulations.show.address_not_provided"))
     end
 
-    # Les frais de notaire ne sont pas un champ : la fiche les calcule d'après le prix, et le total tire le trait.
     it "adds up the purchase, notary fees included, into the cost of the project" do
       get simulation_path(simulation)
 
@@ -772,7 +706,6 @@ RSpec.describe "Simulations", type: :request do
         .to eq(I18n.t("views.simulations.show.project_cost"))
     end
 
-    # Les meubles ne se paient que sous un régime du meublé : la ligne et le total lui sont réservés.
     it "reserves the furniture and the cost it adds to the furnished regimes" do
       simulation.update!(furniture: 2_110)
 
@@ -792,7 +725,6 @@ RSpec.describe "Simulations", type: :request do
       expect(totals["lmnp"]).to eq(currency(238_722).gsub(/\s+/, " "))
     end
 
-    # Le loyer se lit sur la fiche au mois, comme un bail l'énonce.
     it "details the letting, its rent first" do
       get simulation_path(simulation)
 
@@ -807,11 +739,9 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:monthly_charges) => currency(0).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:occupancy_months) => I18n.t("views.simulations.show.occupancy_value", months: 11)
       )
-      # Onze mois loués, et non douze : la vacance se paie.
       expect(section.at_css(".sum-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
-    # Le loyer saisi est celui d'un nu : le meublé lit le sien, majoré, sous ses deux régimes.
     it "reads the rent raised by the premium under the furnished regimes" do
       get simulation_path(simulation)
 
@@ -822,9 +752,7 @@ RSpec.describe "Simulations", type: :request do
         [node["data-regimes"], node.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
-      # 1 000 € majorés de 5 % font 1 050 €, et onze mois loués 11 550 €.
       expect(premiums.map { |node| node["data-regimes"] }).to eq(["micro_bic", "lmnp"])
-      # Le loyer saisi cède la place au loyer meublé au lieu de se lire à côté de lui.
       expect(section.css(".detail-item").find { |node| node.at_css(".detail-label").text.strip == Simulation.human_attribute_name(:monthly_rent) }["data-regimes"])
         .to eq("micro_foncier foncier_reel")
       expect(premiums.map { |node| node.at_css(".detail-value").text.gsub(/\s+/, " ").strip })
@@ -847,7 +775,6 @@ RSpec.describe "Simulations", type: :request do
       expect(labels).to include(*Simulation::ANNUAL_CHARGES.map { |charge| Simulation.human_attribute_name(charge) })
     end
 
-    # La CFE ne se saisit pas et ne pèse que sur le meublé : sa ligne n'appartient qu'à ces régimes.
     it "shows the business tax among the charges, kept for the furnished regimes" do
       get simulation_path(simulation)
 
@@ -861,7 +788,6 @@ RSpec.describe "Simulations", type: :request do
       expect(item["data-regimes"]).to eq("micro_bic lmnp")
     end
 
-    # Le comptable se saisit, lui, mais un seul régime le paie.
     it "shows the accounting fees among the charges, kept for the LMNP regime" do
       get simulation_path(simulation)
 
@@ -874,7 +800,6 @@ RSpec.describe "Simulations", type: :request do
       expect(item.at_css("form")).not_to be_nil
     end
 
-    # Le total suit le régime ouvert : le micro-BIC y ajoute la CFE, le LMNP le comptable en plus.
     it "totals the charges once per regime" do
       simulation.update!(accounting_fees: 500)
       get simulation_path(simulation)
@@ -893,9 +818,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # Le plan du LMNP se lit sous son seul régime : 216 612 € moins 15 % de terrain sur 32 ans,
-    # 12 000 € de travaux sur douze, 2 100 € de meubles sur sept, et les 500 € de gros travaux que
-    # chaque année ouvre sur douze ans.
     it "details the depreciation plan for the LMNP alone" do
       simulation.update!(initial_works: 12_000, furniture: 2_100)
       get simulation_path(simulation)
@@ -925,7 +847,6 @@ RSpec.describe "Simulations", type: :request do
       )
     end
 
-    # On corrige un chiffre là où on le lit : pas de bouton Modifier, pas de bouton Enregistrer.
     it "carries a field of its own behind each value the user answered" do
       get simulation_path(simulation)
 
@@ -939,7 +860,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#simulation_monthly_rent")["value"]).to eq("1000.0")
     end
 
-    # Le texte reste la valeur mise en forme : le champ, lui, porte le chiffre brut.
     it "shows each value as text until its field is asked for" do
       get simulation_path(simulation)
 
@@ -952,13 +872,11 @@ RSpec.describe "Simulations", type: :request do
       expect(item.at_css("form")["hidden"]).not_to be_nil
     end
 
-    # Un achat comptant n'a rien à amortir : l'onglet du tableau ne s'ouvre pas.
     it "carries no amortization tab without a credit" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("#tab-amortization")).to be_nil
-      # Les paramètres, la fiscalité, la comparaison et le contexte : les régimes n'en font qu'un.
       expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(4)
     end
 
@@ -978,7 +896,6 @@ RSpec.describe "Simulations", type: :request do
         expect(doc.css("[data-controller=tabs] > .tabs .tab").size).to eq(5)
         expect(doc.css("#panel-amortization tbody tr").size).to eq(on_credit.loan.duration_months)
 
-        # La mensualité de la ligne est ce que la banque prélève, prime comprise.
         cells = doc.css("#panel-amortization tbody tr").first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
         expect(cells.first).to eq("1")
         expect(cells.second).to include("05 avril 2025")
@@ -986,7 +903,6 @@ RSpec.describe "Simulations", type: :request do
         expect(cells[5]).to eq(currency(19.32).gsub(/\s+/, " "))
       end
 
-      # L'annuité n'a pas de colonne : elle se lit sur le cash-flow des années où le crédit court.
       it "takes the annuity out of the cash flow without giving it a column" do
         get simulation_path(on_credit)
 
@@ -994,14 +910,12 @@ RSpec.describe "Simulations", type: :request do
         headers = doc.css("#panel-micro_foncier thead th").map { |th| th.text.strip }
         cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
-        # Année, date, loyers, cash-flow, capital immobilisé, TRI.
         expect(headers.size).to eq(6)
         expect(cells.third).to eq(currency(11_000).gsub(/\s+/, " "))
         expect(cells.fourth)
           .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment).gsub(/\s+/, " "))
       end
 
-      # Intérêts et prime sont une charge, le capital rendu non : il passe sous le résultat net.
       it "splits the annuity between the interest it charges and the capital it gives back" do
         statement = statement_doc(on_credit, :micro_foncier, 1)
         amounts = statement.css(".statement-line").to_h do |line|
@@ -1017,7 +931,6 @@ RSpec.describe "Simulations", type: :request do
         )
       end
 
-      # Seuls l'apport et les frais de la signature s'immobilisent : le capital se rend par les annuités.
       it "details the credit and immobilizes the down payment and the fees of the signature" do
         get simulation_path(on_credit)
 
@@ -1032,12 +945,10 @@ RSpec.describe "Simulations", type: :request do
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_guarantee_fees) => currency(3_220).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:loan_application_fees) => currency(1_932).gsub(/\s+/, " "),
-          # 1 071,62 d'échéance et 19,32 d'assurance se lisent d'un bloc.
           Simulation.human_attribute_name(:monthly_payment) =>
             "#{currency(1_090.94)} #{I18n.t('views.simulations.show.insurance_included',
                                             amount: currency(19.32))}".gsub(/\s+/, " ")
         )
-        # 23 388 d'apport, 3 220 de cautionnement et 1 932 de frais de dossier : le capital, lui, reste dehors.
         outlay = section.at_css(".sum").css(".detail-item").to_h do |item|
           [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
         end
@@ -1052,8 +963,6 @@ RSpec.describe "Simulations", type: :request do
       end
     end
 
-    # Un onglet met les quatre régimes sur les mêmes axes : le capital encore engagé, ce que
-    # revendre cette année-là laisserait, et le taux que l'opération aurait rendu.
     context "the comparison tab" do
       let(:neutral) { create(:simulation, user: user) }
 
@@ -1070,8 +979,6 @@ RSpec.describe "Simulations", type: :request do
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
       end
 
-      # Le micro-foncier ne rend un taux positif qu'à partir de la troisième année : sa courbe
-      # ne part que de là, et l'axe des taux commence au zéro plutôt qu'au plus bas des quatre.
       it "leaves the years without a positive rate off the rate chart" do
         get simulation_path(neutral)
 
@@ -1083,9 +990,6 @@ RSpec.describe "Simulations", type: :request do
         expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
       end
 
-      # La fiche revend la quinzième année à défaut : 16 612 € de frais de notaire et, au
-      # micro-foncier, 17,2 % des 6 720 € imposables que laissent 9 600 € de loyers, quinze fois.
-      # Le barème n'atteint pas ce foyer, qui ne paie ni taxe foncière ni CFE.
       it "stacks the taxes paid up to the year of sale, one bar per regime" do
         get simulation_path(neutral)
 
@@ -1101,8 +1005,6 @@ RSpec.describe "Simulations", type: :request do
           .to eq(currency(33_950, precision: 0).gsub(/\s+/, " "))
       end
 
-      # Le prix n'a pas bougé et personne ne dégage de plus-value — sauf le LMNP, à qui la revente
-      # reprend quinze ans d'amortissements et qui seul porte la ligne.
       it "taxes the sale of the LMNP alone when the price has not moved" do
         get simulation_path(neutral)
 
@@ -1114,8 +1016,6 @@ RSpec.describe "Simulations", type: :request do
         expect(chart.css("rect.chart-tax-capital_gain_tax").map { |rect| rect["x"] }).to eq([columns.last])
       end
 
-      # L'année de revente ne redessine que son cadre : la fiche entière ne repart pas, et la
-      # dixième année ajoute l'impôt d'une plus-value que la trentième aurait effacé.
       it "redraws the tax chart alone on the chosen year of sale" do
         selling = create(:simulation, user: user, property_growth_rate: 5)
 
@@ -1130,7 +1030,6 @@ RSpec.describe "Simulations", type: :request do
           .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))
       end
 
-      # Une année hors de l'horizon ne casse rien : la fiche revend celle où la liste la lit.
       it "falls back on the year the listing reads" do
         get simulation_path(neutral, tab: "comparison", exit_year: 99)
 
@@ -1140,7 +1039,6 @@ RSpec.describe "Simulations", type: :request do
           .to eq(I18n.t("views.simulations.show.exit_year", year: 15))
       end
 
-      # Les flèches font défiler les années une à une, et s'éteignent aux deux bords de l'horizon.
       it "steps to the neighbouring years and stops at the edges" do
         get simulation_path(neutral, tab: "comparison", exit_year: 1)
 
@@ -1167,7 +1065,6 @@ RSpec.describe "Simulations", type: :request do
                           initial_works: 20_000, monthly_rent: 1_000, occupancy_months: 11)
     end
 
-    # Les cent vingt-quatre fiches d'année pesaient quatre-vingts pour cent de la page : elles se demandent.
     it "leaves the statements out of the listing until one is asked for" do
       get simulation_path(simulation)
 
@@ -1175,7 +1072,6 @@ RSpec.describe "Simulations", type: :request do
       expect(response.body).to include("panel-micro_foncier")
     end
 
-    # Rendue seule, la fiche ne coûte que son régime et porte la même année que le tableau.
     it "renders the statement of one year under one regime" do
       get statement_simulation_path(simulation, regime: :foncier_reel, year: 1)
 
@@ -1211,7 +1107,6 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "PATCH /simulations/:id" do
-    # Le nom suit le bien : corriger la ville, c'est renommer la simulation.
     it "renames the simulation by moving the property" do
       simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 
@@ -1220,7 +1115,6 @@ RSpec.describe "Simulations", type: :request do
       expect(simulation.reload.name).to eq("🏠 Nante-63")
     end
 
-    # Le formulaire de modification rassemble les cinq pages, la case du crédit comprise.
     it "turns a purchase paid outright into a purchase financed by a credit" do
       simulation = create(:simulation, user: user, purchase_price: 200_000, initial_works: 0)
 
@@ -1232,7 +1126,6 @@ RSpec.describe "Simulations", type: :request do
                                                    borrowed_capital: 193_224)
     end
 
-    # L'indemnité de remboursement anticipé se décoche : c'est une clause qui se négocie.
     it "waives the early repayment indemnity when the box is unchecked" do
       simulation = create(:simulation, :with_credit, user: user)
 
@@ -1251,7 +1144,6 @@ RSpec.describe "Simulations", type: :request do
       expect(simulation.reload.monthly_rent).to eq(1_000)
     end
 
-    # Tout est dérivé : un loyer corrigé refait la projection, d'où la fiche entière en retour.
     it "returns the whole page when a single value is saved on its own" do
       simulation = create(:simulation, user: user, monthly_rent: 800, occupancy_months: 12)
 
@@ -1263,13 +1155,11 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css("turbo-stream")["target"]).to eq("simulation_#{simulation.id}")
-      # L'onglet d'où part la correction est celui qui se rouvre.
       expect(doc.at_css("#panel-micro_foncier")["hidden"]).to be_nil
       expect(doc.at_css("#panel-parameters .detail-value").text).to be_present
       expect(doc.css("#panel-micro_foncier tbody tr")[1].text).to include(currency(12_000).gsub(/\s+/, " "))
     end
 
-    # Un refus ne renvoie pas la fiche : elle porte encore la valeur d'avant, seul le message change.
     it "answers a refused value with the message alone" do
       simulation = create(:simulation, user: user, monthly_rent: 800)
 
@@ -1284,7 +1174,6 @@ RSpec.describe "Simulations", type: :request do
         .to include(Simulation.human_attribute_name(:monthly_rent), "doit être supérieur ou égal à 0")
     end
 
-    # Les étapes n'ont de sens que pour qui découvre le formulaire : la modification tient sur une page.
     it "edits every page of the creation on a single form" do
       simulation = create(:simulation, user: user)
 
@@ -1310,7 +1199,6 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "the navigation shell" do
-    # La marque mène à l'accueil : la liste des simulations se prend dans le menu.
     it "carries the simulations and the general settings in the top menu of a signed-in user" do
       get simulations_path
 
@@ -1322,7 +1210,6 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".nav-user-name").text).to eq(user.email)
     end
 
-    # Sur mobile le burger commande le panneau : le compte et la déconnexion y sont avec les liens.
     it "folds the menu, the account and the sign out behind one button" do
       get simulations_path
 

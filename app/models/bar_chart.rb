@@ -1,6 +1,5 @@
-# Une barre par régime fiscal, empilée poste par poste, ramenée aux coordonnées d'un SVG : la
-# vue n'a plus qu'à tracer les rectangles. L'échelle part du zéro — ce sont des sommes payées,
-# elles ne descendent pas — et un poste trop mince pour porter son montant le laisse dehors.
+# Une barre par régime fiscal, empilée poste par poste, en coordonnées d'un SVG. L'échelle
+# part du zéro — ce sont des sommes payées — et un poste trop mince ne porte pas son montant.
 class BarChart
   WIDTH = 960
   HEIGHT = 380
@@ -8,10 +7,9 @@ class BarChart
 
   GRID_LINES = 4
 
-  # La part de sa colonne qu'une barre occupe : le reste sépare les régimes.
   BAR_RATIO = BigDecimal("0.5")
 
-  # Sous cette hauteur, le montant du poste ne tiendrait pas dans son rectangle.
+  # Sous cette hauteur, le montant ne tiendrait pas dans son rectangle.
   LABEL_MIN_HEIGHT = 16
 
   Bar = Struct.new(:name, :label, :lines, keyword_init: true) do
@@ -30,7 +28,6 @@ class BarChart
     @bars = bars
   end
 
-  # Les postes s'empilent dans l'ordre où le régime les donne, le premier posé sur le zéro.
   def segments(bar)
     base = 0
 
@@ -43,7 +40,6 @@ class BarChart
     end
   end
 
-  # Les postes qu'au moins un régime paie, dans l'ordre de la pile : la légende les reprend.
   def components = bars.flat_map { |bar| bar.lines.keys }.uniq
 
   def x(index) = (MARGIN[:left] + (index + 0.5) * column_width).round(2)
@@ -68,7 +64,6 @@ class BarChart
 
   def plot_height = HEIGHT - MARGIN[:top] - MARGIN[:bottom]
 
-  # La borne haute tombe sur un multiple du pas : les repères se lisent en chiffres ronds.
   def high = @high ||= (highest / step).ceil * step
 
   def highest = @highest ||= [bars.map(&:total).max.to_d, 1].max
@@ -77,7 +72,6 @@ class BarChart
     @step ||= nice_step(highest)
   end
 
-  # Le pas d'un axe se prend dans la suite 1, 2, 5 : c'est là que les chiffres restent ronds.
   def nice_step(range)
     magnitude = BigDecimal(10)**Math.log10((range / GRID_LINES).to_f).floor
 

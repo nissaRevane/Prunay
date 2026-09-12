@@ -1,5 +1,5 @@
-<%# Les messages du serveur, dans un bloc à part : une valeur refusée par l'autoenregistrement
-    n'a que lui à remplacer. %>
+<%# Les messages du serveur, dans un bloc à part : une valeur refusée par
+    l'autoenregistrement n'a que lui à remplacer. %>
 <% { notice: "alert-success", alert: "alert-danger" }.each do |key, style| %>
   <% if flash[key].present? %>
     <div class="<%= class_names("alert", style) %>" data-controller="alert" data-alert-target="container">

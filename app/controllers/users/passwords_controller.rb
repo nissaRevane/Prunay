@@ -1,6 +1,6 @@
 module Users
-  # Chaque demande part en courrier : mieux vaut qu'un robot n'en déclenche pas mille.
   class PasswordsController < Devise::PasswordsController
+    # Chaque demande part en courrier : cinq par heure et par IP.
     throttle name: "reset_password", to: 5, within: 1.hour, only: :create
   end
 end

@@ -1,11 +1,8 @@
 require "rails_helper"
 
-# Le micro-foncier tient en trois nombres : un abattement de 30 %, la tranche du foyer et
-# 17,2 % de prélèvements sociaux. Les exemples les prennent un par un, puis ensemble.
 RSpec.describe Taxation::MicroFoncier do
   subject(:taxation) { described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 30) }
 
-  # L'abattement tient lieu de toute charge déductible : c'est ce que le régime a de simple.
   describe "#allowance" do
     it "takes 30 per cent of the rent, whatever the charges really were" do
       expect(taxation.allowance).to eq(3_600)
@@ -19,7 +16,6 @@ RSpec.describe Taxation::MicroFoncier do
     end
   end
 
-  # 8 400 € imposables : 30 % de barème, et 17,2 % de prélèvements sociaux par-dessus.
   describe "the two levies" do
     it "applies the bracket of the household to what is taxable" do
       expect(taxation.income_tax).to eq(2_520)
@@ -34,7 +30,6 @@ RSpec.describe Taxation::MicroFoncier do
     end
   end
 
-  # Le forfait tient lieu des charges réelles : les lui donner ne change rien à l'assiette.
   it "deducts neither the real charges nor the loan interest" do
     with_charges = described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 30,
                                        charges: 2_000, loan_interest: 5_000)
@@ -43,7 +38,6 @@ RSpec.describe Taxation::MicroFoncier do
     expect(with_charges.total).to eq(BigDecimal("3964.80"))
   end
 
-  # Une tranche à zéro n'exonère de rien : 17,2 % des 70 % imposables, soit 12,04 % du loyer.
   it "still levies the social charges on a household the scale does not reach" do
     untaxed = described_class.new(rent_excluding_charges: 12_000, marginal_tax_rate: 0)
 
@@ -55,7 +49,6 @@ RSpec.describe Taxation::MicroFoncier do
     expect(described_class.new(rent_excluding_charges: 0, marginal_tax_rate: 45).total).to eq(0)
   end
 
-  # `to_d` comme dans Loan : un taux entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer bracket as a rate and not as a division" do
     expect(described_class.new(rent_excluding_charges: 10_000, marginal_tax_rate: 45).income_tax).to eq(3_150)
   end

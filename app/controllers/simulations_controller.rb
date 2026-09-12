@@ -1,12 +1,11 @@
 class SimulationsController < ApplicationController
   include RendersSimulation
 
-  # Une carte coûte le balayage des quatre régimes sur trente ans : la liste s'en tient à une page.
+  # Une carte coûte le balayage des quatre régimes sur trente ans.
   PER_PAGE = 12
 
   before_action :set_simulation, only: [:show, :tax_burden, :statement, :edit, :update, :destroy]
 
-  # Le dernier bien acheté d'abord, et de quoi en ajouter un sans quitter la liste.
   def index
     owned = current_user.simulations.order(purchase_date: :desc)
 
@@ -16,18 +15,15 @@ class SimulationsController < ApplicationController
     @new_simulation = current_user.simulations.build
   end
 
-  # `tab` dit quel onglet s'ouvre : la fiche y revient après une modification, le premier à défaut.
   def show = assign_detail
 
-  # Le seul cadre de la fiche à se redessiner seul : redessiner tout coûterait les cent vingt TRI
-  # des courbes voisines pour un graphique qui ne les lit pas.
+  # Redessiner toute la fiche coûterait les TRI des courbes voisines pour rien.
   def tax_burden
     render partial: "simulations/tax_burden",
            locals: { simulation: @simulation, projections: @simulation.projections, exit_year: exit_year }
   end
 
-  # Ouverte seule, une fiche d'année ne coûte qu'un régime : les cent vingt-quatre pesaient
-  # quatre-vingts pour cent de la page pour une année que personne n'ouvre.
+  # Les 124 fiches d'année pesaient 80 % de la page ; celle-ci s'ouvre seule.
   def statement
     return head :not_found unless Taxation::NAMES.include?(params[:regime].to_s.to_sym)
 
@@ -37,18 +33,15 @@ class SimulationsController < ApplicationController
     render partial: "simulations/statement", locals: { projection: projection, year: year }
   end
 
-  # La création vit dans Simulations::StepsController : entrer ici oublie le brouillon et rouvre la première page.
   def new
     session.delete(Simulations::StepsController::DRAFT_KEY)
 
     redirect_to new_simulation_step_path(step: Simulation::Step::NAMES.first)
   end
 
-  # Les étapes n'ont de sens que pour qui découvre le formulaire : corriger un chiffre tient sur une page.
   def edit
   end
 
-  # Une valeur cliquée sur la fiche s'enregistre seule ; le formulaire complet, lui, redirige.
   def update
     if @simulation.update(simulation_params)
       respond_to do |format|

@@ -1,5 +1,4 @@
 require "spec_helper"
-# Force the test environment: the containers run with RAILS_ENV=development, and `||=` would leave it there.
 ENV["RAILS_ENV"] = "test"
 require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
@@ -20,7 +19,6 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include Devise::Test::IntegrationHelpers, type: :request
 
-  # Les compteurs du rate limiting survivraient à l'exemple qui les a remplis.
   config.before { Rails.cache.clear }
 end
 

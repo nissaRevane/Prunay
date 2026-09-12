@@ -1,7 +1,5 @@
 require "rails_helper"
 
-# La création d'une simulation, page par page. Rien n'est écrit en base avant la dernière :
-# les tests le vérifient étape par étape, puisque c'est la promesse du formulaire.
 RSpec.describe "Simulation steps", type: :request do
   let(:user) { create(:user) }
 
@@ -16,13 +14,11 @@ RSpec.describe "Simulation steps", type: :request do
   end
 
   PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50" }.freeze
-  # Un achat comptant : sans crédit, la page du crédit ne s'ouvre pas.
   PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
                credit: "0", down_payment: "0" }.freeze
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
   CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16",
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
-  # Le loyer se détaille : 1 000 € hors charges, et 150 € de provision par-dessus.
   RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11" }.freeze
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
               management_fees: "0", rent_guarantee: "0", other_charges: "150" }.freeze
@@ -34,7 +30,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response).to redirect_to(new_simulation_step_path(step: "property"))
     end
 
-    # Un brouillon abandonné ne doit pas ressurgir dans la simulation suivante.
     it "forgets a draft left behind" do
       submit("property", PROPERTY)
 
@@ -71,7 +66,6 @@ RSpec.describe "Simulation steps", type: :request do
       )
     end
 
-    # Cocher le crédit porte le parcours de quatre pages à cinq, et l'achat mène au crédit.
     it "walks a fifth page when the purchase is financed by a credit" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)
@@ -90,7 +84,6 @@ RSpec.describe "Simulation steps", type: :request do
       )
     end
 
-    # Décocher le crédit referme sa page : l'achat mène de nouveau à la location.
     it "closes the credit page again when the purchase goes back to being paid outright" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)
@@ -101,7 +94,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response).to redirect_to(new_simulation_step_path(step: "rental"))
     end
 
-    # Une page hors parcours se traite comme une page qui n'existe pas : on repart du début.
     it "refuses the credit page to a purchase paid outright" do
       submit("property", PROPERTY)
       submit("purchase", PURCHASE)
@@ -111,7 +103,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response).to redirect_to(new_simulation_step_path(step: "property"))
     end
 
-    # Un achat comptant ne garde rien du crédit qu'il a pu déclarer en chemin.
     it "writes nothing of a credit the purchase gave up" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)
@@ -135,7 +126,6 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
-  # Aucune page ne les demande : la simulation naît avec les conditions de l'utilisateur.
   describe "the economic conditions" do
     def walk
       submit("property", PROPERTY)
@@ -144,7 +134,6 @@ RSpec.describe "Simulation steps", type: :request do
       submit("charges", CHARGES)
     end
 
-    # La tranche d'imposition est héritée comme les taux : un champ de plus à ne trouver nulle part.
     it "asks for none of them along the way" do
       names = Assumptions::ECONOMIC.map { |assumption| "simulation[#{assumption}]" }
 
@@ -185,7 +174,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_initial_works")).to eq("0")
     end
 
-    # 650 € pour 50 m² à la racine carrée ; la provision, elle, ne se déduit d'aucune surface.
     it "estimates the rent from the surface, supposes no provision and leaves a month of vacancy" do
       submit("purchase", PURCHASE)
 
@@ -196,7 +184,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_occupancy_months")).to eq("11")
     end
 
-    # 200 m², quatre fois la référence : la racine carrée n'en double que les montants.
     it "estimates every annual charge from the surface" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL)
@@ -210,7 +197,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_other_charges")).to eq("200")
     end
 
-    # Ni gestion déléguée ni garantie des loyers impayés ne se supposent : la page les propose à zéro.
     it "proposes nothing for what it cannot deduce" do
       submit("purchase", PURCHASE)
       submit("rental", RENTAL)
@@ -221,7 +207,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_rent_guarantee")).to eq("0")
     end
 
-    # Les frais de notaire ne se saisissent pas : la page les calcule d'après le prix.
     it "computes the notary fees from the price instead of asking for them" do
       submit("purchase", PURCHASE)
 
@@ -233,7 +218,6 @@ RSpec.describe "Simulation steps", type: :request do
         .to eq(ActionController::Base.helpers.number_to_currency(16_612).gsub(/\s+/, " "))
     end
 
-    # Les références sont celles du compte : 900 € pour 50 m² en font 1 800 pour 200 m².
     it "proposes what the user has settled rather than what Prunay assumes" do
       create(:assumptions, user: user, monthly_rent: 900, occupancy_months: 12, property_tax: 1_000)
 
@@ -250,7 +234,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_property_tax")).to eq("2000")
     end
 
-    # Vingt ans à 3,6 %, et sur 211 612 € empruntés : 21,16 € d'assurance, 3 527,57 € et 2 116,12 € de frais.
     it "proposes twenty years at 3.6 % and the amounts the capital borrowed dictates" do
       submit("purchase", ON_CREDIT)
 
@@ -285,7 +268,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response.body).not_to include("Translation missing")
     end
 
-    # Une page ne juge que ses propres champs, sans quoi le découpage ne servirait à rien.
     it "says nothing about the pages that have not been reached" do
       submit("property", PROPERTY.merge(city: ""))
 
@@ -330,7 +312,6 @@ RSpec.describe "Simulation steps", type: :request do
       expect(steps[1]["class"]).to include("is-current")
     end
 
-    # La barre ne doit annoncer ni une page qui ne s'ouvrira pas, ni taire celle qui s'ouvre.
     it "announces the credit page as soon as the purchase declares one" do
       submit("property", PROPERTY)
       submit("purchase", ON_CREDIT)

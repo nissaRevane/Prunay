@@ -1,6 +1,5 @@
-<%# Le crédit : à gauche le capital et les conditions auxquelles la banque le prête, à droite
-    l'addition de ce que la signature coûte de la poche de l'acheteur. Le capital, lui, n'y
-    entre pas — il se rend par les échéances, que leur propre onglet détaille. %>
+<%# Le crédit : à gauche le capital et les conditions de la banque, à droite ce que la signature
+    coûte de la poche. Le capital se rend par les échéances, dans leur onglet. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.credit_detail") %></h2>
@@ -22,7 +21,6 @@
             class: "form-control", required: true %>
       <% end %>
 
-      <%# L'échéance se lit d'un bloc, assurance comprise ; le clic corrige la part d'assurance. %>
       <%= editable_detail simulation, :loan_insurance, number_to_currency(simulation.loan.total_monthly_payment),
           label: Simulation.human_attribute_name(:monthly_payment),
           note: t("views.simulations.show.insurance_included", amount: number_to_currency(simulation.loan_insurance)) do |f| %>
@@ -47,7 +45,6 @@
         <%= f.number_field :loan_application_fees, step: "0.01", min: "0", class: "form-control", required: true %>
       <% end %>
 
-      <%# Les meubles se paient comptant : ils s'ajoutent à la poche sous les régimes du meublé. %>
       <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regimes_furnished) do %>
         <dt class="detail-label"><%= Simulation.human_attribute_name(:furniture) %></dt>
         <dd class="detail-value"><%= number_to_currency(simulation.furniture) %></dd>

@@ -1,7 +1,5 @@
-<%# Un bien de la liste : le meilleur TRI qu'il permette, le régime et l'année de revente qui le
-    donnent, puis ce qu'il faut avancer et ce qu'il faut porter chaque mois d'ici là. Le titre
-    couvre la carte entière (voir .simulation-card-link), la corbeille passe au-dessus. Rien à
-    modifier ici : chaque valeur se corrige d'un clic sur la fiche. %>
+<%# Un bien de la liste : son meilleur TRI, le régime et l'année qui le donnent, la mise et le
+    cash-flow mensuel. Rien ne s'y modifie : tout se corrige sur la fiche. %>
 <% best = simulation.best_return %>
 <article class="simulation-card">
   <header class="simulation-card-header">
@@ -29,8 +27,6 @@
   <% end %>
 
   <% if best.found? %>
-    <%# Le régime cadre les trois chiffres et non la seule revente : le taux, la mise et le
-        cash-flow se lisent tous sous lui. %>
     <p class="simulation-card-return">
       <span class="simulation-card-regime">
         <%= t("views.simulations.index.under_regime", regime: t("views.simulations.show.tab_#{best.regime}")) %>

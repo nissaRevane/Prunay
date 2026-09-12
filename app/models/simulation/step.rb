@@ -1,10 +1,8 @@
-# Une page de la création. Son nom est aussi un contexte de validation, sa condition dit à qui
-# la page s'ouvre, et ses défauts sont ce qu'elle propose tant que rien n'y a été saisi : les
-# trois se lisent ici, et une page de plus s'ajoute ici et dans les validations du modèle.
+# Une page de la création : son nom est un contexte de validation, sa condition dit à qui elle
+# s'ouvre. Une page de plus s'ajoute ici et dans les validations du modèle.
 module Simulation::Step
   NAMES = %w[property purchase credit rental charges].freeze
 
-  # La page du crédit ne s'ouvre qu'à qui en a coché un : un achat comptant n'a que quatre pages.
   CONDITIONS = { "credit" => :credit? }.freeze
 
   module_function
@@ -17,7 +15,6 @@ module Simulation::Step
     condition.nil? || simulation.public_send(condition)
   end
 
-  # Ils se déduisent des réponses déjà données : la première page n'en propose donc aucun.
   def defaults(name, simulation)
     case name.to_s
     when "purchase" then purchase_defaults(simulation)
@@ -63,7 +60,6 @@ module Simulation::Step
     (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
   end
 
-  # Zéro tant qu'aucun prix n'a été tapé : un dixième de rien ne veut rien dire.
   def down_payment(simulation)
     return 0 if simulation.purchase_price.blank? || simulation.initial_works.blank?
 

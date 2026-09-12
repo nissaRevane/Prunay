@@ -1,40 +1,32 @@
 module SimulationsHelper
-  # Le nom sert de partiel, de traduction, d'identifiant de panneau et de paramètre `tab`.
   PARAMETERS_TAB = "parameters".freeze
   AMORTIZATION_TAB = "amortization".freeze
   ECONOMIC_CONDITIONS_TAB = "economic_conditions".freeze
 
   COMPARISON_TAB = "comparison".freeze
 
-  # L'onglet fiscal n'a pas de panneau à lui : il ouvre celui du régime choisi dans sa liste.
   TAXATION_TAB = "taxation".freeze
 
-  # Ce que l'onglet de comparaison met côte à côte : une année d'un régime se lit sur les trois.
   COMPARISON_MEASURES = %i[immobilized_capital sale_profit internal_rate_of_return].freeze
 
-  # La seule des trois qui se lise en pourcentage, et qu'une année peut ne pas avoir.
   RATE_MEASURE = :internal_rate_of_return
 
   EXIT_YEAR_GLYPHS = { previous: "‹", next: "›" }.freeze
 
-  # Les impôts qui n'ont pas de ligne de charge à qui emprunter leur nom.
   UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
 
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
                         "submit->inline-edit#lock turbo:submit-end->inline-edit#release".freeze
 
-  # Un mot de la phrase n'est pas un bouton : le clavier l'ouvre comme le clic.
   WORD_ACTIONS = "click->inline-edit#open keydown.enter->inline-edit#open keydown.space->inline-edit#open".freeze
 
-  # L'apport que le navigateur recalcule est celui du compte ; les frais de notaire, la loi.
   def credit_values(simulation)
     { credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f, credit_base_value: Simulation::NOTARY_FEES_BASE,
       credit_share_value: (simulation.assumptions.down_payment_share / 100).to_f,
       credit_rounding_value: Simulation::Estimate::ROUNDING }
   end
 
-  # Les listes déroulantes du formulaire : la valeur reste en base, le libellé se traduit.
   def property_type_options
     Simulation::PROPERTY_TYPES.map { |type| [t("simulations.property_types.#{type}"), type] }
   end
@@ -43,12 +35,10 @@ module SimulationsHelper
     Simulation::ENERGY_RATINGS
   end
 
-  # Un booléen se corrige mieux dans une liste que dans une case : la fiche l'affiche déjà ainsi.
   def answer_options
     [[t("views.simulations.show.answer_yes"), true], [t("views.simulations.show.answer_no"), false]]
   end
 
-  # La barre des onglets : un seul pour la fiscalité, et l'amortissement pour qui porte un crédit.
   def simulation_tabs(schedule)
     tabs = [PARAMETERS_TAB, TAXATION_TAB, COMPARISON_TAB]
     tabs << AMORTIZATION_TAB if schedule
@@ -56,7 +46,6 @@ module SimulationsHelper
     tabs << ECONOMIC_CONDITIONS_TAB
   end
 
-  # Un panneau par régime derrière l'onglet fiscal : le serveur les rend tous, un seul se montre.
   def simulation_panels(schedule)
     simulation_tabs(schedule).flat_map { |name| taxation_tab?(name) ? Taxation::NAMES.map(&:to_s) : name }
   end
@@ -65,38 +54,28 @@ module SimulationsHelper
 
   def taxation_regime?(name) = Taxation::NAMES.include?(name.to_s.to_sym)
 
-  # Le régime que l'onglet fiscal présente : celui de l'onglet ouvert, celui d'où l'on revient, le réel à défaut.
   def opened_regime(tab, regime)
     [tab, regime].find { |name| taxation_regime?(name) }&.to_s || Taxation::REVIEW_REGIME.to_s
   end
 
-  # Le panneau d'un régime est titré par son entrée dans la liste déroulante, les autres par leur onglet.
   def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"
 
-  # Les régimes qu'un poste de charge concerne : la CFE ne vaut qu'au meublé, le comptable qu'au LMNP.
   def regimes_paying(simulation, charge)
     Taxation::NAMES.select { |name| simulation.taxation(name).own_charge_lines.key?(charge) }
   end
 
-  # Les régimes qui majorent le loyer saisi : le meublé se loue plus cher que le nu.
   def regimes_with_rent_premium = Taxation::NAMES.select { |name| Taxation.rent_premium_rate(name).positive? }
 
   def regimes_without_rent_premium = Taxation::NAMES - regimes_with_rent_premium
 
-  # Les régimes qui louent meublé : eux seuls achètent les meubles et les entretiennent.
   def regimes_furnished = Taxation::NAMES.select { |name| Taxation.furnished?(name) }
 
-  # La prime du meublé telle que la fiche l'annonce, à côté du loyer qu'elle majore.
   def rent_premium_label(regime) = rate_label(Taxation.rent_premium_rate(regime))
 
-  # Une ligne que le régime ouvert seul mérite : le serveur les rend toutes, l'onglet fiscal choisit.
   def regime_scope(regimes) = { tabs_target: "regimeScoped", regimes: Array(regimes).join(" ") }
 
-  # Ce que le régime paie en plus des charges que tous supportent : son total de l'année.
   def annual_charges_under(simulation, regime) = simulation.annual_charges + simulation.taxation(regime).own_charges
 
-  # Une courbe par régime sur la même mesure : les quatre projections sont déjà là, il n'y a
-  # qu'à leur demander l'année après l'année.
   def comparison_chart(projections, measure)
     LineChart.new(projections.map do |regime, projection|
       LineChart::Series.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
@@ -104,8 +83,6 @@ module SimulationsHelper
     end)
   end
 
-  # Une barre par régime, empilée poste par poste : ce qu'aura coûté d'impôt une opération
-  # arrêtée cette année-là.
   def tax_burden_chart(projections, exit_year)
     BarChart.new(projections.map do |regime, projection|
       BarChart::Bar.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
@@ -113,7 +90,6 @@ module SimulationsHelper
     end)
   end
 
-  # L'année zéro ne revend rien : la flèche s'éteint au premier anniversaire comme à l'horizon.
   def exit_year_step(simulation, year, direction)
     glyph = EXIT_YEAR_GLYPHS.fetch(direction)
     return tag.span(glyph, class: "exit-year-step exit-year-step-off", aria: { hidden: true }) unless year.between?(1, Projection::HORIZON_YEARS)
@@ -129,14 +105,12 @@ module SimulationsHelper
     charge_detail_label(component)
   end
 
-  # Un axe de montants se gradue en euros, un axe de taux en pourcentage.
   def chart_tick_label(value, measure)
     return return_rate_label(value) if rate_measure?(measure)
 
     number_to_currency(value, precision: 0)
   end
 
-  # Une valeur modifiable au clic : le libellé vient du modèle sauf mention contraire, le champ du bloc.
   def editable_detail(simulation, field, value, url: parameters_url(simulation),
                       label: Simulation.human_attribute_name(field), note: nil, value_class: nil,
                       regimes: nil, &block)
@@ -146,8 +120,7 @@ module SimulationsHelper
            }, &block)
   end
 
-  # Un mot de la phrase : bâti sans un blanc pour que la ponctuation lui colle, et un span
-  # plutôt qu'un bouton — Chrome coupe la ligne après un bouton, laissant le point orphelin.
+  # Un span et non un bouton : Chrome coupe la ligne après un bouton.
   def editable_word(simulation, field, value, display_class: nil, &block)
     tag.span(class: "inline-word", data: { controller: "inline-edit" }) do
       tag.span(value, class: class_names("inline-edit-display", display_class),
@@ -157,7 +130,6 @@ module SimulationsHelper
     end
   end
 
-  # L'étiquette énergie à même le nom de la fiche : la couleur de la classe, et la lettre qui se corrige au clic.
   def energy_rating_badge(simulation)
     rating = simulation.energy_rating
     letter = rating.presence || t("views.simulations.show.energy_rating_unknown")
@@ -171,16 +143,13 @@ module SimulationsHelper
     end
   end
 
-  # Une correction rouvre la fiche sur ses paramètres, et l'onglet fiscal sur le régime d'où elle part.
   def parameters_url(simulation) = simulation_path(simulation, tab: PARAMETERS_TAB, regime: params[:regime])
 
-  # Le formulaire d'une valeur corrigée d'un clic : il part seul au changement, sans bouton.
   def inline_edit_form(simulation, url, &block)
     form_with model: simulation, url: url, method: :patch, class: "inline-edit-form", html: { hidden: true },
               data: { inline_edit_target: "form", action: INLINE_EDIT_ACTIONS }, &block
   end
 
-  # Une explication au survol, jamais un pavé : le libellé la porte à côté de lui.
   def statement_hint(key)
     text = t("views.simulations.show.hint_#{key}")
 
@@ -188,7 +157,6 @@ module SimulationsHelper
                   data: { hint: text })
   end
 
-  # Le loyer se saisit au mois : la fiche redit le mois indexé et les mois effectivement loués.
   def rent_detail_lines(projection, year)
     return {} if year.number.zero?
 
@@ -202,7 +170,6 @@ module SimulationsHelper
     { rent => year.rent_excluding_charges, provision => year.provision_for_charges }
   end
 
-  # Chaque poste tel que l'année le porte ; hors meublé, la provision remboursée s'en retranche.
   def charge_detail_lines(projection, year)
     lines = projection.charge_lines(year).to_h { |field, amount| [charge_detail_label(field), -amount] }
     return lines if lines.empty? || projection.provision_in_receipts? || year.provision_for_charges.zero?
@@ -210,7 +177,6 @@ module SimulationsHelper
     lines.merge(statement_label(:provision_repaid) => year.provision_for_charges)
   end
 
-  # Sans assurance, la ligne redirait les intérêts : le crédit ne se déplie que s'il en porte une.
   def loan_detail_lines(year)
     return {} unless year.loan_insurance.positive?
 
@@ -218,9 +184,7 @@ module SimulationsHelper
       statement_label(:loan_insurance) => -year.loan_insurance }
   end
 
-  # Le chemin de l'impôt : ce qui se déclare, ce que l'abattement ou l'amortissement en ôte, et
-  # les deux taux qui frappent. L'amortissement se montre même quand il ne laisse rien à imposer :
-  # c'est là tout ce que le LMNP a à dire.
+  # L'amortissement se montre même quand il ne laisse rien à imposer.
   def tax_detail_lines(year)
     taxation = year.taxation
     depreciation = depreciation_lines(taxation)
@@ -233,7 +197,7 @@ module SimulationsHelper
     )
   end
 
-  # La décote est acquise dès la signature ; la revalorisation, elle, court sur la valeur réelle.
+  # La décote est acquise dès la signature ; la revalorisation court après.
   def property_value_detail_lines(projection, year)
     growth = year.property_value - projection.market_value
     lines = { statement_label(:purchase_discount) => projection.purchase_discount,
@@ -247,8 +211,6 @@ module SimulationsHelper
     projection.sale_cost_lines(year).to_h { |field, amount| [statement_label(field), -amount] }
   end
 
-  # La plus-value ne se lit pas sur le prix payé mais sur la valeur fiscale, que les amortissements
-  # du LMNP creusent, et chaque taux a son abattement.
   def capital_gain_detail_lines(year)
     gain = year.gain
     return {} unless gain.amount.positive?
@@ -264,13 +226,11 @@ module SimulationsHelper
     { statement_label(:fiscal_value) => gain.acquisition_value }.merge(reintegration_lines(gain)).merge(taxes)
   end
 
-  # Ce qui reste engagé : l'investissement du premier jour, moins les cash-flows déjà encaissés.
   def immobilized_capital_detail_lines(projection, year)
     { statement_label(:initial_outlay) => -projection.initial_outlay,
       statement_label(:cumulative_cash_flow) => projection.cumulative_cash_flow(year) }
   end
 
-  # L'année de la signature n'a pas de taux, et une opération qui ne rend jamais l'investissement non plus.
   def internal_rate_of_return_label(rate)
     return t("views.simulations.show.no_internal_rate_of_return") if rate.nil?
 
@@ -281,8 +241,6 @@ module SimulationsHelper
 
   def rate_measure?(measure) = measure == RATE_MEASURE
 
-  # Le taux ne vit pas sur l'année mais sur la projection, et ne se trace pas sous le zéro : la
-  # courbe ne commence qu'une fois l'opération rentable.
   def comparison_values(projection, measure)
     return projection.years.map(&measure) unless rate_measure?(measure)
 
@@ -299,15 +257,12 @@ module SimulationsHelper
     Simulation.human_attribute_name(field)
   end
 
-  # Ce que le LMNP a amorti année après année, que la revente lui reprend.
   def reintegration_lines(gain)
     return {} unless gain.depreciation.positive?
 
     { statement_label(:reintegrated_depreciation) => -gain.depreciation }
   end
 
-  # L'entretien que le plan reprend aux charges, ce que le plan inscrit, ce que les années passées
-  # ont laissé en attente et ce qui attendra encore. Les charges, elles, se lisent déjà plus haut.
   def depreciation_lines(taxation)
     lines = taxation.capitalized_lines.to_h do |component, amount|
       [statement_label(:"capitalized_#{component}", share: capitalized_share_label(component)), amount]
@@ -333,7 +288,6 @@ module SimulationsHelper
       statement_label(:allowance, rate: rate_label(taxation.allowance_rate)) => -taxation.allowance }
   end
 
-  # « 1 000,00 € par mois × 12 mois loués » : le montant de l'année se refait de tête.
   def monthly_label(key, amount, projection)
     statement_label(key, amount: number_to_currency(amount), months: months_label(projection))
   end
@@ -344,6 +298,5 @@ module SimulationsHelper
 
   def rate_label(rate) = number_to_percentage(rate, precision: 2, strip_insignificant_zeros: true)
 
-  # Le TRI se lit à la décimale, zéro compris : une colonne de taux s'aligne.
   def return_rate_label(rate) = number_to_percentage(rate, precision: 1)
 end

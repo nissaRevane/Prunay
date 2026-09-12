@@ -1,5 +1,5 @@
-<%# La page de l'achat : ce que le projet coûte, et comment il se finance. La case du crédit
-    est ce qui ouvre — ou non — la page suivante ; l'apport ne se demande qu'avec elle. %>
+<%# La page de l'achat : ce que le projet coûte et comment il se finance. La case du crédit
+    ouvre — ou non — la page suivante ; l'apport ne se demande qu'avec elle. %>
 <%= tag.div data: { controller: "notary-fees credit",
                     notary_fees_rate_value: Simulation::NOTARY_FEES_RATE.to_f,
                     notary_fees_base_value: Simulation::NOTARY_FEES_BASE,
@@ -18,7 +18,6 @@
         data: { credit_target: "works", action: "input->credit#suggest" } %>
   </div>
 
-  <%# Les meubles ne pèsent que sur les régimes du meublé : la fiche ne les montre que sous eux. %>
   <div class="form-group">
     <%= f.label :furniture %>
     <%= f.number_field :furniture, step: "0.01", min: "0", class: "form-control", required: true %>

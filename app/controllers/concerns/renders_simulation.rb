@@ -1,6 +1,5 @@
-# La fiche d'une simulation, renvoyée d'un bloc dès qu'une de ses valeurs change : tout y est
-# dérivé, un chiffre corrigé en refait dix. Sur un refus, le message seul revient — le champ
-# reste ouvert sur ce qui a été tapé.
+# La fiche d'une simulation, renvoyée d'un bloc dès qu'une valeur change : tout y est dérivé,
+# un chiffre corrigé en refait dix. Sur un refus, seul le message revient.
 module RendersSimulation
   private
 
@@ -12,7 +11,7 @@ module RendersSimulation
     @schedule = @simulation.loan.schedule
   end
 
-  # L'année où le graphique de l'impôt fait revendre : celle où la liste lit les simulations à défaut.
+  # L'année où le graphique de l'impôt fait revendre, REVIEW_YEAR à défaut.
   def exit_year
     number = params[:exit_year].to_i
 
@@ -31,7 +30,6 @@ module RendersSimulation
     render turbo_stream: turbo_stream.replace("flash", partial: "shared/flash"), status: :unprocessable_entity
   end
 
-  # Un refus tient dans le bandeau : la fiche garde les valeurs qu'elle avait.
   def flash_error
     flash.now[:alert] = @simulation.errors.full_messages.join(", ")
   end

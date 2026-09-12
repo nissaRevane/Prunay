@@ -1,6 +1,5 @@
-<%# Le formulaire de modification : les quatre pages de la création rassemblées en une
-    seule, chacune devenue un groupe. Qui vient corriger un chiffre n'a pas à retraverser
-    l'assistant. %>
+<%# Le formulaire de modification : les quatre pages de la création en un seul écran, chacune
+    devenue un groupe. Corriger un chiffre ne fait pas retraverser l'assistant. %>
 <%= form_with(model: simulation, class: "form",
                   data: { controller: "credit", **credit_values(simulation) }) do |f| %>
   <%= render "shared/errors", resource: simulation %>

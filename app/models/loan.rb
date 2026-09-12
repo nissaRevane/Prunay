@@ -1,14 +1,12 @@
-# Un crédit à mensualités constantes : ce que la banque prête, à quelles conditions,
-# l'assurance emprunteur qui s'ajoute à chaque échéance sans rien amortir, et les frais
-# qu'il coûte à la signature. Le détail échéance par échéance est dans AmortizationSchedule.
+# Un crédit à mensualités constantes : ce que la banque prête, l'assurance qui s'ajoute sans
+# rien amortir, et les frais de signature. Le détail est dans AmortizationSchedule.
 class Loan
   MONTHS_PER_YEAR = 12
 
+  # Le 5 du mois de l'acte, ou du mois suivant s'il est signé après le 5.
   PAYMENT_DAY = 5
 
-  # Ce que la banque prend d'un crédit soldé avant terme, quand elle ne l'a pas abandonnée :
-  # 3 % du capital rendu, sans dépasser six mois de ses intérêts. Sous 6 % l'an, c'est toujours
-  # le plafond qui s'applique.
+  # 3 % du capital rendu, plafonné à six mois de ses intérêts.
   EARLY_REPAYMENT_RATE = BigDecimal("3")
 
   EARLY_REPAYMENT_CAP_MONTHS = 6
@@ -16,12 +14,10 @@ class Loan
   attr_reader :capital, :annual_rate, :duration_years, :insurance, :guarantee_fees, :application_fees,
               :signed_on
 
-  # L'assurance se propose au mois, quand son taux est annoncé pour l'année.
   def self.default_insurance(capital, annual_rate) = share(capital, annual_rate.to_d / MONTHS_PER_YEAR)
 
   def self.default_guarantee_fees(capital, rate) = share(capital, rate)
 
-  # Rien à emprunter, rien à instruire : le plancher ne s'applique qu'à un dossier qui existe.
   def self.default_application_fees(capital, rate, floor)
     return 0 unless capital.to_d.positive?
 
@@ -32,7 +28,7 @@ class Loan
 
   def initialize(capital:, annual_rate:, duration_years:, insurance:, signed_on:,
                  guarantee_fees: 0, application_fees: 0, early_repayment_fee: true)
-    # Décimaux d'office : un taux entier diviserait en entiers, et un prêt à 3 % ne coûterait rien.
+    # Un taux entier diviserait en entiers : un prêt à 3 % ne coûterait rien.
     @capital = capital.to_d
     @annual_rate = annual_rate.to_d
     @duration_years = duration_years.to_i
@@ -57,33 +53,28 @@ class Loan
     @schedule ||= AmortizationSchedule.new(self)
   end
 
-  # Le 5 du mois de l'acte quand il est signé du 1er au 5, le 5 du mois d'après sinon.
   def first_payment_on
     month = signed_on.day <= PAYMENT_DAY ? signed_on : signed_on >> 1
 
     Date.new(month.year, month.month, PAYMENT_DAY)
   end
 
-  # Comptée depuis la première et non depuis la précédente : toutes tombent le même jour du mois.
   def payment_due_on(number) = first_payment_on >> (number - 1)
 
   def monthly_payment = schedule&.monthly_payment || 0
 
-  # La banque appelle la mensualité et la prime ensemble.
   def total_monthly_payment = schedule&.total_monthly_payment || 0
 
   def annual_payment = total_monthly_payment * MONTHS_PER_YEAR
 
   def annual_payments = schedule&.annual_payments || {}
 
-  # Le compte de résultat sépare les deux : les intérêts et la prime sont une charge, le capital non.
   def annual_interest = schedule&.annual_interest || {}
 
   def annual_insurance = schedule&.annual_insurance || {}
 
   def annual_principal = schedule&.annual_principal || {}
 
-  # Ce qu'une revente aurait à rembourser par anticipation, année par année.
   def annual_remaining_capital = schedule&.annual_remaining_capital || {}
 
   def early_repayment_fee? = @early_repayment_fee
@@ -100,13 +91,11 @@ class Loan
 
   def total_insurance = schedule&.total_insurance || 0
 
-  # Cautionnement et frais de dossier : payés à la signature, une fois, et non étalés.
   def upfront_fees
     return 0 unless amortizable?
 
     guarantee_fees + application_fees
   end
 
-  # Les intérêts seuls sous-estiment le crédit : l'assurance et les frais de signature comptent.
   def total_cost = total_interest + total_insurance + upfront_fees
 end

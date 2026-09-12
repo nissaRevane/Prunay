@@ -27,8 +27,6 @@ RSpec.describe AccountExport do
         .to include("rent_growth_rate" => 1.5, "marginal_tax_rate" => 41, "monthly_rent" => 900)
     end
 
-    # Les hypothèses sont absentes tant que l'utilisateur n'y a pas touché : l'export porte
-    # alors ce que Prunay suppose, pas un trou.
     it "falls back to the default assumptions when the account has none" do
       exported = described_class.new(user).to_h["assumptions"]
 
@@ -79,8 +77,6 @@ RSpec.describe AccountExport do
       expect(JSON.parse(json).dig("simulations", 0, "purchase_price")).to eq(199_500.5)
     end
 
-    # db/seed_data.json est ce que db/seeds.rb relit : un export qui n'écrit pas exactement ses
-    # clés, dans le même ordre, ne peut plus lui être redonné.
     it "matches the structure db/seeds.rb reads" do
       seed_data = JSON.parse(File.read(Rails.root.join("db", "seed_data.json")))
       create(:simulation, user: user)

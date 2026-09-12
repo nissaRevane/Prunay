@@ -1,5 +1,4 @@
 FactoryBot.define do
-  # Un bien neutre : loué douze mois sur douze et sans charges, pour que l'exemple ne dépende que du test.
   factory :simulation do
     user
     property_type { "apartment" }
@@ -23,15 +22,12 @@ FactoryBot.define do
     furniture_maintenance { 0 }
     other_charges { 0 }
 
-    # Une économie immobile : un test qui parle d'évolution énonce lui-même ses taux.
     rent_growth_rate { 0 }
     property_growth_rate { 0 }
     inflation_rate { 0 }
 
-    # Un foyer que le barème n'atteint pas : seuls les prélèvements sociaux pèsent sur les loyers.
     marginal_tax_rate { 0 }
 
-    # 200 000 € de prix, 16 612 € de frais et 23 388 € d'apport : 193 224 € empruntés sur vingt ans à 3 %.
     trait :with_credit do
       credit { true }
       down_payment { 23_388 }

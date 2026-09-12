@@ -1,15 +1,11 @@
 require "rails_helper"
 
-# Le régime des particuliers tient en trois temps : la valeur fiscale du bien, l'abattement que
-# la durée de détention lui vaut, puis 19 % de barème et 17,2 % de prélèvements sociaux.
 RSpec.describe Taxation::CapitalGain do
-  # Les frais de notaire d'un bien à 200 000 € : 16 612 €, comme partout ailleurs.
   def gain(sale_price:, held_years:, depreciation: 0)
     described_class.new(sale_price: sale_price, purchase_price: 200_000, acquisition_fees: 16_612,
                         held_years: held_years, depreciation: depreciation)
   end
 
-  # Les frais d'acquisition s'ajoutent au prix payé, et passé cinq ans, 15 % de travaux forfaitaires.
   describe "#fiscal_value" do
     it "adds the acquisition fees to the price paid" do
       expect(gain(sale_price: 250_000, held_years: 3).fiscal_value).to eq(216_612)
@@ -25,7 +21,6 @@ RSpec.describe Taxation::CapitalGain do
       expect(gain(sale_price: 250_000, held_years: 6).fiscal_value).to eq(246_612)
     end
 
-    # La loi de finances 2025 reprend au LMNP ce qu'il a amorti : 32 000 € de moins à opposer au prix.
     it "gives back the depreciation a real furnished regime has already deducted" do
       reintegrated = gain(sale_price: 250_000, held_years: 5, depreciation: 32_000)
 
@@ -40,7 +35,6 @@ RSpec.describe Taxation::CapitalGain do
       expect(gain(sale_price: 250_000, held_years: 3).amount).to eq(33_388)
     end
 
-    # Une moins-value ne se reporte ni ne se déduit : elle ne doit rien, et c'est tout.
     it "owes nothing when the property is sold for less than it is worth to the taxman" do
       sold_at_a_loss = gain(sale_price: 210_000, held_years: 3)
 
@@ -49,7 +43,6 @@ RSpec.describe Taxation::CapitalGain do
     end
   end
 
-  # 33 388 € de plus-value revendus au bout de trois ans : rien n'est encore abattu.
   describe "the two levies, before any allowance" do
     subject(:early_sale) { gain(sale_price: 250_000, held_years: 3) }
 
@@ -66,7 +59,6 @@ RSpec.describe Taxation::CapitalGain do
     end
   end
 
-  # Cinq années au-delà de la cinquième valent 30 % au barème et 8,25 % aux prélèvements sociaux.
   describe "the allowance for the years held" do
     subject(:tenth_year) { gain(sale_price: 300_000, held_years: 10) }
 
@@ -87,7 +79,6 @@ RSpec.describe Taxation::CapitalGain do
       expect(gain(sale_price: 250_000, held_years: 5).social_charges_allowance_rate).to eq(0)
     end
 
-    # Vingt-deux ans : 6 % pendant seize ans puis 4 %, et le barème n'a plus rien à prendre.
     it "frees the gain from the income tax after twenty-two years, the social charges apart" do
       sale = gain(sale_price: 300_000, held_years: 22)
 
@@ -97,7 +88,6 @@ RSpec.describe Taxation::CapitalGain do
       expect(sale.social_charges).to eq(BigDecimal("6611.57"))
     end
 
-    # Trente ans : 9 % l'an à partir de la vingt-troisième achèvent les prélèvements sociaux.
     it "frees the gain from the social charges after thirty years, and owes nothing at all" do
       sale = gain(sale_price: 300_000, held_years: 30)
 
@@ -106,7 +96,6 @@ RSpec.describe Taxation::CapitalGain do
     end
   end
 
-  # `to_d` comme dans Loan : un prix entier ferait une division entière, et l'impôt tomberait à zéro.
   it "reads an integer price as a decimal and not as a division" do
     entire = described_class.new(sale_price: 250_000, purchase_price: 200_000, acquisition_fees: 0, held_years: 3)
 

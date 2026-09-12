@@ -7,8 +7,6 @@ RSpec.describe Simulation::BestReturn do
     create(:simulation, purchase_price: 200_000, monthly_rent: 800, purchase_date: Date.new(2025, 1, 15))
   end
 
-  # 4,04 % au LMNP, contre 3,96 au micro-BIC, 3,75 au micro-foncier et 3,51 au foncier réel : les
-  # deux premiers s'affichent à 4,0 %, et c'est le taux exact qui les départage.
   it "keeps the highest rate of every regime and every resale year" do
     expect(best.rate).to eq(BigDecimal("4.0"))
     expect(best.regime).to eq(:lmnp)
@@ -16,8 +14,6 @@ RSpec.describe Simulation::BestReturn do
     expect(best.date).to eq(Date.new(2055, 1, 15))
   end
 
-  # L'élagage saute les sorties qu'une seule actualisation écarte : il doit trouver ce que le
-  # balayage des cent vingt-quatre taux aurait trouvé.
   it "finds what scanning every rate would have found" do
     every_rate = Taxation::NAMES.flat_map do |name|
       projection = simulation.projection(name)
@@ -33,7 +29,6 @@ RSpec.describe Simulation::BestReturn do
     expect(best.monthly_cash_flow).to eq(BigDecimal("755.85"))
   end
 
-  # Le balayage ne dépend que de la ligne du bien : on ne le refait pas tant qu'elle n'a pas bougé.
   describe "the cache it keeps" do
     before { allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new) }
 
@@ -44,7 +39,6 @@ RSpec.describe Simulation::BestReturn do
       expect(described_class.new(simulation).rate).to eq(BigDecimal("4.0"))
     end
 
-    # Corriger un chiffre du bien date sa ligne, et le balayage recommence.
     it "scans again once a figure of the simulation changed" do
       described_class.new(simulation).rate
       simulation.update!(monthly_rent: 1_200)

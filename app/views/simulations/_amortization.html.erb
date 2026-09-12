@@ -1,8 +1,6 @@
-<%# Le tableau d'amortissement : une ligne par échéance, du premier prélèvement au solde du
-    prêt. La mensualité y est ce que la banque prélève — intérêts, capital et prime
-    d'assurance. L'onglet titre déjà le tableau ; la section n'en remet pas un en-tête. %>
+<%# Le tableau d'amortissement : une ligne par échéance, du premier prélèvement au solde. La
+    mensualité est ce que la banque prélève — intérêts, capital et prime. %>
 <div class="section">
-  <%# Ce que le crédit engage, avant le détail ligne à ligne. %>
   <% loan = simulation.loan %>
   <div class="stat-grid">
     <div class="stat-card">
@@ -62,7 +60,6 @@
     </table>
   </div>
 
-  <%# Ce que le financement coûte en tout : les intérêts et les primes d'assurance. %>
   <div class="section-total">
     <span><%= t("views.simulations.show.total_loan_cost") %></span>
     <span><%= number_to_currency(schedule.total_interest + schedule.total_insurance) %></span>

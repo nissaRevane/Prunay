@@ -1,9 +1,8 @@
 module Taxation
-  # Le micro-foncier : l'assiette est le loyer hors charges encaissé, diminué d'un abattement
-  # forfaitaire. Ni les charges réelles ni les intérêts d'emprunt n'y entrent — le forfait
-  # tient lieu de toute charge déductible, et c'est ce que le régime a de simple.
+  # Le micro-foncier : le loyer hors charges encaissé, diminué d'un abattement forfaitaire qui
+  # tient lieu de toute charge déductible. Ni charges réelles ni intérêts.
   class MicroFoncier < Regime
-    # Le forfait du micro-foncier : 30 % de l'assiette, en place des charges réelles.
+    # 30 % de l'assiette, en place des charges réelles.
     ALLOWANCE_RATE = BigDecimal("30")
 
     def allowance_rate = ALLOWANCE_RATE

@@ -1,7 +1,5 @@
-<%# Le bien en une phrase, sous le nom de la simulation : chaque mot que l'on a saisi s'y
-    corrige d'un clic. Sans adresse, la phrase le dit à sa place plutôt que d'y coller un
-    « au » sans suite ; une date à venir s'annonce au futur, le parcours de création en
-    proposant une. Un div et non un p : un formulaire fermerait le paragraphe. %>
+<%# Le bien en une phrase, sous le nom de la simulation, chaque mot corrigeable d'un clic. Un div
+    et non un p : un formulaire fermerait le paragraphe. %>
 <% property_type = editable_word simulation, :property_type, t("simulations.property_types.#{simulation.property_type}") do |f| %>
   <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
 <% end %>

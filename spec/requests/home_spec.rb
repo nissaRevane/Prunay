@@ -18,7 +18,6 @@ RSpec.describe "Home", type: :request do
       expect(doc.at_css(".navbar-menu a[href='#{new_user_session_path}']")).not_to be_nil
     end
 
-    # La racine sert la vitrine au visiteur et la création rapide à l'utilisateur connecté.
     it "is the quick creation form for a signed-in user" do
       sign_in create(:user)
 

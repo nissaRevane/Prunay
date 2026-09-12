@@ -1,6 +1,5 @@
-<%# Les conditions économiques de CETTE simulation : héritées des conditions par défaut le
-    jour où elle a été créée, et corrigées ici pour elle seule, une hypothèse à la fois. La
-    projection les compose année après année. %>
+<%# Les conditions économiques de CETTE simulation : héritées des défauts le jour de sa création,
+    et corrigées ici pour elle seule. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.economic_conditions_detail") %></h2>
@@ -16,13 +15,11 @@
       <% end %>
     <% end %>
 
-    <%# Ce que le bien vaut de plus que son prix : la revente part de la somme des deux. %>
     <%= editable_detail simulation, :purchase_discount, number_to_currency(simulation.purchase_discount),
         url: url do |f| %>
       <%= f.number_field :purchase_discount, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <%# La seule hypothèse qui ne soit pas un taux libre : le barème n'a que cinq tranches. %>
     <%= editable_detail simulation, :marginal_tax_rate, number_to_percentage(simulation.marginal_tax_rate, precision: 0), url: url do |f| %>
       <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
     <% end %>

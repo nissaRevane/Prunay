@@ -1,6 +1,5 @@
-<%# La fiche d'une année, sous deux angles : son compte de résultat et la revente qu'elle
-    permettrait. Le serveur ne la rend qu'à la demande — les pré-rendre toutes pèserait
-    quatre-vingts pour cent de la fiche pour une année qu'on ouvre rarement. %>
+<%# La fiche d'une année : son compte de résultat et la revente qu'elle permettrait. Le serveur
+    ne la rend qu'à la demande — les pré-rendre toutes pèserait 80 % de la fiche. %>
 <dialog class="statement" id="<%= projection.regime %>-year-<%= year.number %>-statement" data-projection-target="statement"
         data-year="<%= year.number %>" data-controller="statement" data-statement-view-value="result"
         data-statement-detail-value="false"
@@ -17,7 +16,6 @@
       </div>
       <div class="statement-date"><%= l(year.date, format: :long) %></div>
     </div>
-    <%# Les flèches passent à l'année voisine sans refermer la fiche ; le clavier fait de même. %>
     <div class="statement-actions">
       <button type="button" class="statement-step" data-action="click->projection#navigate"
               data-projection-step-param="-1" <%= "disabled" if year == projection.years.first %>
@@ -43,7 +41,6 @@
       <% end %>
     </div>
 
-    <%# Le résumé se lit d'un coup d'œil ; le calcul, lui, se demande. %>
     <button type="button" class="statement-detail-toggle" aria-pressed="false"
             data-statement-target="toggle" data-action="click->statement#toggleDetail">
       <%= t("views.simulations.show.statement_detail") %>
@@ -60,7 +57,6 @@
     <%= render "simulations/statement_detail", lines: rent_detail_lines(projection, year) %>
 
     <div class="statement-line">
-      <%# La note dit ce que le formulaire ne montrait pas ; le meublé, qui déduit tout, n'en a pas. %>
       <span class="statement-label">
         <%= t("views.simulations.show.annual_charges_column") %>
         <% if year.provision_for_charges.positive? && !projection.provision_in_receipts? %>
@@ -109,7 +105,6 @@
     </div>
   </div>
 
-  <%# Les loyers déjà encaissés ont allégé le capital engagé : le bénéfice n'a pas à les recompter. %>
   <div class="statement-lines" role="tabpanel" data-statement-target="view" data-view="sale"
        id="<%= projection.regime %>-year-<%= year.number %>-sale" hidden>
     <div class="statement-line">
@@ -131,7 +126,6 @@
     <%= render "simulations/statement_detail", lines: sale_cost_detail_lines(projection, year) %>
 
     <div class="statement-line">
-      <%# La note dit la plus-value brute : l'abattement pour durée de détention en a mangé une part. %>
       <span class="statement-label">
         <%= t("views.simulations.show.sale_capital_gain_tax") %>
         <% if year.capital_gain.positive? %>

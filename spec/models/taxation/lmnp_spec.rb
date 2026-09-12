@@ -1,13 +1,8 @@
 require "rails_helper"
 
-# Le LMNP est un BIC déclaré au réel : les recettes du meublé, provision comprise, mais aucun
-# forfait — charges, CFE, comptable et intérêts déduits, et l'amortissement du plan par-dessus,
-# qui ne coûte rien, ne crée pas de déficit et se reporte sans limite.
 RSpec.describe Taxation::Lmnp do
   subject(:taxation) { described_class.new(**attributes) }
 
-  # La CFE du meublé, l'entretien de ses meubles et le comptable que l'amortissement rend
-  # nécessaire : 300 €, 400 € et 500 €.
   describe "#own_charges" do
     it "pays the accountant on top of the charges the furnished letting already owes" do
       expect(taxation.own_charge_lines).to eq(business_tax: BigDecimal("300"),
@@ -17,8 +12,6 @@ RSpec.describe Taxation::Lmnp do
     end
   end
 
-  # 13 200 € de recettes, moins 2 000 € de charges et 1 200 € de charges du régime : 10 000 € à
-  # effacer, et 7 300 € d'amortissement qui tiennent dedans.
   describe "#taxable_income" do
     it "deducts everything it really pays and the whole depreciation when the result holds it" do
       expect(taxation.receipts).to eq(13_200)
@@ -30,7 +23,6 @@ RSpec.describe Taxation::Lmnp do
       expect(taxation.carried_forward_depreciation).to eq({})
     end
 
-    # 5 000 € d'intérêts ne laissent que 5 000 € : le bâti seul s'y loge, le reste attend.
     it "caps the depreciation at the result and carries the excess forward, the building first" do
       indebted = described_class.new(**attributes, loan_interest: 5_000)
 
@@ -40,7 +32,6 @@ RSpec.describe Taxation::Lmnp do
       expect(indebted.total).to eq(0)
     end
 
-    # L'année d'après, 4 000 € d'intérêts : 6 000 € de place pour 7 000 € de bâti — le stock grossit.
     it "adds the carry-forward to the annuity and keeps deferring what still does not fit" do
       following = described_class.new(**attributes, loan_interest: 4_000,
                                                     deferred_depreciation: { building: 1_000, works: 1_000,
@@ -52,7 +43,6 @@ RSpec.describe Taxation::Lmnp do
       expect(following.taxable_income).to eq(0)
     end
 
-    # Sans intérêts, 10 000 € de place : les 9 600 € disponibles passent, et il reste 400 € à imposer.
     it "consumes the carry-forward in a year the result leaves room for it" do
       comfortable = described_class.new(**attributes, deferred_depreciation: { building: 1_000, works: 1_000,
                                                                                furniture: 300 })
@@ -62,8 +52,6 @@ RSpec.describe Taxation::Lmnp do
       expect(comfortable.carried_forward_depreciation).to eq({})
     end
 
-    # 600 € de gros travaux et 280 € de meubles renouvelés sont dans les charges payées, mais pas
-    # dans celles que l'année déduit : 10 880 € à effacer au lieu de 10 000.
     it "gives back to the result the upkeep that the plan depreciates instead" do
       capitalizing = described_class.new(**attributes, capitalized: { works: 600, furniture: 280 })
 
@@ -72,7 +60,6 @@ RSpec.describe Taxation::Lmnp do
       expect(capitalizing.taxable_income).to eq(3_580)
     end
 
-    # Une année sans résultat ne déduit rien et reporte tout.
     it "defers the whole depreciation when the charges have swallowed the receipts" do
       loss = described_class.new(**attributes, loan_interest: 12_000)
 
@@ -82,7 +69,6 @@ RSpec.describe Taxation::Lmnp do
     end
   end
 
-  # 2 700 € imposables : 30 % de barème, et 18,6 % de prélèvements sociaux, car un loyer meublé est un BIC.
   describe "the two levies" do
     it "applies the bracket of the household and the social charges of the furnished letting" do
       expect(taxation.income_tax).to eq(810)
@@ -92,12 +78,10 @@ RSpec.describe Taxation::Lmnp do
     end
   end
 
-  # Le forfait du micro-BIC laisse 6 600 € imposables là où le réel amorti n'en laisse que 2 700.
   it "costs less than the micro-BIC on the same year, the depreciation making the difference" do
     expect(taxation.total).to be < Taxation::MicroBic.new(**attributes).total
   end
 
-  # Le comptable est au LMNP ce que la CFE est au meublé, et l'amortissement n'est qu'à lui.
   it "is the only regime to pay an accountant and to depreciate anything" do
     expect(Taxation::MicroBic.new(**attributes).own_charge_lines)
       .to eq(business_tax: BigDecimal("300"), furniture_maintenance: BigDecimal("400"))

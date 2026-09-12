@@ -10,15 +10,12 @@ RSpec.describe Assumptions, type: :model do
     it { is_expected.to validate_presence_of(:property_growth_rate) }
     it { is_expected.to validate_presence_of(:inflation_rate) }
 
-    # Les taux se prennent dans les deux sens : un marché peut baisser, et un loyer avec lui.
     it { is_expected.to validate_numericality_of(:rent_growth_rate).is_greater_than_or_equal_to(described_class::MIN_RATE).is_less_than_or_equal_to(described_class::MAX_RATE) }
     it { is_expected.to validate_numericality_of(:property_growth_rate).is_greater_than_or_equal_to(described_class::MIN_RATE).is_less_than_or_equal_to(described_class::MAX_RATE) }
     it { is_expected.to validate_numericality_of(:inflation_rate).is_greater_than_or_equal_to(described_class::MIN_RATE).is_less_than_or_equal_to(described_class::MAX_RATE) }
 
-    # La tranche marginale n'est pas un taux libre : le barème n'en connaît que cinq.
     it { is_expected.to validate_inclusion_of(:marginal_tax_rate).in_array(Taxation::MARGINAL_TAX_RATES) }
 
-    # Un montant proposé en négatif n'aurait aucun sens, et une part ne dépasse pas le tout.
     it { is_expected.to validate_numericality_of(:monthly_rent).is_greater_than_or_equal_to(0) }
     it { is_expected.to validate_numericality_of(:sale_diagnostics).is_greater_than_or_equal_to(0) }
     it { is_expected.to validate_numericality_of(:down_payment_share).is_greater_than_or_equal_to(0).is_less_than_or_equal_to(100) }
@@ -26,7 +23,6 @@ RSpec.describe Assumptions, type: :model do
     it { is_expected.to validate_numericality_of(:loan_duration_years).is_greater_than(0).is_less_than_or_equal_to(Simulation::MAX_LOAN_DURATION_YEARS) }
   end
 
-  # Pas de ligne en base tant que rien n'a changé : la page s'ouvre sur ce que Prunay suppose.
   describe ".for" do
     it "is what Prunay assumes as long as the user has not decided otherwise" do
       assumptions = described_class.for(user)
@@ -36,7 +32,6 @@ RSpec.describe Assumptions, type: :model do
                                              marginal_tax_rate: 30)
     end
 
-    # Ce que les pages de la création proposent, et ce qu'une revente coûte.
     it "proposes the reference amounts, the credit and what a resale costs" do
       expect(described_class.for(user)).to have_attributes(monthly_rent: 650, furniture: 2_110, accounting_fees: 500,
                                                            occupancy_months: 11, down_payment_share: 10,
@@ -53,7 +48,6 @@ RSpec.describe Assumptions, type: :model do
     end
   end
 
-  # Les colonnes portent les mêmes noms des deux côtés : une simulation s'en habille sans les renommer.
   describe "#economic" do
     it "reads as the simulation columns of the same name" do
       assumptions = build(:assumptions, rent_growth_rate: 3, property_growth_rate: 4, inflation_rate: 5,

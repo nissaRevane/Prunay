@@ -1,7 +1,5 @@
-<%# La page du crédit : le capital emprunté est déjà connu — le coût du projet moins l'apport
-    — et seuls le taux, la durée et l'assurance restent à dire. La mensualité en découle, et se
-    recalcule à la frappe pour que l'on voie tout de suite ce qu'une année de plus, un dixième
-    de point ou une prime d'assurance changent. %>
+<%# La page du crédit : le capital est déjà connu, seuls le taux, la durée et l'assurance restent
+    à dire. La mensualité se recalcule à la frappe. %>
 <div data-controller="loan"
      data-loan-capital-value="<%= f.object.borrowed_capital.to_f %>">
   <div class="form-group">
@@ -24,14 +22,12 @@
     </div>
   </div>
 
-  <%# La prime est proposée d'après le capital emprunté, à corriger dès que l'offre de prêt la dit. %>
   <div class="form-group">
     <%= f.label :loan_insurance %>
     <%= f.number_field :loan_insurance, step: "0.01", min: "0", class: "form-control", required: true,
         data: { loan_target: "insurance", action: "input->loan#refresh" } %>
   </div>
 
-  <%# Cautionnement et frais de dossier ne pèsent pas sur la mensualité : ils s'ajoutent à l'apport. %>
   <div class="form-row">
     <div class="form-group form-group-half">
       <%= f.label :loan_guarantee_fees %>
@@ -46,7 +42,6 @@
     </div>
   </div>
 
-  <%# Elle ne pèse que sur une revente avant le terme, et se négocie parfois à zéro. %>
   <div class="form-group form-check">
     <%= f.check_box :early_repayment_fee %>
     <%= f.label :early_repayment_fee %>

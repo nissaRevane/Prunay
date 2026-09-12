@@ -1,8 +1,7 @@
-# Le tableau d'amortissement d'un Loan, une ligne par échéance jusqu'au solde. La mensualité
-# sort de la formule de l'annuité constante — M = C × i / (1 − (1 + i)^−n) —, les intérêts se
-# lisent sur le capital restant dû, et la dernière échéance solde le résidu d'arrondi.
+# Le tableau d'amortissement d'un Loan, une ligne par échéance : mensualité constante
+# M = C × i / (1 − (1 + i)^−n), et la dernière échéance solde le résidu d'arrondi.
 class AmortizationSchedule
-  # Vingt chiffres significatifs : de quoi dépasser de loin le centime où tout s'arrondit.
+  # Vingt chiffres : bien au-delà du centime où tout s'arrondit.
   PRECISION = 20
 
   Row = Struct.new(:number, :due_on, :payment, :interest, :principal, :insurance, :remaining_capital,
@@ -12,7 +11,6 @@ class AmortizationSchedule
     @loan = loan
   end
 
-  # Un prêt à taux zéro n'a pas d'intérêts à étaler : il se rend en parts égales.
   def monthly_payment
     @monthly_payment ||=
       if monthly_rate.zero?
@@ -38,12 +36,10 @@ class AmortizationSchedule
     @annual_payments ||= yearly_rows.transform_values { |yearly| yearly.sum(&:payment) }
   end
 
-  # L'assurance se range avec les intérêts : elle se paie sans rien rendre du capital.
   def annual_interest
     @annual_interest ||= yearly_rows.transform_values { |yearly| yearly.sum { |row| row.interest + row.insurance } }
   end
 
-  # La fiche d'une année sépare ce que l'annuité mêle : la prime, seule, n'est pas un intérêt.
   def annual_insurance
     @annual_insurance ||= yearly_rows.transform_values { |yearly| yearly.sum(&:insurance) }
   end
@@ -52,7 +48,6 @@ class AmortizationSchedule
     @annual_principal ||= yearly_rows.transform_values { |yearly| yearly.sum(&:principal) }
   end
 
-  # Ce qu'une revente aurait à solder à la banque, année par année.
   def annual_remaining_capital
     @annual_remaining_capital ||= yearly_rows.transform_values { |yearly| yearly.last.remaining_capital }
   end
@@ -69,7 +64,6 @@ class AmortizationSchedule
 
   def monthly_rate = @loan.monthly_rate
 
-  # La même prime à chaque échéance : elle ne se lit pas sur le capital restant dû et n'en rend rien.
   def insurance = @loan.insurance
 
   def build_rows
@@ -94,6 +88,5 @@ class AmortizationSchedule
     end
   end
 
-  # L'arrondi de la mensualité au centime ne doit pas déplacer la fin du tableau d'une ligne.
   def last_payment?(number, principal, remaining) = number == months || principal >= remaining
 end

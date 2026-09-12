@@ -4,7 +4,6 @@ RSpec.describe BarChart do
   def bar(lines) = described_class::Bar.new(name: "regime", label: "Régime", lines: lines)
 
   describe "#y_ticks" do
-    # De zéro à 18 000, le pas de 5 000 monte l'axe jusqu'à 20 000 en repères ronds.
     it "graduates from zero to a round ceiling" do
       chart = described_class.new([bar(tax: 18_000)])
 
@@ -13,8 +12,6 @@ RSpec.describe BarChart do
   end
 
   describe "#segments" do
-    # Le cadre va de 32 à 340 en hauteur pour une échelle montant à 20 000 : les frais de notaire
-    # posent 5 000 sur le zéro, l'impôt les 15 000 suivants jusqu'en haut.
     it "stacks each component on the one below" do
       one = bar(notary_fees: 5_000, income_tax: 15_000)
 
@@ -22,7 +19,6 @@ RSpec.describe BarChart do
         .to eq([[263.0, 77.0], [32.0, 231.0]])
     end
 
-    # Un poste d'un euro sur une échelle de 20 000 ne fait pas seize pixels : son montant ne tient pas.
     it "leaves a sliver without its amount" do
       one = bar(business_tax: 1, income_tax: 19_999)
 
@@ -31,7 +27,6 @@ RSpec.describe BarChart do
   end
 
   describe "#components" do
-    # La CFE que le seul meublé paie prend sa place dans la légende, à la suite des postes communs.
     it "lists every component any bar pays, in stacking order" do
       chart = described_class.new([bar(notary_fees: 1_000, income_tax: 2_000),
                                    bar(notary_fees: 1_000, business_tax: 500)])
@@ -41,7 +36,6 @@ RSpec.describe BarChart do
   end
 
   describe "#bar_x" do
-    # Le cadre va de 88 à 936 : quatre colonnes de 212, une barre de 106 centrée sur chacune.
     it "centres each bar on its column" do
       chart = described_class.new(Array.new(4) { bar(tax: 1_000) })
 

@@ -41,10 +41,18 @@ ne pas inventer de commande de build.
 
 ### Les commentaires
 On ne commente que ce que le code ne dit pas, et le plus souvent il n'y a rien à dire : la
-règle métier ou le pourquoi d'une décision, jamais la mécanique. Cinq lignes au plus en tête
-d'une classe pour dire ce qu'elle représente et ce qui vit ailleurs, une seule ligne partout
-ailleurs, rien du tout dès que le code se lit seul. Style du reste du fichier : une phrase,
-pas une étiquette.
+règle métier ou le pourquoi d'une décision, jamais la mécanique. Les plafonds sont durs et
+valent pour le code applicatif comme pour les specs, les ERB et les factories :
+
+- **En tête d'un fichier** : une description de **200 caractères au plus**, et rien de plus.
+- **Aucune description pour un modèle ActiveRecord ni pour un contrôleur** : ils se lisent
+  seuls, une phrase de plus n'y ajoute rien.
+- **Dans le corps du fichier** : **trois commentaires au plus**, de **80 caractères chacun**
+  au plus, une seule ligne chacun.
+
+Sous ces plafonds, la vraie question reste « est-ce que ça manquerait à quelqu'un qui lit le
+code ? ». Si la réponse est non, on n'écrit rien : les trois commentaires sont un plafond,
+pas un quota. Style : une phrase en français, pas une étiquette.
 
 ### Les méthodes d'une expression
 Une méthode qui tient en une expression s'écrit en `def nom = expression`, tant que la ligne
@@ -76,8 +84,8 @@ une page de création. Renommer, c'est renommer partout — vérifier avant de c
 ### Les tests
 - La factory `:simulation` est **neutre** : taux à zéro, charges à zéro, douze mois loués. Un
   test qui parle d'évolution énonce lui-même ses taux ; les autres n'ont pas à s'en défendre.
-- Les exemples sont chiffrés et vérifiables à la main, avec un commentaire français qui
-  rappelle la règle testée.
+- Les exemples sont chiffrés et vérifiables à la main : le calcul se lit dans la description
+  du `it` et dans les nombres posés, pas dans un commentaire au-dessus.
 - Tout changement de calcul se prouve par un exemple chiffré, pas par un `be_positive`.
 
 ## Ce qu'on ne fait pas
