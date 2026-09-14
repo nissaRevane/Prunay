@@ -253,6 +253,8 @@ fr:
         comparison_sale_profit: Le bénéfice de l'opération
         comparison_internal_rate_of_return: Le taux de rendement interne
         comparison_tax_burden: "L'impôt jusqu'à la revente"
+        comparison_previous: Le graphique précédent
+        comparison_next: Le graphique suivant
         exit_year: "Revente la %{year}ᵉ année (%{date})"
         exit_year_previous: L'année précédente
         exit_year_next: L'année suivante

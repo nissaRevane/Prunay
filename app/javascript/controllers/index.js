@@ -6,6 +6,9 @@ application.register("alert", AlertController)
 import AutocompleteController from "controllers/autocomplete_controller"
 application.register("autocomplete", AutocompleteController)
 
+import CarouselController from "controllers/carousel_controller"
+application.register("carousel", CarouselController)
+
 import CreditController from "controllers/credit_controller"
 application.register("credit", CreditController)
 

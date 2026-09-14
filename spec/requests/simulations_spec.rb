@@ -1111,6 +1111,18 @@ RSpec.describe "Simulations", type: :request do
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
       end
 
+      it "opens the carousel on the rate chart and keeps the other two hidden" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        slides = doc.css("#panel-comparison > .section [data-carousel-target='slide']")
+
+        expect(doc.at_css("#panel-comparison > .section h2").text.strip)
+          .to eq(I18n.t("views.simulations.show.comparison_internal_rate_of_return"))
+        expect(slides.map { |slide| slide.attribute("hidden").nil? }).to eq([false, false, true])
+        expect(doc.css("#panel-comparison .carousel-step").size).to eq(2)
+      end
+
       it "leaves the years without a positive rate off the rate chart" do
         get simulation_path(neutral)
 

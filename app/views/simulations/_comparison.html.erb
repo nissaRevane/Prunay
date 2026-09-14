@@ -2,12 +2,23 @@
     qui le nuancent sur les trente ans. Elles restent hors du cadre : elles ne bougent jamais. %>
 <%= render "simulations/dashboard", dashboard: simulation.dashboard(projections, exit_year) %>
 
-<% SimulationsHelper::COMPARISON_MEASURES.each do |measure| %>
-  <div class="section">
-    <div class="section-header">
-      <h2><%= t("views.simulations.show.comparison_#{measure}") %></h2>
-    </div>
-    <%= render "simulations/chart", chart: comparison_chart(projections, measure),
-               title: t("views.simulations.show.comparison_#{measure}"), measure: measure %>
+<% default = SimulationsHelper::COMPARISON_MEASURES.index(SimulationsHelper::RATE_MEASURE) %>
+<div class="section" data-controller="carousel" data-carousel-index-value="<%= default %>">
+  <div class="section-header carousel-header">
+    <button type="button" class="carousel-step" data-action="carousel#previous"
+            aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+    <h2 data-carousel-target="title">
+      <%= t("views.simulations.show.comparison_#{SimulationsHelper::RATE_MEASURE}") %>
+    </h2>
+    <button type="button" class="carousel-step" data-action="carousel#next"
+            aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
   </div>
-<% end %>
+
+  <% SimulationsHelper::COMPARISON_MEASURES.each_with_index do |measure, index| %>
+    <% title = t("views.simulations.show.comparison_#{measure}") %>
+    <div data-carousel-target="slide" data-title="<%= title %>" <%= "hidden" unless index == default %>>
+      <%= render "simulations/chart", chart: comparison_chart(projections, measure),
+                 title: title, measure: measure %>
+    </div>
+  <% end %>
+</div>
