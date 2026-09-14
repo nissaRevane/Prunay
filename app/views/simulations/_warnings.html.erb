@@ -1,0 +1,9 @@
+<%# Ce qui se déduit des chiffres et qu'on ne lirait pas dans un graphique : une passoire, un
+    effort d'épargne, une mise jamais rendue. Rien à afficher quand rien ne cloche. %>
+<% if alerts.any? %>
+  <ul class="warnings">
+    <% alerts.each do |alert| %>
+      <li class="warning"><%= dashboard_warning(alert) %></li>
+    <% end %>
+  </ul>
+<% end %>

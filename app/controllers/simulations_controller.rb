@@ -4,7 +4,7 @@ class SimulationsController < ApplicationController
   # Une carte coûte le balayage des quatre régimes sur trente ans.
   PER_PAGE = 12
 
-  before_action :set_simulation, only: [:show, :tax_burden, :statement, :edit, :update, :destroy]
+  before_action :set_simulation, only: [:show, :dashboard, :statement, :edit, :update, :destroy]
 
   def index
     owned = current_user.simulations.order(purchase_date: :desc)
@@ -18,9 +18,9 @@ class SimulationsController < ApplicationController
   def show = assign_detail
 
   # Redessiner toute la fiche coûterait les TRI des courbes voisines pour rien.
-  def tax_burden
-    render partial: "simulations/tax_burden",
-           locals: { simulation: @simulation, projections: @simulation.projections, exit_year: exit_year }
+  def dashboard
+    render partial: "simulations/dashboard",
+           locals: { dashboard: @simulation.dashboard(@simulation.projections, exit_year) }
   end
 
   # Les 124 fiches d'année pesaient 80 % de la page ; celle-ci s'ouvre seule.

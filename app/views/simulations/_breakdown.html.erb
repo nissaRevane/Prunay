@@ -1,0 +1,53 @@
+<%# Où part l'argent : à gauche ce que la signature coûte, à droite ce qu'une année pleine
+    laisse. Les deux valent pour le régime en tête du classement. %>
+<div class="section">
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.breakdown_title") %></h2>
+  </div>
+
+  <p class="section-hint">
+    <%= t("views.simulations.show.breakdown_hint", regime: t("views.simulations.show.tab_#{dashboard.regime}")) %>
+  </p>
+
+  <div class="columns">
+    <div class="breakdown-column">
+      <h3 class="breakdown-title"><%= t("views.simulations.show.breakdown_outlay") %></h3>
+
+      <dl class="rows sum">
+        <% dashboard.outlay_lines.each do |field, amount| %>
+          <div class="detail-item">
+            <dt class="detail-label"><%= Simulation.human_attribute_name(field) %></dt>
+            <dd class="detail-value"><%= number_to_currency(amount) %></dd>
+          </div>
+        <% end %>
+
+        <div class="detail-item sum-total">
+          <dt class="detail-label"><%= t("views.simulations.show.initial_outlay") %></dt>
+          <dd class="detail-value"><%= number_to_currency(dashboard.best.initial_outlay) %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="breakdown-column">
+      <h3 class="breakdown-title"><%= t("views.simulations.show.breakdown_annual", year: dashboard.exit_year) %></h3>
+
+      <dl class="rows sum">
+        <% dashboard.annual_lines.each do |line, amount| %>
+          <div class="detail-item">
+            <dt class="detail-label"><%= t("views.simulations.show.breakdown_#{line}") %></dt>
+            <dd class="<%= class_names("detail-value", "text-danger" => amount.negative?) %>">
+              <%= number_to_currency(amount) %>
+            </dd>
+          </div>
+        <% end %>
+
+        <div class="detail-item sum-total">
+          <dt class="detail-label"><%= t("views.simulations.show.cash_flow") %></dt>
+          <dd class="<%= class_names("detail-value", "text-danger" => dashboard.annual_cash_flow.negative?) %>">
+            <%= number_to_currency(dashboard.annual_cash_flow) %>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</div>

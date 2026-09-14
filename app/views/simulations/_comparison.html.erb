@@ -1,5 +1,7 @@
-<%# Les quatre régimes sur les mêmes axes : ce qui reste engagé, ce que revendre laisserait, et
-    le taux rendu. C'est le croisement du zéro qui départage. %>
+<%# Le tableau de bord d'abord — tout ce que l'année de revente déplace — puis les trois courbes
+    qui le nuancent sur les trente ans. Elles restent hors du cadre : elles ne bougent jamais. %>
+<%= render "simulations/dashboard", dashboard: simulation.dashboard(projections, exit_year) %>
+
 <% SimulationsHelper::COMPARISON_MEASURES.each do |measure| %>
   <div class="section">
     <div class="section-header">
@@ -9,7 +11,3 @@
                title: t("views.simulations.show.comparison_#{measure}"), measure: measure %>
   </div>
 <% end %>
-
-<div class="section">
-  <%= render "simulations/tax_burden", simulation: simulation, projections: projections, exit_year: exit_year %>
-</div>

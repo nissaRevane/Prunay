@@ -1,0 +1,55 @@
+<%# Le bien d'un coup d'œil à une année de revente donnée. Le cadre part seul la rechercher :
+    les courbes voisines coûteraient cent vingt-quatre taux pour rien. %>
+<%= turbo_frame_tag "dashboard" do %>
+  <% simulation = dashboard.simulation %>
+  <% best = dashboard.best %>
+
+  <div class="section-header">
+    <h2><%= t("views.simulations.show.dashboard_title") %></h2>
+
+    <p class="exit-year" data-controller="exit-year"
+       data-action="keydown.left@window->exit-year#previous keydown.right@window->exit-year#next">
+      <%= exit_year_step(simulation, dashboard.exit_year - 1, :previous) %>
+      <span class="exit-year-value"><%= t("views.simulations.show.exit_year", year: dashboard.exit_year, date: dashboard.exit_date.year) %></span>
+      <%= exit_year_step(simulation, dashboard.exit_year + 1, :next) %>
+    </p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label"><%= t("views.simulations.show.immobilized_capital") %></span>
+      <span class="stat-value <%= best.immobilized_capital.positive? ? "text-danger" : "text-success" %>">
+        <%= number_to_currency(best.immobilized_capital, precision: 0) %>
+      </span>
+      <span class="stat-hint"><%= t("views.simulations.show.dashboard_immobilized_hint") %></span>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label"><%= t("views.simulations.index.monthly_cash_flow") %></span>
+      <span class="stat-value <%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
+        <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
+      </span>
+      <span class="stat-hint"><%= t("views.simulations.show.dashboard_at_exit_year", year: dashboard.exit_year) %></span>
+    </div>
+
+    <div class="stat-card stat-card-highlight">
+      <span class="stat-label"><%= t("views.simulations.show.dashboard_rate") %></span>
+      <span class="stat-value"><%= internal_rate_of_return_label(best.rate) %></span>
+      <span class="stat-hint"><%= dashboard_rate_hint(dashboard) %></span>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label"><%= t("views.simulations.show.dashboard_gross_yield") %></span>
+      <span class="stat-value"><%= number_to_percentage(dashboard.gross_yield, precision: 2, strip_insignificant_zeros: true) %></span>
+      <span class="stat-hint"><%= t("views.simulations.show.dashboard_gross_yield_hint") %></span>
+    </div>
+  </div>
+
+  <%= render "simulations/warnings", alerts: dashboard.alerts %>
+
+  <%= render "simulations/ranking", dashboard: dashboard %>
+
+  <%= render "simulations/breakdown", dashboard: dashboard %>
+
+  <%= render "simulations/tax_burden", projections: dashboard.projections, exit_year: dashboard.exit_year %>
+<% end %>

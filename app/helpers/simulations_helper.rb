@@ -47,7 +47,7 @@ module SimulationsHelper
   end
 
   def simulation_tabs(schedule)
-    tabs = [PARAMETERS_TAB, TAXATION_TAB, COMPARISON_TAB]
+    tabs = [COMPARISON_TAB, PARAMETERS_TAB, TAXATION_TAB]
     tabs << AMORTIZATION_TAB if schedule
 
     tabs << ECONOMIC_CONDITIONS_TAB
@@ -90,6 +90,17 @@ module SimulationsHelper
     end)
   end
 
+  def dashboard_rate_hint(dashboard)
+    return t("views.simulations.show.dashboard_no_rate_hint") if dashboard.best.rate.nil?
+
+    t("views.simulations.show.dashboard_rate_hint", regime: t("views.simulations.show.tab_#{dashboard.regime}"))
+  end
+
+  def dashboard_warning(alert)
+    t("views.simulations.show.warning_#{alert.key}",
+      **alert.values.to_h { |name, value| [name, warning_value(name, value)] })
+  end
+
   def tax_burden_chart(projections, exit_year)
     BarChart.new(projections.map do |regime, projection|
       BarChart::Bar.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
@@ -99,11 +110,14 @@ module SimulationsHelper
 
   def exit_year_step(simulation, year, direction)
     glyph = EXIT_YEAR_GLYPHS.fetch(direction)
-    return tag.span(glyph, class: "exit-year-step exit-year-step-off", aria: { hidden: true }) unless year.between?(1, Projection::HORIZON_YEARS)
+    target = { exit_year_target: direction }
+    unless year.between?(1, Projection::HORIZON_YEARS)
+      return tag.span(glyph, class: "exit-year-step exit-year-step-off", aria: { hidden: true }, data: target)
+    end
 
-    link_to glyph, tax_burden_simulation_path(simulation, exit_year: year), class: "exit-year-step",
+    link_to glyph, dashboard_simulation_path(simulation, exit_year: year), class: "exit-year-step",
             aria: { label: t("views.simulations.show.exit_year_#{direction}") },
-            data: { action: "exit-year#remember", exit_year_year_param: year }
+            data: target.merge(action: "exit-year#remember", exit_year_year_param: year)
   end
 
   def tax_component_label(component)
@@ -259,6 +273,15 @@ module SimulationsHelper
   end
 
   private
+
+  # Un montant se lit en euros, un taux en pourcents, le reste tel quel.
+  def warning_value(name, value)
+    case name
+    when :amount then number_to_currency(value)
+    when :rate then rate_label(value)
+    else value
+    end
+  end
 
   def rate_measure?(measure) = measure == RATE_MEASURE
 

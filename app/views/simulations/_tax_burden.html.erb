@@ -1,15 +1,10 @@
-<%# L'année de revente ne vaut que pour ce graphique : son cadre part seul la rechercher,
-    sans refaire le reste de la fiche. %>
-<%= turbo_frame_tag "tax_burden" do %>
+<%# Ce que le fisc prend jusqu'à la revente, une barre par régime : le régime qui rend le plus
+    n'est pas toujours celui qui paie le moins. %>
+<div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.comparison_tax_burden") %></h2>
-
-    <p class="exit-year" data-controller="exit-year">
-      <%= exit_year_step(simulation, exit_year - 1, :previous) %>
-      <span class="exit-year-value"><%= t("views.simulations.show.exit_year", year: exit_year) %></span>
-      <%= exit_year_step(simulation, exit_year + 1, :next) %>
-    </p>
   </div>
+
   <%= render "simulations/bar_chart", chart: tax_burden_chart(projections, exit_year),
              title: t("views.simulations.show.comparison_tax_burden") %>
-<% end %>
+</div>

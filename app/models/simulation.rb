@@ -142,6 +142,10 @@ class Simulation < ApplicationRecord
     @best_return ||= BestReturn.new(self)
   end
 
+  def dashboard(projections = self.projections, exit_year = Projection::REVIEW_YEAR)
+    Dashboard.new(self, projections, exit_year)
+  end
+
   def annual_rent = annual_rent_excluding_charges + annual_provision_for_charges
 
   def annual_rent_excluding_charges = monthly_rent * occupancy_months

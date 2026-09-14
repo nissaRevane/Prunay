@@ -253,9 +253,34 @@ fr:
         comparison_sale_profit: Le bénéfice de l'opération
         comparison_internal_rate_of_return: Le taux de rendement interne
         comparison_tax_burden: "L'impôt jusqu'à la revente"
-        exit_year: "Revente la %{year}ᵉ année"
+        exit_year: "Revente la %{year}ᵉ année (%{date})"
         exit_year_previous: L'année précédente
         exit_year_next: L'année suivante
+        dashboard_title: En un coup d'œil
+        dashboard_rate: Taux de rendement interne
+        dashboard_rate_hint: "Meilleur régime : %{regime}"
+        dashboard_no_rate_hint: Aucun régime rentable
+        dashboard_immobilized_hint: Ce qui reste engagé
+        dashboard_at_exit_year: "La %{year}ᵉ année"
+        dashboard_gross_yield: Rendement brut
+        dashboard_gross_yield_hint: Sur le coût du projet
+        ranking_title: Les quatre régimes à cette échéance
+        ranking_regime: Régime
+        ranking_taxes: Impôt cumulé
+        ranking_sale_profit: Gain à la revente
+        breakdown_title: Où part l'argent
+        breakdown_hint: "Régime retenu : %{regime}, celui qui rend le plus à cette échéance."
+        breakdown_outlay: La mise de départ
+        breakdown_annual: "La %{year}ᵉ année de location"
+        breakdown_rent: Loyers encaissés
+        breakdown_charges: Charges
+        breakdown_loan_interest: Intérêts et assurance
+        breakdown_taxes: Impôt et prélèvements sociaux
+        breakdown_capital_repayment: Capital remboursé
+        warning_energy_rating: "Passoire thermique (DPE %{rating}) : la location est ou sera interdite."
+        warning_no_return: Aucune revente ne rend l'opération rentable à cette échéance.
+        warning_below_inflation: "Le rendement ne bat pas l'inflation retenue (%{rate})."
+        warning_low_gross_yield: "Rendement brut faible (%{rate})."
         tax_income_tax: Impôt sur le revenu
         tax_social_charges: Prélèvements sociaux
         tax_capital_gain_tax: Impôt sur la plus-value

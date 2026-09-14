@@ -963,6 +963,138 @@ RSpec.describe "Simulations", type: :request do
       end
     end
 
+    context "the dashboard" do
+      let(:neutral) { create(:simulation, user: user) }
+
+      def dashboard_frame(simulation, **params)
+        get simulation_path(simulation, **params)
+
+        Nokogiri::HTML(response.body).at_css("#panel-comparison turbo-frame#dashboard")
+      end
+
+      def texts(nodes) = nodes.map { |node| node.text.gsub(/\s+/, " ").strip }
+
+      def amounts(node)
+        node.css(".detail-item").to_h do |item|
+          [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
+        end
+      end
+
+      it "names the rate it shows and the regime that returns it at the fifteenth year" do
+        frame = dashboard_frame(neutral)
+        tile = frame.at_css(".stat-card-highlight")
+
+        expect(tile.at_css(".stat-label").text.strip).to eq(I18n.t("views.simulations.show.dashboard_rate"))
+        expect(tile.at_css(".stat-value").text.gsub(/\s+/, " ").strip).to eq(return_percentage(3.7).gsub(/\s+/, " "))
+        expect(tile.at_css(".stat-hint").text.strip)
+          .to eq(I18n.t("views.simulations.show.dashboard_rate_hint",
+                        regime: I18n.t("views.simulations.show.tab_micro_bic")))
+        expect(frame.at_css(".exit-year-value").text)
+          .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
+      end
+
+      it "ranks the four regimes by the rate they return, the leading one marked" do
+        frame = dashboard_frame(neutral)
+        rows = frame.css(".ranking-row")
+
+        expect(texts(rows.map { |row| row.at_css("td") }))
+          .to eq([:micro_bic, :lmnp, :micro_foncier, :foncier_reel]
+                   .map { |name| I18n.t("views.simulations.show.tab_#{name}") })
+        expect(rows.first["class"]).to include("is-best")
+        expect(texts(rows.first.css("td")))
+          .to eq([I18n.t("views.simulations.show.tab_micro_bic"), return_percentage(3.7),
+                  currency(741, precision: 0), currency(34_454, precision: 0),
+                  currency(83_254, precision: 0), currency(115_846, precision: 0)]
+                   .map { |value| value.gsub(/\s+/, " ") })
+      end
+
+      it "lines up the capital still engaged, the monthly cash flow, the rate and the gross yield" do
+        frame = dashboard_frame(neutral)
+        tiles = frame.css(".stat-card").to_h do |card|
+          [card.at_css(".stat-label").text.strip, card.at_css(".stat-value").text.gsub(/\s+/, " ").strip]
+        end
+
+        expect(tiles).to eq(
+          I18n.t("views.simulations.show.dashboard_rate") => return_percentage(3.7).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.immobilized_capital") => currency(83_254, precision: 0).gsub(/\s+/, " "),
+          I18n.t("views.simulations.index.monthly_cash_flow") => currency(741, precision: 0).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.dashboard_gross_yield") => percentage(4.65).gsub(/\s+/, " ")
+        )
+      end
+
+      it "breaks the outlay of a purchase in cash and the first full year down to the euro" do
+        frame = dashboard_frame(neutral)
+        columns = frame.css(".breakdown-column")
+
+        expect(amounts(columns.first)).to eq(
+          Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
+          Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.initial_outlay") => currency(216_612).gsub(/\s+/, " ")
+        )
+        expect(amounts(columns.last)).to eq(
+          I18n.t("views.simulations.show.breakdown_rent") => currency(10_080).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.breakdown_charges") => currency(-252).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.breakdown_taxes") => currency(-937.44).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.cash_flow") => currency(8_890.56).gsub(/\s+/, " ")
+        )
+      end
+
+      it "takes the annuity of the fifteenth year out and leaves the down payment alone in the outlay" do
+        on_credit = create(:simulation, :with_credit, user: user)
+        columns = dashboard_frame(on_credit).css(".breakdown-column")
+
+        expect(amounts(columns.first)).to eq(
+          Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.initial_outlay") => currency(23_388).gsub(/\s+/, " ")
+        )
+        expect(amounts(columns.last)).to include(
+          I18n.t("views.simulations.show.breakdown_loan_interest") => currency(-1_966.93).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.breakdown_capital_repayment") => currency(-10_892.51).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.cash_flow") => currency(-3_367.93).gsub(/\s+/, " ")
+        )
+      end
+
+      it "warns of the yield alone when nothing else calls for it" do
+        warnings = texts(dashboard_frame(neutral).css(".warning"))
+
+        expect(warnings)
+          .to eq([I18n.t("views.simulations.show.warning_low_gross_yield", rate: percentage(4.65))])
+      end
+
+      it "warns of the rating and of the inflation the rate does not beat" do
+        strained = create(:simulation, user: user, energy_rating: "F", monthly_rent: 100, inflation_rate: 2)
+
+        expect(texts(dashboard_frame(strained).css(".warning"))).to eq([
+          I18n.t("views.simulations.show.warning_energy_rating", rating: "F"),
+          I18n.t("views.simulations.show.warning_below_inflation", rate: percentage(2)),
+          I18n.t("views.simulations.show.warning_low_gross_yield", rate: percentage(0.58))
+        ])
+      end
+
+      it "hands the arrow keys of the keyboard the very links the arrows on screen carry" do
+        frame = dashboard_frame(neutral)
+        steps = frame.css(".exit-year-step")
+
+        expect(frame.at_css(".exit-year")["data-action"])
+          .to eq("keydown.left@window->exit-year#previous keydown.right@window->exit-year#next")
+        expect(steps.map { |step| step["data-exit-year-target"] }).to eq(%w[previous next])
+        expect(steps.map { |step| step["href"] }).to eq([dashboard_simulation_path(neutral, exit_year: 14),
+                                                         dashboard_simulation_path(neutral, exit_year: 16)])
+      end
+
+      it "reorders the regimes when the sale is brought forward to the fifth year" do
+        get dashboard_simulation_path(neutral, exit_year: 5)
+
+        frame = Nokogiri::HTML(response.body).at_css("turbo-frame#dashboard")
+
+        expect(texts(frame.css(".ranking-row td:first-child")))
+          .to eq([:micro_bic, :micro_foncier, :lmnp, :foncier_reel]
+                   .map { |name| I18n.t("views.simulations.show.tab_#{name}") })
+        expect(texts(frame.css(".ranking-row").first.css("td")).last)
+          .to eq(currency(26_941, precision: 0).gsub(/\s+/, " "))
+      end
+    end
+
     context "the comparison tab" do
       let(:neutral) { create(:simulation, user: user) }
 
@@ -970,11 +1102,11 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        charts = doc.css("#panel-comparison .chart")
+        charts = doc.css("#panel-comparison > .section .chart")
 
         expect(doc.at_css("#tab-comparison")).not_to be_nil
-        expect(charts.size).to eq(4)
-        expect(charts.take(2).map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4])
+        expect(charts.size).to eq(3)
+        expect(charts.map { |chart| chart.css("polyline.chart-line").size }).to eq([4, 4, 4])
         expect(charts.first.css(".chart-legend-item").map { |item| item.at_css(".chart-legend-label").text.strip })
           .to eq(Taxation::NAMES.map { |name| I18n.t("views.simulations.show.tab_#{name}") })
       end
@@ -983,7 +1115,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        chart = doc.css("#panel-comparison .chart")[2]
+        chart = doc.css("#panel-comparison > .section .chart").last
 
         expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0,0 %")
         expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("4,0 %")
@@ -994,11 +1126,11 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        chart = doc.css("#panel-comparison .chart").last
+        chart = doc.at_css("#panel-comparison turbo-frame#dashboard .chart")
         amounts = chart.css("text.chart-bar-label").map { |label| label.text.gsub(/\s+/, " ").strip }
 
         expect(doc.at_css("#panel-comparison .exit-year-value").text)
-          .to eq(I18n.t("views.simulations.show.exit_year", year: 15))
+          .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
         expect(amounts.first(2)).to eq([currency(16_612, precision: 0).gsub(/\s+/, " "),
                                         currency(17_338, precision: 0).gsub(/\s+/, " ")])
         expect(chart.css("text.chart-bar-total").first.text.gsub(/\s+/, " ").strip)
@@ -1009,23 +1141,23 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        chart = doc.css("#panel-comparison .chart").last
+        chart = doc.at_css("#panel-comparison turbo-frame#dashboard .chart")
 
         columns = chart.css("rect.chart-bar").map { |rect| rect["x"] }.uniq
 
         expect(chart.css("rect.chart-tax-capital_gain_tax").map { |rect| rect["x"] }).to eq([columns.last])
       end
 
-      it "redraws the tax chart alone on the chosen year of sale" do
+      it "redraws the dashboard alone on the chosen year of sale, curves left untouched" do
         selling = create(:simulation, user: user, property_growth_rate: 5)
 
-        get tax_burden_simulation_path(selling, exit_year: 10)
+        get dashboard_simulation_path(selling, exit_year: 10)
 
         doc = Nokogiri::HTML(response.body)
 
-        expect(doc.at_css("turbo-frame#tax_burden")).not_to be_nil
+        expect(doc.at_css("turbo-frame#dashboard")).not_to be_nil
         expect(doc.css(".chart").size).to eq(1)
-        expect(doc.at_css(".exit-year-value").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10))
+        expect(doc.at_css(".exit-year-value").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10, date: 2035))
         expect(doc.css(".chart-legend-label").map(&:text))
           .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))
       end
@@ -1036,7 +1168,7 @@ RSpec.describe "Simulations", type: :request do
         doc = Nokogiri::HTML(response.body)
 
         expect(doc.at_css("#panel-comparison .exit-year-value").text)
-          .to eq(I18n.t("views.simulations.show.exit_year", year: 15))
+          .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
       end
 
       it "steps to the neighbouring years and stops at the edges" do
@@ -1046,7 +1178,7 @@ RSpec.describe "Simulations", type: :request do
         steps = doc.css("#panel-comparison .exit-year-step")
 
         expect(steps.first.name).to eq("span")
-        expect(steps.last["href"]).to eq(tax_burden_simulation_path(neutral, exit_year: 2))
+        expect(steps.last["href"]).to eq(dashboard_simulation_path(neutral, exit_year: 2))
       end
     end
 

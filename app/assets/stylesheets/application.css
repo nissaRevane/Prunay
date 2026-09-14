@@ -14,6 +14,9 @@
   --color-text: #1e293b;
   --color-text-muted: #64748b;
   --color-border: #e2e8f0;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+  --color-primary-bg: #eff6ff;
   --radius: 8px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -1582,9 +1585,9 @@ body:has(.home) main.container {
 /* ==========================================================================
    Tuiles chiffrées
 
-   Le tableau de bord n'en pose encore aucune — le simulateur n'existe pas. Les règles
-   restent ici parce qu'elles font partie du système : la première tuile de rentabilité
-   doit se dessiner comme celles de Milly, sans réinventer une carte au passage.
+   Quatre chiffres alignés en haut d'un panneau : le tableau de bord d'une fiche, les
+   conditions d'un crédit. Elles se dessinent comme celles de Milly, sans réinventer une
+   carte au passage.
    ========================================================================== */
 
 .stat-grid {
@@ -1832,6 +1835,48 @@ body:has(.home) main.container {
 
 .chart-tax-capital_gain_tax {
   --chart-color: #0f766e;
+}
+
+/* ==========================================================================
+   Tableau de bord
+
+   L'onglet d'ouverture d'une fiche : le verdict, les quatre chiffres, ce qui cloche, le
+   classement des régimes et ce que la mise recouvre. L'année de revente les commande tous.
+   ========================================================================== */
+
+.warnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  list-style: none;
+}
+
+.warning {
+  padding: 0.5rem 0.875rem;
+  background: var(--color-warning-bg);
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+/* La ligne du régime qui rend le plus : c'est la seule qu'on lit vraiment. */
+.ranking-row.is-best {
+  background: var(--color-primary-bg);
+  font-weight: 600;
+}
+
+.ranking-row.is-best td:first-child {
+  box-shadow: inset 3px 0 var(--color-primary);
+}
+
+.breakdown-column {
+  flex: 1 1 20rem;
+}
+
+.breakdown-title {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
 }
 
 .exit-year {
