@@ -106,6 +106,24 @@ RSpec.describe Projection do
     end
   end
 
+  describe "#income_lines" do
+    let(:simulation) do
+      build(:simulation, purchase_price: 200_000, monthly_rent: 1_000, monthly_charges: 100,
+                         property_growth_rate: 2)
+    end
+
+    it "adds up ten years of rent and of provisions, then the gross gain of the sale" do
+      expect(projection.income_lines(projection.year(10)))
+        .to eq(rent: BigDecimal("120000"), provision: BigDecimal("12000"), capital_gain: BigDecimal("43798.88"))
+    end
+
+    it "leaves out a sale that gives back less than the purchase price" do
+      simulation.property_growth_rate = -1
+
+      expect(projection.income_lines(projection.year(10))).not_to have_key(:capital_gain)
+    end
+  end
+
   it "gives back a year by its number" do
     expect(projection.year(15).number).to eq(15)
     expect(projection.year(0).date).to eq(Date.new(2025, 3, 10))

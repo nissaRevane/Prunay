@@ -252,12 +252,15 @@ fr:
         comparison_immobilized_capital: Le capital engagé
         comparison_sale_profit: Le bénéfice de l'opération
         comparison_internal_rate_of_return: Le taux de rendement interne
-        comparison_tax_burden: "L'impôt jusqu'à la revente"
-        comparison_expense_burden: Les dépenses jusqu'à la revente
+        comparison_tax_burden: Impôts
+        comparison_expense_burden: Revenus et dépenses
         expense_property: Le bien
         expense_administrative: Charges administratives
         expense_financing: Frais de financement
         expense_taxes: Impôts
+        income_rent: Loyers hors charges
+        income_provision: Provisions pour charges
+        income_capital_gain: Plus-value brute
         comparison_previous: Le graphique précédent
         comparison_next: Le graphique suivant
         exit_year: "Revente la %{year}ᵉ année (%{date})"

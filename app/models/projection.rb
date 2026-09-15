@@ -12,6 +12,8 @@ class Projection
 
   EXPENSE_COMPONENTS = %i[property administrative financing taxes].freeze
 
+  INCOME_COMPONENTS = %i[rent provision capital_gain].freeze
+
   PROPERTY_CHARGES = %i[maintenance condominium_fees other_charges furniture_maintenance].freeze
 
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
@@ -106,6 +108,15 @@ class Projection
     lines[:taxes] = tax_lines(exit_year).values.sum
 
     without_zeros(EXPENSE_COMPONENTS.index_with { |component| lines[component] })
+  end
+
+  def income_lines(exit_year)
+    collected = years.take(exit_year.number + 1)
+    lines = { rent: collected.sum(&:rent_excluding_charges),
+              provision: collected.sum(&:provision_for_charges),
+              capital_gain: [exit_year.property_value - purchase_price, 0].max }
+
+    without_zeros(INCOME_COMPONENTS.index_with { |component| lines.fetch(component) })
   end
 
   def final_immobilized_capital = years.last.immobilized_capital

@@ -1,18 +1,22 @@
-# Une barre par régime fiscal, empilée poste par poste, en coordonnées d'un SVG. L'échelle
-# part du zéro - ce sont des sommes payées - et un poste trop mince ne porte pas son montant.
+# Une colonne par régime fiscal, une ou deux barres empilées poste par poste, en coordonnées
+# d'un SVG. Chaque tranche porte son montant, sauf trop mince : il n'y a pas d'échelle.
 class BarChart
   WIDTH = 960
   HEIGHT = 380
-  MARGIN = { top: 32, right: 24, bottom: 40, left: 88 }.freeze
-
-  GRID_LINES = 4
+  MARGIN = { top: 32, right: 24, bottom: 40, left: 24 }.freeze
 
   BAR_RATIO = BigDecimal("0.5")
+
+  GROUP_RATIO = BigDecimal("0.7")
+
+  BAR_GAP = 2
 
   # Sous cette hauteur, le montant ne tiendrait pas dans son rectangle.
   LABEL_MIN_HEIGHT = 16
 
-  Bar = Struct.new(:name, :label, :lines, keyword_init: true) do
+  Column = Struct.new(:label, :bars, keyword_init: true)
+
+  Bar = Struct.new(:name, :lines, keyword_init: true) do
     def total = lines.values.sum
   end
 
@@ -22,10 +26,10 @@ class BarChart
     def middle = y + height / 2
   end
 
-  attr_reader :bars
+  attr_reader :columns
 
-  def initialize(bars)
-    @bars = bars
+  def initialize(columns)
+    @columns = columns
   end
 
   def segments(bar)
@@ -44,37 +48,34 @@ class BarChart
 
   def x(index) = (MARGIN[:left] + (index + 0.5) * column_width).round(2)
 
-  def bar_x(index) = (x(index) - bar_width / 2).round(2)
+  def bar_x(index, slot) = (x(index) - group_width / 2 + slot * (bar_width + BAR_GAP)).round(2)
 
-  def bar_width = (column_width * BAR_RATIO).round(2)
+  def bar_center(index, slot) = (bar_x(index, slot) + bar_width / 2).round(2)
+
+  def bar_width = ((group_width - BAR_GAP * (slots - 1)) / slots).round(2)
 
   def y(value) = (MARGIN[:top] + (high - value.to_d) * plot_height / high).round(2)
-
-  def y_ticks = (0..(high / step).round).map { |index| index * step }
-
-  def right = MARGIN[:left] + plot_width
 
   def bottom = MARGIN[:top] + plot_height
 
   private
 
-  def column_width = plot_width.to_d / bars.size
+  def bars = columns.flat_map(&:bars)
+
+  def slots
+    @slots ||= columns.map { |column| column.bars.size }.max
+  end
+
+  def group_width = column_width * (slots > 1 ? GROUP_RATIO : BAR_RATIO)
+
+  def column_width = plot_width.to_d / columns.size
 
   def plot_width = WIDTH - MARGIN[:left] - MARGIN[:right]
 
   def plot_height = HEIGHT - MARGIN[:top] - MARGIN[:bottom]
 
-  def high = @high ||= (highest / step).ceil * step
-
-  def highest = @highest ||= [bars.map(&:total).max.to_d, 1].max
-
-  def step
-    @step ||= nice_step(highest)
-  end
-
-  def nice_step(range)
-    magnitude = BigDecimal(10)**Math.log10((range / GRID_LINES).to_f).floor
-
-    [1, 2, 5, 10].map { |factor| factor * magnitude }.find { |candidate| range / candidate <= GRID_LINES }
+  # Sans échelle à lire, la plus haute barre monte jusqu'en haut du cadre.
+  def high
+    @high ||= [bars.map(&:total).max.to_d, 1].max
   end
 end

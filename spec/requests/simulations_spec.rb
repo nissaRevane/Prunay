@@ -1178,9 +1178,26 @@ RSpec.describe "Simulations", type: :request do
         chart = burden_chart(Nokogiri::HTML(response.body), :expense)
 
         expect(chart.css(".chart-legend-label").map { |label| label.text.strip })
-          .to eq([I18n.t("views.simulations.show.expense_property"),
+          .to eq([I18n.t("views.simulations.show.income_rent"),
+                  I18n.t("views.simulations.show.expense_property"),
                   I18n.t("views.simulations.show.expense_administrative"),
                   I18n.t("views.simulations.show.expense_taxes")])
+      end
+
+      it "sets the rent, the provisions and the gross gain beside the expenses of each regime" do
+        growing = create(:simulation, user: user, monthly_charges: 100, property_growth_rate: 2)
+
+        get simulation_path(growing)
+
+        chart = burden_chart(Nokogiri::HTML(response.body), :expense)
+        totals = chart.css("text.chart-bar-total").map { |total| total.text.gsub(/\s+/, " ").strip }
+
+        expect(chart.css(".chart-legend-label").map { |label| label.text.strip }.first(3))
+          .to eq([I18n.t("views.simulations.show.income_rent"),
+                  I18n.t("views.simulations.show.income_provision"),
+                  I18n.t("views.simulations.show.income_capital_gain")])
+        expect(totals.size).to eq(8)
+        expect(totals.first).to eq(currency(231_174, precision: 0).gsub(/\s+/, " "))
       end
 
       it "stacks the taxes paid up to the year of sale, one bar per regime" do

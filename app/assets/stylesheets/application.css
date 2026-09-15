@@ -1884,6 +1884,18 @@ body:has(.home) main.container {
   --chart-color: #dc2626;
 }
 
+.chart-part-rent {
+  --chart-color: #16a34a;
+}
+
+.chart-part-provision {
+  --chart-color: #65a30d;
+}
+
+.chart-part-capital_gain {
+  --chart-color: #0f766e;
+}
+
 /* ==========================================================================
    Tableau de bord
 

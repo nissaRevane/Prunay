@@ -13,6 +13,8 @@ module SimulationsHelper
 
   BURDEN_MEASURES = %i[expense tax].freeze
 
+  BURDEN_SERIES = { expense: %i[income expense], tax: %i[tax] }.freeze
+
   EXIT_YEAR_GLYPHS = { previous: "‹", next: "›" }.freeze
 
   UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
@@ -104,9 +106,14 @@ module SimulationsHelper
   end
 
   def burden_chart(projections, exit_year, measure)
+    series = BURDEN_SERIES.fetch(measure)
+
     BarChart.new(projections.map do |regime, projection|
-      BarChart::Bar.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
-                        lines: projection.public_send(:"#{measure}_lines", projection.year(exit_year)))
+      year = projection.year(exit_year)
+      BarChart::Column.new(label: t("views.simulations.show.tab_#{regime}"),
+                           bars: series.map do |kind|
+                             BarChart::Bar.new(name: kind.to_s, lines: projection.public_send(:"#{kind}_lines", year))
+                           end)
     end)
   end
 
@@ -124,6 +131,7 @@ module SimulationsHelper
 
   def bar_component_label(component)
     return t("views.simulations.show.expense_#{component}") if Projection::EXPENSE_COMPONENTS.include?(component)
+    return t("views.simulations.show.income_#{component}") if Projection::INCOME_COMPONENTS.include?(component)
 
     tax_component_label(component)
   end
