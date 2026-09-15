@@ -974,6 +974,13 @@ RSpec.describe "Simulations", type: :request do
 
       def texts(nodes) = nodes.map { |node| node.text.gsub(/\s+/, " ").strip }
 
+      def stat(node)
+        label = node.at_css(".stat-label").dup
+        label.at_css(".statement-hint")&.remove
+
+        [label.text.gsub(/\s+/, " ").strip, node.at_css(".stat-value").text.gsub(/\s+/, " ").strip]
+      end
+
       def amounts(node)
         node.css(".detail-item").to_h do |item|
           [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
@@ -984,11 +991,10 @@ RSpec.describe "Simulations", type: :request do
         frame = dashboard_frame(neutral)
         tile = frame.at_css(".stat-card-highlight")
 
-        expect(tile.at_css(".stat-label").text.strip).to eq(I18n.t("views.simulations.show.dashboard_rate"))
-        expect(tile.at_css(".stat-value").text.gsub(/\s+/, " ").strip).to eq(return_percentage(3.7).gsub(/\s+/, " "))
-        expect(tile.at_css(".stat-hint").text.strip)
-          .to eq(I18n.t("views.simulations.show.dashboard_rate_hint",
-                        regime: I18n.t("views.simulations.show.tab_micro_bic")))
+        expect(stat(tile))
+          .to eq([I18n.t("views.simulations.show.dashboard_rate",
+                         regime: I18n.t("views.simulations.show.tab_micro_bic")),
+                  return_percentage(3.7).gsub(/\s+/, " ")])
         expect(frame.at_css(".exit-year-value").text)
           .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
       end
@@ -1008,18 +1014,30 @@ RSpec.describe "Simulations", type: :request do
                    .map { |value| value.gsub(/\s+/, " ") })
       end
 
-      it "lines up the capital still engaged, the monthly cash flow, the rate and the gross yield" do
+      it "lines up the capital still engaged, the monthly cash flow and the rate" do
         frame = dashboard_frame(neutral)
-        tiles = frame.css(".stat-card").to_h do |card|
-          [card.at_css(".stat-label").text.strip, card.at_css(".stat-value").text.gsub(/\s+/, " ").strip]
-        end
+        tiles = frame.css(".stat-card").to_h { |card| stat(card) }
 
         expect(tiles).to eq(
-          I18n.t("views.simulations.show.dashboard_rate") => return_percentage(3.7).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.dashboard_rate",
+                 regime: I18n.t("views.simulations.show.tab_micro_bic")) => return_percentage(3.7).gsub(/\s+/, " "),
           I18n.t("views.simulations.show.immobilized_capital") => currency(83_254, precision: 0).gsub(/\s+/, " "),
-          I18n.t("views.simulations.index.monthly_cash_flow") => currency(741, precision: 0).gsub(/\s+/, " "),
-          I18n.t("views.simulations.show.dashboard_gross_yield") => percentage(4.65).gsub(/\s+/, " ")
+          I18n.t("views.simulations.index.monthly_cash_flow") => currency(741, precision: 0).gsub(/\s+/, " ")
         )
+      end
+
+      it "hides the gross yield behind the rate, each face explained by its own hint" do
+        faces = dashboard_frame(neutral).at_css(".stat-card-switch").css(".stat-face")
+
+        expect(faces.map { |face| stat(face) })
+          .to eq([[I18n.t("views.simulations.show.dashboard_rate",
+                          regime: I18n.t("views.simulations.show.tab_micro_bic")),
+                   return_percentage(3.7).gsub(/\s+/, " ")],
+                  [I18n.t("views.simulations.show.dashboard_gross_yield"), percentage(4.65).gsub(/\s+/, " ")]])
+        expect(faces.map { |face| face.at_css(".statement-hint")["data-hint"] })
+          .to eq([I18n.t("views.simulations.show.hint_internal_rate_of_return"),
+                  I18n.t("views.simulations.show.hint_gross_yield")])
+        expect(faces.map { |face| face.key?("hidden") }).to eq([false, true])
       end
 
       it "breaks the outlay of a purchase in cash and the first full year down to the euro" do

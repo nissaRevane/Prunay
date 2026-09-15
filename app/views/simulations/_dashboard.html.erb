@@ -21,7 +21,6 @@
       <span class="stat-value <%= best.immobilized_capital.positive? ? "text-danger" : "text-success" %>">
         <%= number_to_currency(best.immobilized_capital, precision: 0) %>
       </span>
-      <span class="stat-hint"><%= t("views.simulations.show.dashboard_immobilized_hint") %></span>
     </div>
 
     <div class="stat-card">
@@ -29,19 +28,26 @@
       <span class="stat-value <%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
         <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
       </span>
-      <span class="stat-hint"><%= t("views.simulations.show.dashboard_at_exit_year", year: dashboard.exit_year) %></span>
     </div>
 
-    <div class="stat-card stat-card-highlight">
-      <span class="stat-label"><%= t("views.simulations.show.dashboard_rate") %></span>
-      <span class="stat-value"><%= internal_rate_of_return_label(best.rate) %></span>
-      <span class="stat-hint"><%= dashboard_rate_hint(dashboard) %></span>
-    </div>
+    <div class="stat-card stat-card-highlight stat-card-switch" data-controller="carousel"
+         data-carousel-index-value="0">
+      <div class="stat-face" data-carousel-target="slide">
+        <span class="stat-label">
+          <%= dashboard_rate_label(dashboard) %><%= statement_hint(:internal_rate_of_return) %>
+        </span>
+        <span class="stat-value"><%= internal_rate_of_return_label(best.rate) %></span>
+      </div>
 
-    <div class="stat-card">
-      <span class="stat-label"><%= t("views.simulations.show.dashboard_gross_yield") %></span>
-      <span class="stat-value"><%= number_to_percentage(dashboard.gross_yield, precision: 2, strip_insignificant_zeros: true) %></span>
-      <span class="stat-hint"><%= t("views.simulations.show.dashboard_gross_yield_hint") %></span>
+      <div class="stat-face" data-carousel-target="slide" hidden>
+        <span class="stat-label">
+          <%= t("views.simulations.show.dashboard_gross_yield") %><%= statement_hint(:gross_yield) %>
+        </span>
+        <span class="stat-value"><%= number_to_percentage(dashboard.gross_yield, precision: 2, strip_insignificant_zeros: true) %></span>
+      </div>
+
+      <button type="button" class="stat-switch" data-action="carousel#next"
+              aria-label="<%= t("views.simulations.show.dashboard_other_measure") %>">›</button>
     </div>
   </div>
 

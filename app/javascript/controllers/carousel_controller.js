@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Les trois courbes partagent un cadre : une seule est visible, les flèches tournent en boucle.
+// Un cadre, plusieurs vues : une seule est visible, les flèches tournent en boucle.
 export default class extends Controller {
   static targets = ["slide", "title"]
   static values = { index: Number }
@@ -15,6 +15,6 @@ export default class extends Controller {
 
   indexValueChanged() {
     this.slideTargets.forEach((slide, index) => { slide.hidden = index !== this.indexValue })
-    this.titleTarget.textContent = this.slideTargets[this.indexValue].dataset.title
+    if (this.hasTitleTarget) this.titleTarget.textContent = this.slideTargets[this.indexValue].dataset.title
   }
 }

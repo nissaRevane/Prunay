@@ -90,10 +90,10 @@ module SimulationsHelper
     end)
   end
 
-  def dashboard_rate_hint(dashboard)
-    return t("views.simulations.show.dashboard_no_rate_hint") if dashboard.best.rate.nil?
+  def dashboard_rate_label(dashboard)
+    return t("views.simulations.show.dashboard_no_rate") if dashboard.best.rate.nil?
 
-    t("views.simulations.show.dashboard_rate_hint", regime: t("views.simulations.show.tab_#{dashboard.regime}"))
+    t("views.simulations.show.dashboard_rate", regime: t("views.simulations.show.tab_#{dashboard.regime}"))
   end
 
   def dashboard_warning(alert)

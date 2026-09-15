@@ -259,13 +259,10 @@ fr:
         exit_year_previous: L'année précédente
         exit_year_next: L'année suivante
         dashboard_title: En un coup d'œil
-        dashboard_rate: Taux de rendement interne
-        dashboard_rate_hint: "Meilleur régime : %{regime}"
-        dashboard_no_rate_hint: Aucun régime rentable
-        dashboard_immobilized_hint: Ce qui reste engagé
-        dashboard_at_exit_year: "La %{year}ᵉ année"
+        dashboard_rate: "TRI — %{regime}"
+        dashboard_no_rate: TRI
         dashboard_gross_yield: Rendement brut
-        dashboard_gross_yield_hint: Sur le coût du projet
+        dashboard_other_measure: "L'autre mesure du rendement"
         ranking_title: Les quatre régimes à cette échéance
         ranking_regime: Régime
         ranking_taxes: Impôt cumulé
@@ -369,6 +366,8 @@ fr:
         hint_sale_capital_gain_tax: "19 % et 17,2 % après abattement pour durée de détention ; au LMNP, les amortissements déduits y reviennent."
         hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
         hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
+        hint_internal_rate_of_return: "Le rendement annuel de l'opération entière : mise de départ, cash-flows et revente, crédit et impôt compris."
+        hint_gross_yield: "Le loyer d'une année rapporté à l'investissement total, avant crédit, charges et impôt."
         hint_immobilized_capital: "L'investissement du premier jour, diminué des cash-flows déjà encaissés."
         hint_sale_profit: "Le produit de la revente, une fois récupéré le capital encore engagé."
         detail_rent_excluding_charges: "%{amount} par mois × %{months} mois loués"
