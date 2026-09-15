@@ -18,7 +18,7 @@
   <div class="stat-grid">
     <div class="stat-card">
       <span class="stat-label"><%= t("views.simulations.show.immobilized_capital") %></span>
-      <span class="stat-value <%= best.immobilized_capital.positive? ? "text-danger" : "text-success" %>">
+      <span class="stat-value">
         <%= number_to_currency(best.immobilized_capital, precision: 0) %>
       </span>
     </div>

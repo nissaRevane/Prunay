@@ -28,7 +28,7 @@
               <%= number_to_currency(row.monthly_cash_flow, precision: 0) %>
             </td>
             <td class="text-right"><%= number_to_currency(row.taxes, precision: 0) %></td>
-            <td class="text-right <%= row.immobilized_capital.positive? ? "text-danger" : "text-success" %>">
+            <td class="text-right">
               <%= number_to_currency(row.immobilized_capital, precision: 0) %>
             </td>
             <td class="text-right <%= row.sale_profit.negative? ? "text-danger" : "text-success" %>">
