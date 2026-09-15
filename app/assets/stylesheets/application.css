@@ -1929,8 +1929,23 @@ body:has(.home) main.container {
   box-shadow: inset 3px 0 var(--color-primary);
 }
 
+/* Les deux colonnes s'alignent sur la plus haute : les totaux restent face à face. */
 .breakdown-column {
+  display: flex;
   flex: 1 1 20rem;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.breakdown-column .rows {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.breakdown-column .sum-total {
+  margin-top: auto;
+  padding-top: 0.625rem;
 }
 
 .breakdown-title {
