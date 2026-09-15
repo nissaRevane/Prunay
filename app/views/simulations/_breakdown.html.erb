@@ -1,5 +1,5 @@
-<%# Où part l'argent : à gauche ce que la signature coûte, à droite ce qu'une année pleine
-    laisse. Les deux valent pour le régime en tête du classement. %>
+<%# Où part l'argent : à gauche ce que le bien a coûté jusqu'à la revente, à droite ce qu'une
+    année pleine laisse. Les deux valent pour le régime en tête du classement. %>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.breakdown_title") %></h2>
@@ -11,7 +11,7 @@
 
   <div class="columns">
     <div class="breakdown-column">
-      <h3 class="breakdown-title"><%= t("views.simulations.show.breakdown_outlay") %></h3>
+      <h3 class="breakdown-title"><%= t("views.simulations.show.breakdown_outlay", year: dashboard.exit_year) %></h3>
 
       <dl class="rows sum">
         <% dashboard.outlay_lines.each do |field, amount| %>
@@ -21,9 +21,14 @@
           </div>
         <% end %>
 
+        <div class="detail-item">
+          <dt class="detail-label"><%= t("views.simulations.show.breakdown_cumulative_cash_flow") %></dt>
+          <dd class="detail-value"><%= number_to_currency(-dashboard.cumulative_cash_flow) %></dd>
+        </div>
+
         <div class="detail-item sum-total">
-          <dt class="detail-label"><%= t("views.simulations.show.initial_outlay") %></dt>
-          <dd class="detail-value"><%= number_to_currency(dashboard.best.initial_outlay) %></dd>
+          <dt class="detail-label"><%= t("views.simulations.show.immobilized_capital") %></dt>
+          <dd class="detail-value"><%= number_to_currency(dashboard.immobilized_capital) %></dd>
         </div>
       </dl>
     </div>

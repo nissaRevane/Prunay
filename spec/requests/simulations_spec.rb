@@ -1040,14 +1040,15 @@ RSpec.describe "Simulations", type: :request do
         expect(faces.map { |face| face.key?("hidden") }).to eq([false, true])
       end
 
-      it "breaks the outlay of a purchase in cash and the first full year down to the euro" do
+      it "breaks the capital engaged by a cash purchase and the first full year down to the euro" do
         frame = dashboard_frame(neutral)
         columns = frame.css(".breakdown-column")
 
         expect(amounts(columns.first)).to eq(
           Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
           Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
-          I18n.t("views.simulations.show.initial_outlay") => currency(216_612).gsub(/\s+/, " ")
+          I18n.t("views.simulations.show.breakdown_cumulative_cash_flow") => currency(-133_358.40).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.immobilized_capital") => currency(83_253.60).gsub(/\s+/, " ")
         )
         expect(amounts(columns.last)).to eq(
           I18n.t("views.simulations.show.breakdown_rent") => currency(10_080).gsub(/\s+/, " "),
@@ -1057,13 +1058,14 @@ RSpec.describe "Simulations", type: :request do
         )
       end
 
-      it "takes the annuity of the fifteenth year out and leaves the down payment alone in the outlay" do
+      it "adds the cash flow already banked to the down payment of a purchase on credit" do
         on_credit = create(:simulation, :with_credit, user: user)
         columns = dashboard_frame(on_credit).css(".breakdown-column")
 
         expect(amounts(columns.first)).to eq(
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
-          I18n.t("views.simulations.show.initial_outlay") => currency(23_388).gsub(/\s+/, " ")
+          I18n.t("views.simulations.show.breakdown_cumulative_cash_flow") => currency(45_808.09).gsub(/\s+/, " "),
+          I18n.t("views.simulations.show.immobilized_capital") => currency(69_196.09).gsub(/\s+/, " ")
         )
         expect(amounts(columns.last)).to include(
           I18n.t("views.simulations.show.breakdown_loan_interest") => currency(-1_966.93).gsub(/\s+/, " "),

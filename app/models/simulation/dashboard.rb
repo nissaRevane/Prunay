@@ -1,5 +1,5 @@
-# Le tableau de bord à une année de revente : les régimes classés par leur taux, ce que la mise
-# de départ recouvre, ce qu'une année laisse, et ce qui cloche.
+# Le tableau de bord à une année de revente : les régimes classés par leur taux, ce que le
+# capital engagé à cette échéance recouvre, ce qu'une année laisse, et ce qui cloche.
 class Simulation::Dashboard
   # En dessous, les loyers ne couvrent pas l'usure du bien.
   GROSS_YIELD_FLOOR = BigDecimal("5")
@@ -47,6 +47,10 @@ class Simulation::Dashboard
   def exit_date = best.year.date
 
   def annual_cash_flow = best.year.cash_flow
+
+  def cumulative_cash_flow = best.projection.cumulative_cash_flow(best.year)
+
+  def immobilized_capital = best.immobilized_capital
 
   def gross_yield
     investment = simulation.total_investment_under(regime)

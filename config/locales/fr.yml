@@ -274,7 +274,8 @@ fr:
         ranking_sale_profit: Gain à la revente
         breakdown_title: Où part l'argent
         breakdown_hint: "Régime retenu : %{regime}, celui qui rend le plus à cette échéance."
-        breakdown_outlay: La mise de départ
+        breakdown_outlay: "Le capital engagé à la %{year}ᵉ année"
+        breakdown_cumulative_cash_flow: Cash-flow déjà encaissé
         breakdown_annual: "La %{year}ᵉ année de location"
         breakdown_rent: Loyers encaissés
         breakdown_charges: Charges
