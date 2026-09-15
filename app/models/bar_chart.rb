@@ -1,5 +1,5 @@
 # Une barre par régime fiscal, empilée poste par poste, en coordonnées d'un SVG. L'échelle
-# part du zéro — ce sont des sommes payées — et un poste trop mince ne porte pas son montant.
+# part du zéro - ce sont des sommes payées - et un poste trop mince ne porte pas son montant.
 class BarChart
   WIDTH = 960
   HEIGHT = 380

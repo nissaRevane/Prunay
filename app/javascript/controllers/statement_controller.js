@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 // La fiche d'une année se lit sous deux angles : ce que l'année a produit, et ce qu'une revente
-// laisserait le jour de son anniversaire. Tout est rendu par le serveur — l'onglet ne fait que
+// laisserait le jour de son anniversaire. Tout est rendu par le serveur - l'onglet ne fait que
 // choisir lequel se montre, titre compris, et le détail que déplier le calcul de chaque ligne.
 export default class extends Controller {
   static targets = ["tab", "view", "detail", "toggle"]

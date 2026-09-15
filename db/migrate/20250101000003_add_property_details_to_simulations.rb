@@ -3,7 +3,7 @@ class AddPropertyDetailsToSimulations < ActiveRecord::Migration[8.0]
   # les travaux initiaux, l'exploitation et les charges annuelles. Chaque colonne porte un
   # défaut pour que les simulations écrites avant ces pages restent lisibles.
   def change
-    # Page 1 — le bien.
+    # Page 1 - le bien.
     add_column :simulations, :property_type, :string, null: false, default: "apartment"
     add_column :simulations, :address, :string
     add_column :simulations, :city, :string, null: false, default: ""
@@ -17,14 +17,14 @@ class AddPropertyDetailsToSimulations < ActiveRecord::Migration[8.0]
     # migration.
     change_column_default :simulations, :surface, from: 0, to: nil
 
-    # Page 2 — l'achat. Le prix et la date existaient déjà.
+    # Page 2 - l'achat. Le prix et la date existaient déjà.
     add_column :simulations, :initial_works, :decimal, precision: 12, scale: 2, null: false, default: 0
 
-    # Page 3 — la location. Le loyer mensuel existait déjà.
+    # Page 3 - la location. Le loyer mensuel existait déjà.
     add_column :simulations, :occupancy_months, :decimal, precision: 4, scale: 1, null: false, default: 11
     add_column :simulations, :rental_type, :string, null: false, default: "furnished"
 
-    # Page 4 — les charges annuelles.
+    # Page 4 - les charges annuelles.
     add_column :simulations, :property_tax, :decimal, precision: 12, scale: 2, null: false, default: 0
     add_column :simulations, :maintenance, :decimal, precision: 12, scale: 2, null: false, default: 0
     add_column :simulations, :insurance, :decimal, precision: 12, scale: 2, null: false, default: 0

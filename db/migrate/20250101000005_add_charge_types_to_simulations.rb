@@ -3,7 +3,7 @@ class AddChargeTypesToSimulations < ActiveRecord::Migration[8.0]
   # zéro : les simulations écrites avant cette migration n'ont jamais répondu à ces
   # questions, et zéro est la seule réponse qu'on puisse leur prêter sans mentir.
   #
-  # Trois d'entre elles ne se demandent que sous condition — les charges de copropriété pour
+  # Trois d'entre elles ne se demandent que sous condition - les charges de copropriété pour
   # un bien en copropriété, la CFE et le comptable pour un meublé. La condition vit dans le
   # modèle, pas ici : la colonne existe toujours, elle reste simplement à zéro quand la
   # question ne se pose pas.

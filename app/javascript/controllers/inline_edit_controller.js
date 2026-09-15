@@ -35,7 +35,7 @@ export default class extends Controller {
     this.save()
   }
 
-  // requestSubmit refuse de partir sur un champ invalide : le dire, et garder la porte ouverte —
+  // requestSubmit refuse de partir sur un champ invalide : le dire, et garder la porte ouverte -
   // refermer rendrait l'ancienne valeur sans un mot.
   save() {
     if (!this.formTarget.checkValidity()) return this.reject()

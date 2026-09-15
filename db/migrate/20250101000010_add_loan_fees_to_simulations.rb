@@ -1,6 +1,6 @@
 class AddLoanFeesToSimulations < ActiveRecord::Migration[8.0]
-  # Ce que le crédit coûte à la signature, une fois pour toutes : le cautionnement — la
-  # caution bancaire ou l'hypothèque qui garantit le prêt — et les frais de dossier. Deux
+  # Ce que le crédit coûte à la signature, une fois pour toutes : le cautionnement - la
+  # caution bancaire ou l'hypothèque qui garantit le prêt - et les frais de dossier. Deux
   # montants et non deux taux : c'est ainsi que l'offre de prêt les énonce.
   #
   # Zéro par défaut, comme les autres colonnes du crédit : c'est la seule réponse qu'on

@@ -6,7 +6,7 @@ const MONTHS_PER_YEAR = 12
 
 // La mensualité d'un prêt à annuités constantes : M = C × i / (1 − (1 + i)^−n). Le serveur la
 // calcule aussi, mais tant que l'utilisateur essaie des taux, des durées et des primes
-// d'assurance, seule la page peut la lui montrer — c'est ce qu'il vient chercher sur cette
+// d'assurance, seule la page peut la lui montrer - c'est ce qu'il vient chercher sur cette
 // page. Le capital emprunté, lui, ne bouge plus : il a été fixé à la page précédente, et le
 // modèle le passe en valeur.
 //

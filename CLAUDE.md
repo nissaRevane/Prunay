@@ -1,9 +1,9 @@
-# Prunay — instructions pour les agents
+# Prunay - instructions pour les agents
 
 Simulateur de rentabilité d'un investissement locatif. Rails 8, Ruby 3.3, PostgreSQL,
 Hotwire, Devise, RSpec, Docker.
 
-**Le domaine se lit dans le [README](README.md)** — ce qui existe, pourquoi, et comment
+**Le domaine se lit dans le [README](README.md)** - ce qui existe, pourquoi, et comment
 chaque calcul est posé. Le lire avant de toucher au calcul, à la projection ou à la
 fiscalité. Ce fichier-ci ne porte que les conventions de travail.
 
@@ -60,7 +60,7 @@ reste sous 120 caractères. Restent en `def`/`end` : les mémoïsations (`@x ||=
 affectations, et tout ce qui déborde.
 
 ### L'argent et les taux
-`BigDecimal` partout. `.to_d` sur toute entrée dans un constructeur — un taux entier ferait
+`BigDecimal` partout. `.to_d` sur toute entrée dans un constructeur - un taux entier ferait
 une division entière et un prêt à 3 % ne coûterait rien. `.round(2)` sur les montants rendus.
 
 ### Ce qui est dérivé ne se stocke pas
@@ -79,7 +79,7 @@ tous recalculés. N'ajouter une colonne que pour une réponse que l'utilisateur 
 ### Un nom sert plusieurs fois
 Un onglet de la fiche est à la fois le nom du partiel, la clé de traduction, l'identifiant du
 panneau et le paramètre `?tab=`. Même chose pour un régime fiscal (`Taxation::NAMES`) et pour
-une page de création. Renommer, c'est renommer partout — vérifier avant de conclure.
+une page de création. Renommer, c'est renommer partout - vérifier avant de conclure.
 
 ### Les tests
 - La factory `:simulation` est **neutre** : taux à zéro, charges à zéro, douze mois loués. Un

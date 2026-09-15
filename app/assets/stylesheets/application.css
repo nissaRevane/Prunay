@@ -308,7 +308,7 @@ a.nav-user-name:hover {
 }
 
 /* Les charges annuelles, par groupe : la détention du bien, son exploitation, le régime
-   meublé et le reste. Un intertitre par groupe — neuf montants d'affilée ne diraient pas
+   meublé et le reste. Un intertitre par groupe - neuf montants d'affilée ne diraient pas
    d'où ils viennent. Le champ qu'aucune condition ne justifie porte `hidden`, et la règle
    qui suit le fait disparaître avec sa colonne : son voisin occupe alors toute la ligne. */
 .charge-group + .charge-group {
@@ -728,8 +728,8 @@ a.nav-user-name:hover {
   white-space: nowrap;
 }
 
-/* Un tableau qui compte ses lignes par centaines — trois cents échéances d'un crédit sur
-   vingt-cinq ans — défile dans son propre cadre plutôt que d'allonger la page à l'infini.
+/* Un tableau qui compte ses lignes par centaines - trois cents échéances d'un crédit sur
+   vingt-cinq ans - défile dans son propre cadre plutôt que d'allonger la page à l'infini.
    L'en-tête reste visible : sans lui, une colonne de montants ne dit plus lequel elle porte. */
 .table-scroll-tall {
   max-height: 32rem;
@@ -996,7 +996,7 @@ body:has(.home) main.container {
 }
 
 /* La création rapide, ouverte depuis la liste : le formulaire de l'accueil, en pop-in, et à la
-   même largeur que là-bas — la colonne de .home, bord du panneau compris. */
+   même largeur que là-bas - la colonne de .home, bord du panneau compris. */
 .express-modal {
   /* Le reset écrase le `margin: auto` dont le navigateur centre une modale : il faut le rendre. */
   margin: auto;
@@ -1218,7 +1218,7 @@ body:has(.home) main.container {
   }
 }
 
-/* Wizard — la création d'une simulation en quatre pages.
+/* Wizard - la création d'une simulation en quatre pages.
    La frise dit toujours où l'on en est : un formulaire découpé sans repère se vit comme
    un couloir sans porte. */
 .wizard-progress {
@@ -1291,7 +1291,7 @@ body:has(.home) main.container {
   margin-bottom: 1.25rem;
 }
 
-/* Une fiche de caractéristiques : des couples libellé / valeur, jamais un tableau — il n'y
+/* Une fiche de caractéristiques : des couples libellé / valeur, jamais un tableau - il n'y
    a qu'une ligne à lire. */
 .detail-grid {
   display: grid;
@@ -1668,7 +1668,7 @@ body:has(.home) main.container {
 /* ==========================================================================
    Onglets
 
-   Deux lectures d'une même page — les paramètres, la projection — que l'on choisit sans
+   Deux lectures d'une même page - les paramètres, la projection - que l'on choisit sans
    recharger. Le panneau caché l'est par l'attribut `hidden` : la page reste lisible même
    si le JavaScript n'a pas encore pris la main.
    ========================================================================== */

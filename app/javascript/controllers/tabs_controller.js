@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Les panneaux d'une simulation sont tous rendus par le serveur — l'onglet ne fait que choisir
+// Les panneaux d'une simulation sont tous rendus par le serveur - l'onglet ne fait que choisir
 // lequel se montre, sans aller-retour. Les régimes fiscaux partagent un onglet, et sa liste
 // déroulante les départage : le nom du régime choisi devient celui de l'onglet, et les lignes
 // qu'un seul régime concerne ne s'ouvrent que sous le sien.

@@ -1,7 +1,7 @@
 class AddNameToSimulations < ActiveRecord::Migration[8.0]
   # Le nom d'une simulation, jusqu'ici déduit du bien à chaque affichage, devient une
   # colonne : il peut se saisir dès la première page de la création, et à défaut le modèle
-  # l'écrit au dernier écran. Une chaîne vide comme défaut, jamais NULL — un nom absent est
+  # l'écrit au dernier écran. Une chaîne vide comme défaut, jamais NULL - un nom absent est
   # un nom vide, pas un nom inconnu.
   def up
     add_column :simulations, :name, :string, null: false, default: ""

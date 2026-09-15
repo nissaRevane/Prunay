@@ -1,4 +1,4 @@
-# L'impôt d'une année de location : ce que tous les régimes partagent — barème du foyer,
+# L'impôt d'une année de location : ce que tous les régimes partagent - barème du foyer,
 # prélèvements sociaux. L'assiette et l'abattement de chacun sont dans sa classe.
 module Taxation
   # Foncier et plus-value : la LFSS 2026 y laisse la CSG à 9,2 %.

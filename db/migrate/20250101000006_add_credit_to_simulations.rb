@@ -1,6 +1,6 @@
 class AddCreditToSimulations < ActiveRecord::Migration[8.0]
   # Le financement du projet. `credit` est la réponse qui gouverne les trois autres colonnes :
-  # sans crédit, l'achat se paie comptant et l'apport, le taux et la durée n'ont rien à dire —
+  # sans crédit, l'achat se paie comptant et l'apport, le taux et la durée n'ont rien à dire -
   # d'où leur défaut à zéro, qui est aussi la seule réponse qu'on puisse prêter aux
   # simulations écrites avant cette migration.
   #

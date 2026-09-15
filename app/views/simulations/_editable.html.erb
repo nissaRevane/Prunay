@@ -1,4 +1,4 @@
-<%# Une ligne que le clic ouvre : le champ prend la place du texte et part seul. Aucun bouton —
+<%# Une ligne que le clic ouvre : le champ prend la place du texte et part seul. Aucun bouton -
     la valeur revenue du serveur est la confirmation. %>
 <%= tag.div class: "detail-item", hidden: regimes.present?,
             data: { controller: "inline-edit" }.merge(regimes ? regime_scope(regimes) : {}) do %>

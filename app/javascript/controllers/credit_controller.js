@@ -1,11 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Le financement, là où il se déclare : la case « achat à crédit », et ce qu'elle fait
-// apparaître — l'apport sur la page de l'achat, le taux et la durée sur le formulaire de
+// apparaître - l'apport sur la page de l'achat, le taux et la durée sur le formulaire de
 // modification. Un champ écarté est masqué ET désactivé : requis et invisible, il bloquerait
 // l'envoi du formulaire, et le modèle remet à zéro ce qu'il ne reçoit pas.
 //
-// L'apport se propose à un dixième du coût du projet — prix, frais de notaire et travaux. Ce
+// L'apport se propose à un dixième du coût du projet - prix, frais de notaire et travaux. Ce
 // coût se tape sur la page même, et seul le navigateur peut donc suivre la proposition à la
 // frappe ; dès que l'utilisateur corrige le montant, la proposition se tait et ne revient
 // plus. Le taux et la part fixe des frais de notaire viennent du modèle, comme pour le
