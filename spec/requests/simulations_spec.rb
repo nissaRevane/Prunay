@@ -1116,6 +1116,12 @@ RSpec.describe "Simulations", type: :request do
     context "the comparison tab" do
       let(:neutral) { create(:simulation, user: user) }
 
+      def burden_chart(doc, measure)
+        title = I18n.t("views.simulations.show.comparison_#{measure}_burden")
+
+        doc.at_css("turbo-frame#dashboard [data-carousel-target='slide'][data-title=\"#{title}\"] .chart")
+      end
+
       it "draws one curve per regime on each of the three charts" do
         get simulation_path(neutral)
 
@@ -1138,7 +1144,7 @@ RSpec.describe "Simulations", type: :request do
         expect(doc.at_css("#panel-comparison > .section h2").text.strip)
           .to eq(I18n.t("views.simulations.show.comparison_internal_rate_of_return"))
         expect(slides.map { |slide| slide.attribute("hidden").nil? }).to eq([false, false, true])
-        expect(doc.css("#panel-comparison .carousel-step").size).to eq(2)
+        expect(doc.css("#panel-comparison > .section .carousel-step").size).to eq(2)
       end
 
       it "leaves the years without a positive rate off the rate chart" do
@@ -1152,11 +1158,34 @@ RSpec.describe "Simulations", type: :request do
         expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
       end
 
+      it "opens the burden carousel on the expenses and hides the tax behind it" do
+        get simulation_path(neutral)
+
+        doc = Nokogiri::HTML(response.body)
+        burden = doc.at_css("turbo-frame#dashboard .carousel-header").parent
+        slides = burden.css("[data-carousel-target='slide']")
+
+        expect(burden.at_css("h2").text.strip)
+          .to eq(I18n.t("views.simulations.show.comparison_expense_burden"))
+        expect(slides.map { |slide| slide.attribute("hidden").nil? }).to eq([true, false])
+      end
+
+      it "sorts every expense up to the year of sale into its four categories" do
+        get simulation_path(neutral)
+
+        chart = burden_chart(Nokogiri::HTML(response.body), :expense)
+
+        expect(chart.css(".chart-legend-label").map { |label| label.text.strip })
+          .to eq([I18n.t("views.simulations.show.expense_property"),
+                  I18n.t("views.simulations.show.expense_administrative"),
+                  I18n.t("views.simulations.show.expense_taxes")])
+      end
+
       it "stacks the taxes paid up to the year of sale, one bar per regime" do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        chart = doc.at_css("#panel-comparison turbo-frame#dashboard .chart")
+        chart = burden_chart(doc, :tax)
         amounts = chart.css("text.chart-bar-label").map { |label| label.text.gsub(/\s+/, " ").strip }
 
         expect(doc.at_css("#panel-comparison .exit-year-value").text)
@@ -1170,12 +1199,11 @@ RSpec.describe "Simulations", type: :request do
       it "taxes the sale of the LMNP alone when the price has not moved" do
         get simulation_path(neutral)
 
-        doc = Nokogiri::HTML(response.body)
-        chart = doc.at_css("#panel-comparison turbo-frame#dashboard .chart")
+        chart = burden_chart(Nokogiri::HTML(response.body), :tax)
 
         columns = chart.css("rect.chart-bar").map { |rect| rect["x"] }.uniq
 
-        expect(chart.css("rect.chart-tax-capital_gain_tax").map { |rect| rect["x"] }).to eq([columns.last])
+        expect(chart.css("rect.chart-part-capital_gain_tax").map { |rect| rect["x"] }).to eq([columns.last])
       end
 
       it "redraws the dashboard alone on the chosen year of sale, curves left untouched" do
@@ -1186,7 +1214,7 @@ RSpec.describe "Simulations", type: :request do
         doc = Nokogiri::HTML(response.body)
 
         expect(doc.at_css("turbo-frame#dashboard")).not_to be_nil
-        expect(doc.css(".chart").size).to eq(1)
+        expect(doc.css(".chart").size).to eq(2)
         expect(doc.at_css(".exit-year-value").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10, date: 2035))
         expect(doc.css(".chart-legend-label").map(&:text))
           .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))

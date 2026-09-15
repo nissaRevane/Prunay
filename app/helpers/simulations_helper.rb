@@ -11,6 +11,8 @@ module SimulationsHelper
 
   RATE_MEASURE = :internal_rate_of_return
 
+  BURDEN_MEASURES = %i[expense tax].freeze
+
   EXIT_YEAR_GLYPHS = { previous: "‹", next: "›" }.freeze
 
   UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
@@ -101,10 +103,10 @@ module SimulationsHelper
       **alert.values.to_h { |name, value| [name, warning_value(name, value)] })
   end
 
-  def tax_burden_chart(projections, exit_year)
+  def burden_chart(projections, exit_year, measure)
     BarChart.new(projections.map do |regime, projection|
       BarChart::Bar.new(name: regime.to_s, label: t("views.simulations.show.tab_#{regime}"),
-                        lines: projection.tax_lines(projection.year(exit_year)))
+                        lines: projection.public_send(:"#{measure}_lines", projection.year(exit_year)))
     end)
   end
 
@@ -118,6 +120,12 @@ module SimulationsHelper
     link_to glyph, dashboard_simulation_path(simulation, exit_year: year), class: "exit-year-step",
             aria: { label: t("views.simulations.show.exit_year_#{direction}") },
             data: target.merge(action: "exit-year#remember", exit_year_year_param: year)
+  end
+
+  def bar_component_label(component)
+    return t("views.simulations.show.expense_#{component}") if Projection::EXPENSE_COMPONENTS.include?(component)
+
+    tax_component_label(component)
   end
 
   def tax_component_label(component)

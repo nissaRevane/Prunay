@@ -12,7 +12,7 @@
 
     <% chart.bars.each_with_index do |bar, index| %>
       <% chart.segments(bar).each do |segment| %>
-        <rect class="chart-bar chart-tax-<%= segment.component %>" x="<%= chart.bar_x(index) %>"
+        <rect class="chart-bar chart-part-<%= segment.component %>" x="<%= chart.bar_x(index) %>"
               y="<%= segment.y %>" width="<%= chart.bar_width %>" height="<%= segment.height %>" />
         <% if segment.labelled? %>
           <text class="chart-bar-label" x="<%= chart.x(index) %>" y="<%= segment.middle + 4 %>"
@@ -29,9 +29,9 @@
 
   <ul class="chart-legend">
     <% chart.components.each do |component| %>
-      <li class="chart-legend-item chart-tax-<%= component %>">
+      <li class="chart-legend-item chart-part-<%= component %>">
         <span class="chart-swatch chart-swatch-block" aria-hidden="true"></span>
-        <span class="chart-legend-label"><%= tax_component_label(component) %></span>
+        <span class="chart-legend-label"><%= bar_component_label(component) %></span>
       </li>
     <% end %>
   </ul>

@@ -10,6 +10,10 @@ class Projection
   TAX_COMPONENTS = %i[notary_fees property_tax business_tax income_tax social_charges
                       capital_gain_tax].freeze
 
+  EXPENSE_COMPONENTS = %i[property administrative financing taxes].freeze
+
+  PROPERTY_CHARGES = %i[maintenance condominium_fees other_charges furniture_maintenance].freeze
+
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :loan_insurance, :capital_repayment,
                     :taxation, :gain, :immobilized_capital, :property_value,
@@ -83,6 +87,25 @@ class Projection
 
     without_zeros({ notary_fees: @simulation.notary_fees }
                     .merge(lines).merge(capital_gain_tax: exit_year.capital_gain_tax))
+  end
+
+  def expense_lines(exit_year)
+    lines = Hash.new(0)
+    years.take(exit_year.number + 1).each do |year|
+      charge_lines(year).except(*TAX_COMPONENTS).each do |field, amount|
+        lines[PROPERTY_CHARGES.include?(field) ? :property : :administrative] += amount
+      end
+      lines[:financing] += year.interest_excluding_insurance + year.loan_insurance
+    end
+
+    costs = sale_cost_lines(exit_year)
+    lines[:property] += @simulation.initial_works + @simulation.furniture_under(regime) +
+                        costs.fetch(:refurbishment, 0)
+    lines[:administrative] += costs.fetch(:diagnostics, 0)
+    lines[:financing] += @simulation.loan.upfront_fees + exit_year.early_repayment_fee
+    lines[:taxes] = tax_lines(exit_year).values.sum
+
+    without_zeros(EXPENSE_COMPONENTS.index_with { |component| lines[component] })
   end
 
   def final_immobilized_capital = years.last.immobilized_capital

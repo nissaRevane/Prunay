@@ -1,0 +1,19 @@
+<%# Ce que l'opération coûte jusqu'à la revente, une barre par régime : d'abord toutes les
+    dépenses, puis l'impôt seul. Le régime qui rend le plus n'est pas celui qui coûte le moins. %>
+<% default = t("views.simulations.show.comparison_#{SimulationsHelper::BURDEN_MEASURES.first}_burden") %>
+<div class="section" data-controller="carousel" data-carousel-index-value="0">
+  <div class="section-header carousel-header">
+    <button type="button" class="carousel-step" data-action="carousel#previous"
+            aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+    <h2 data-carousel-target="title"><%= default %></h2>
+    <button type="button" class="carousel-step" data-action="carousel#next"
+            aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
+  </div>
+
+  <% SimulationsHelper::BURDEN_MEASURES.each_with_index do |measure, index| %>
+    <% title = t("views.simulations.show.comparison_#{measure}_burden") %>
+    <div data-carousel-target="slide" data-title="<%= title %>" <%= "hidden" unless index.zero? %>>
+      <%= render "simulations/bar_chart", chart: burden_chart(projections, exit_year, measure), title: title %>
+    </div>
+  <% end %>
+</div>

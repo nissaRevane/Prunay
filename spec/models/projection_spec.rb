@@ -59,6 +59,53 @@ RSpec.describe Projection do
     end
   end
 
+  describe "#expense_lines" do
+    let(:simulation) do
+      build(:simulation, purchase_price: 200_000, monthly_rent: 1_000, maintenance: 1_000,
+                         condominium_fees: 500, insurance: 150, management_fees: 350, property_tax: 700,
+                         marginal_tax_rate: 30)
+    end
+
+    it "keeps ten years of maintenance and the refurbishment of the sale on the property" do
+      expect(projection.expense_lines(projection.year(10))[:property]).to eq(BigDecimal("15500"))
+    end
+
+    it "keeps ten years of insurance and management and the diagnostics of the sale apart" do
+      expect(projection.expense_lines(projection.year(10))[:administrative]).to eq(BigDecimal("5400"))
+    end
+
+    it "carries the whole tax of the same years, the notary fees included" do
+      exit_year = projection.year(10)
+
+      expect(projection.expense_lines(exit_year)[:taxes]).to eq(projection.tax_lines(exit_year).values.sum)
+    end
+
+    it "leaves out the credit no one took" do
+      expect(projection.expense_lines(projection.year(10))).not_to have_key(:financing)
+    end
+
+    context "when the purchase is on credit" do
+      let(:simulation) do
+        build(:simulation, :with_credit, purchase_price: 200_000, loan_guarantee_fees: 2_000,
+                                         loan_application_fees: 800)
+      end
+
+      it "adds the 2 800 of fees, the 46 348.12 of interest and the 1 664.67 of early repayment fee" do
+        expect(projection.expense_lines(projection.year(10))[:financing]).to eq(BigDecimal("50812.79"))
+      end
+    end
+
+    context "under a furnished regime" do
+      subject(:projection) { described_class.new(simulation, :lmnp) }
+
+      let(:simulation) { build(:simulation, purchase_price: 200_000, furniture: 5_000) }
+
+      it "counts the furniture with the property" do
+        expect(projection.expense_lines(projection.year(10))[:property]).to eq(BigDecimal("5500"))
+      end
+    end
+  end
+
   it "gives back a year by its number" do
     expect(projection.year(15).number).to eq(15)
     expect(projection.year(0).date).to eq(Date.new(2025, 3, 10))

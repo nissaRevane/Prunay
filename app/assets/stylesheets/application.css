@@ -1844,28 +1844,44 @@ body:has(.home) main.container {
   font-weight: 700;
 }
 
-.chart-tax-notary_fees {
+.chart-part-notary_fees {
   --chart-color: #64748b;
 }
 
-.chart-tax-property_tax {
+.chart-part-property_tax {
   --chart-color: #2563eb;
 }
 
-.chart-tax-business_tax {
+.chart-part-business_tax {
   --chart-color: #d97706;
 }
 
-.chart-tax-income_tax {
+.chart-part-income_tax {
   --chart-color: #dc2626;
 }
 
-.chart-tax-social_charges {
+.chart-part-social_charges {
   --chart-color: #7c3aed;
 }
 
-.chart-tax-capital_gain_tax {
+.chart-part-capital_gain_tax {
   --chart-color: #0f766e;
+}
+
+.chart-part-property {
+  --chart-color: #2563eb;
+}
+
+.chart-part-administrative {
+  --chart-color: #0891b2;
+}
+
+.chart-part-financing {
+  --chart-color: #d97706;
+}
+
+.chart-part-taxes {
+  --chart-color: #dc2626;
 }
 
 /* ==========================================================================
