@@ -44,6 +44,7 @@ fr:
         monthly_rent: Loyer mensuel
         monthly_charges: "Charges/mois"
         occupancy_months: "Mois loués"
+        rental_start_date: "Date de mise en location"
         property_tax: Taxe foncière
         insurance: Assurance PNO
         maintenance: Entretien et gros travaux

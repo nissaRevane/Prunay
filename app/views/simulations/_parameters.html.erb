@@ -71,6 +71,10 @@
           class: "form-control", required: true %>
     <% end %>
 
+    <%= editable_detail simulation, :rental_start_date, l(simulation.rental_start_date, format: :long) do |f| %>
+      <%= f.date_field :rental_start_date, class: "form-control", required: true %>
+    <% end %>
+
     <% Taxation::NAMES.each do |regime| %>
       <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label">

@@ -12,3 +12,8 @@
   <%= f.label :occupancy_months %>
   <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true %>
 </div>
+
+<div class="form-group">
+  <%= f.label :rental_start_date %>
+  <%= f.date_field :rental_start_date, class: "form-control", required: true %>
+</div>

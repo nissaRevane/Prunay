@@ -301,6 +301,43 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "#occupancy_months_in" do
+    let(:simulation) do
+      build(:simulation, purchase_date: Date.new(2027, 1, 1), rental_start_date: Date.new(2027, 7, 1),
+                         occupancy_months: 11)
+    end
+
+    it "counts the months of the first year that follow the letting date" do
+      expect(simulation.occupancy_months_in(1)).to eq(BigDecimal("5.5"))
+    end
+
+    it "gives the following years their full count" do
+      expect(simulation.occupancy_months_in(2)).to eq(11)
+    end
+
+    it "lets nothing in a year that ends before the letting date" do
+      late = build(:simulation, purchase_date: Date.new(2027, 1, 1), rental_start_date: Date.new(2028, 4, 1),
+                                occupancy_months: 11)
+
+      expect(late.occupancy_months_in(1)).to eq(0)
+      expect(late.occupancy_months_in(2)).to eq(BigDecimal("8.25"))
+    end
+
+    it "defaults to the month that follows the purchase" do
+      fresh = build(:simulation, purchase_date: Date.new(2027, 1, 1), rental_start_date: nil)
+      fresh.valid?
+
+      expect(fresh.rental_start_date).to eq(Date.new(2027, 2, 1))
+    end
+
+    it "refuses a letting date before the purchase" do
+      early = build(:simulation, purchase_date: Date.new(2027, 1, 1), rental_start_date: Date.new(2026, 12, 1))
+
+      expect(early).not_to be_valid
+      expect(early.errors[:rental_start_date]).to be_present
+    end
+  end
+
   describe "#annual_charges_excluding_provision" do
     it "takes the provision the tenant reimburses out of the charges" do
       let_out = build(:simulation, monthly_charges: 100, occupancy_months: 12,

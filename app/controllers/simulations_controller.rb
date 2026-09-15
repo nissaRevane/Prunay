@@ -73,7 +73,7 @@ class SimulationsController < ApplicationController
       :purchase_price, :initial_works, :furniture, :purchase_date, :credit, :down_payment,
       :loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees, :loan_application_fees,
       :early_repayment_fee,
-      :monthly_rent, :monthly_charges, :occupancy_months,
+      :monthly_rent, :monthly_charges, :occupancy_months, :rental_start_date,
       *Simulation::ANNUAL_CHARGES, *Simulation::REGIME_CHARGES
     )
   end

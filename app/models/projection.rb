@@ -187,11 +187,11 @@ class Projection
     sale_costs = @simulation.sale_costs.total
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
-      rent = compound(@simulation.annual_rent_excluding_charges_under(regime), @simulation.rent_growth_rate,
+      rent = compound(@simulation.annual_rent_excluding_charges_under(regime, number), @simulation.rent_growth_rate,
                       number - 1)
       monthly_rent = compound(@simulation.monthly_rent_under(regime), @simulation.rent_growth_rate, number - 1)
-      provision = compound(@simulation.annual_provision_for_charges, @simulation.inflation_rate, number - 1)
-      charges = compound(@simulation.annual_charges_excluding_provision, @simulation.inflation_rate, number - 1)
+      provision = compound(@simulation.annual_provision_for_charges(number), @simulation.inflation_rate, number - 1)
+      charges = compound(@simulation.annual_charges_excluding_provision(number), @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.market_value, @simulation.property_growth_rate, number)
       taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation)

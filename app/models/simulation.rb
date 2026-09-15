@@ -29,6 +29,7 @@ class Simulation < ApplicationRecord
   belongs_to :user
 
   before_validation :clear_loan_without_credit
+  before_validation :align_rental_start_date
 
   after_save { @loan = nil }
 
@@ -69,6 +70,9 @@ class Simulation < ApplicationRecord
   validates :occupancy_months, presence: true,
             numericality: { greater_than: 0, less_than_or_equal_to: MONTHS_PER_YEAR },
             on: [:create, :update, :rental]
+  validates :rental_start_date, presence: true, on: [:create, :update, :rental]
+  validates :rental_start_date, comparison: { greater_than_or_equal_to: :purchase_date },
+            on: [:create, :update, :rental], if: -> { purchase_date.present? && rental_start_date.present? }
 
   validates(*ANNUAL_CHARGES, *REGIME_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
@@ -150,17 +154,22 @@ class Simulation < ApplicationRecord
 
   def annual_rent_excluding_charges = monthly_rent * occupancy_months
 
+  # Une année de projection ne loue que les mois postérieurs à la mise en location.
+  def occupancy_months_in(year) = year.nil? ? occupancy_months : (occupancy_months * rented_share(year)).round(2)
+
   def monthly_rent_under(regime) = (monthly_rent * (1 + Taxation.rent_premium_rate(regime).to_d / 100)).round(2)
 
-  def annual_rent_excluding_charges_under(regime) = monthly_rent_under(regime) * occupancy_months
+  def annual_rent_excluding_charges_under(regime, year = nil)
+    (monthly_rent_under(regime) * occupancy_months_in(year)).round(2)
+  end
 
   def annual_rent_under(regime) = annual_rent_excluding_charges_under(regime) + annual_provision_for_charges
 
-  def annual_provision_for_charges = monthly_charges * occupancy_months
+  def annual_provision_for_charges(year = nil) = (monthly_charges * occupancy_months_in(year)).round(2)
 
   def annual_charges = ANNUAL_CHARGES.sum { |field| public_send(field) }
 
-  def annual_charges_excluding_provision = annual_charges - annual_provision_for_charges
+  def annual_charges_excluding_provision(year = nil) = annual_charges - annual_provision_for_charges(year)
 
   def annual_business_tax = taxation(:micro_bic).business_tax
 
@@ -204,6 +213,31 @@ class Simulation < ApplicationRecord
   end
 
   private
+
+  def rented_share(year)
+    opening = purchase_date + (year - 1).years
+    closing = purchase_date + year.years
+    return 1 if rental_start_date.nil? || rental_start_date <= opening
+    return 0 if rental_start_date >= closing
+
+    months_until(closing) / MONTHS_PER_YEAR
+  end
+
+  # Les mois pleins qui restent, plus la fraction du mois entamé.
+  def months_until(closing)
+    months = (closing.year - rental_start_date.year) * MONTHS_PER_YEAR + closing.month - rental_start_date.month
+
+    months + (closing.day - rental_start_date.day).to_d / rental_start_date.end_of_month.day
+  end
+
+  # Déplacer l'achat déplace d'autant une mise en location qui n'est pas saisie.
+  def align_rental_start_date
+    return if purchase_date.blank?
+    return self.rental_start_date = purchase_date >> 1 if rental_start_date.blank?
+    return unless purchase_date_changed? && !rental_start_date_changed? && purchase_date_was.present?
+
+    self.rental_start_date += (purchase_date - purchase_date_was).to_i
+  end
 
   def within_quota
     errors.add(:base, :quota_exceeded, count: MAX_PER_USER) if user && user.simulations.count >= MAX_PER_USER

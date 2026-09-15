@@ -140,6 +140,25 @@ RSpec.describe Projection do
     expect(projection.years.drop(1).map(&:charges_excluding_provision).uniq).to eq([2_000])
   end
 
+  describe "from a letting that opens after the purchase" do
+    let(:simulation) do
+      build(:simulation, purchase_date: Date.new(2027, 1, 1), rental_start_date: Date.new(2027, 7, 1),
+                         monthly_rent: 1_000, monthly_charges: 100, occupancy_months: 11,
+                         condominium_fees: 1_500)
+    end
+
+    it "collects six months of the eleven let, then the whole year" do
+      expect(projection.years[1].rent_excluding_charges).to eq(5_500)
+      expect(projection.years[2].rent_excluding_charges).to eq(11_000)
+    end
+
+    it "recovers the provision only over the months let, the charges unchanged" do
+      expect(projection.years[1].provision_for_charges).to eq(550)
+      expect(projection.years[1].charges_including_provision).to eq(1_500)
+      expect(projection.years[2].provision_for_charges).to eq(1_100)
+    end
+  end
+
   it "taxes the rent excluding charges of every year, allowance deducted" do
     expect(projection.years.drop(1).map(&:taxes).uniq).to eq([BigDecimal("1324.40")])
     expect(projection.total_taxes).to eq(BigDecimal("1324.40") * described_class::HORIZON_YEARS)

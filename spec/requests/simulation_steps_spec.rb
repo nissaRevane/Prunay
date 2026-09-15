@@ -19,7 +19,8 @@ RSpec.describe "Simulation steps", type: :request do
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
   CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16",
              loan_guarantee_fees: "3526.87", loan_application_fees: "2116.12" }.freeze
-  RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11" }.freeze
+  RENTAL = { monthly_rent: "1000", monthly_charges: "150", occupancy_months: "11",
+             rental_start_date: "2026-02-15" }.freeze
   CHARGES = { property_tax: "700", insurance: "150", maintenance: "1000", condominium_fees: "1200",
               management_fees: "0", rent_guarantee: "0", other_charges: "150" }.freeze
 
@@ -61,6 +62,7 @@ RSpec.describe "Simulation steps", type: :request do
         user: user, property_type: "apartment", city: "Nantes", surface: 50,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
         monthly_rent: 1_000, monthly_charges: 150, occupancy_months: 11,
+        rental_start_date: Date.new(2026, 2, 15),
         property_tax: 700, insurance: 150, maintenance: 1_000, condominium_fees: 1_200,
         management_fees: 0, rent_guarantee: 0, other_charges: 150
       )
@@ -182,6 +184,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_monthly_rent")).to eq("1300")
       expect(field_value("simulation_monthly_charges")).to eq("0")
       expect(field_value("simulation_occupancy_months")).to eq("11")
+      expect(field_value("simulation_rental_start_date")).to eq("2026-02-15")
     end
 
     it "estimates every annual charge from the surface" do

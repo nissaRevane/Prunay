@@ -335,7 +335,10 @@ spec/
     them, never stored (like the notary fees)
   - *the letting:* monthly_rent (excluding charges, the only taxable part, and that of a bare
     letting - the furnished regimes add their premium to it), monthly_charges
-    (the provision the tenant repays on top of it) and occupancy_months
+    (the provision the tenant repays on top of it), occupancy_months and rental_start_date -
+    a month after the purchase unless answered otherwise; the first projection year only
+    counts the months that follow it (let from 1 July of a year bought on 1 January, eleven
+    months let a year make 5.5), and the tenant only repays the provision of those months
   - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
     which `ANNUAL_CHARGES` derives - a charge is added to a group and nowhere else):
     - *owning the property:* property_tax, insurance, maintenance, condominium_fees

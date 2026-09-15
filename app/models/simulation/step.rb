@@ -52,13 +52,16 @@ module Simulation::Step
     {
       "monthly_rent" => simulation.estimate(:monthly_rent),
       "monthly_charges" => simulation.estimate(:monthly_charges),
-      "occupancy_months" => simulation.assumptions.occupancy_months
+      "occupancy_months" => simulation.assumptions.occupancy_months,
+      "rental_start_date" => rental_start_date(simulation)
     }
   end
 
   def charge_defaults(simulation)
     (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
   end
+
+  def rental_start_date(simulation) = simulation.purchase_date.present? ? simulation.purchase_date >> 1 : nil
 
   def down_payment(simulation)
     return 0 if simulation.purchase_price.blank? || simulation.initial_works.blank?

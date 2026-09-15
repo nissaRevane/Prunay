@@ -11,6 +11,7 @@ FactoryBot.define do
     monthly_rent { 800 }
     monthly_charges { 0 }
     occupancy_months { 12 }
+    rental_start_date { purchase_date }
     property_tax { 0 }
     insurance { 0 }
     maintenance { 0 }
