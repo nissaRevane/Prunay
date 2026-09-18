@@ -900,6 +900,19 @@ a.icon-btn:hover {
   justify-content: center;
 }
 
+.account-deletion {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.account-deletion .section-hint {
+  margin-bottom: 1rem;
+}
+
+.account-deletion form {
+  display: inline-block;
+}
+
 /* Auth */
 .auth-container {
   max-width: 450px;
