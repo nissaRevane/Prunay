@@ -1,8 +1,9 @@
-name: Deploy
+name: CI & Deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
     inputs:
       command:
@@ -11,37 +12,85 @@ on:
         options: [deploy, setup]
         default: deploy
 
-concurrency: deploy
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  test:
+    name: RSpec
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: prunay
+          POSTGRES_PASSWORD: prunay_password
+          POSTGRES_DB: prunay_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U prunay"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      RAILS_ENV: test
+      TEST_DATABASE_URL: postgres://prunay:prunay_password@localhost:5432/prunay_test
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      # libpq-dev : la gem pg se compile à l'installation du bundle.
+      - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends libpq-dev
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3.6"
+          bundler-cache: true
 
-      - run: gem install kamal -v 2.5.3
+      - run: bin/rails db:test:prepare
+      - run: bundle exec rspec
+
+  deploy:
+    name: Kamal deploy
+    needs: test
+    # Jamais sur un push : le déploiement se déclenche à la main depuis l'onglet Actions.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write # pousser l'image sur ghcr.io
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Kamal tague l'image avec le SHA du commit
+
+      - run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends libpq-dev
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+          bundler-cache: true
+
+      - uses: docker/setup-buildx-action@v3
 
       - name: Ouvrir l'accès SSH au serveur
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           printf 'Host *\n  StrictHostKeyChecking accept-new\n' > ~/.ssh/config
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - run: kamal ${{ inputs.command || 'deploy' }}
+      - name: kamal ${{ inputs.command }}
         env:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: bundle exec kamal ${{ inputs.command }}

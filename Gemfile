@@ -23,6 +23,8 @@ end
 
 group :development do
   gem "web-console"
+  # Version figee : Milly partage le kamal-proxy du VPS, bumper les deux ensemble.
+  gem "kamal", "2.12.0", require: false
 end
 
 group :test do
