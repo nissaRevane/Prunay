@@ -13,7 +13,7 @@ RSpec.describe "Simulation steps", type: :request do
     Nokogiri::HTML(response.body).at_css("##{name}")["value"]
   end
 
-  PROPERTY = { property_type: "apartment", city: "Nantes", surface: "50" }.freeze
+  PROPERTY = { property_type: "apartment", city: "Prunay-le-Temple", surface: "50" }.freeze
   PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
                credit: "0", down_payment: "0" }.freeze
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
@@ -59,7 +59,7 @@ RSpec.describe "Simulation steps", type: :request do
       simulation = Simulation.last
       expect(response).to redirect_to(simulation)
       expect(simulation).to have_attributes(
-        user: user, property_type: "apartment", city: "Nantes", surface: 50,
+        user: user, property_type: "apartment", city: "Prunay-le-Temple", surface: 50,
         purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
         monthly_rent: 1_000, monthly_charges: 150, occupancy_months: 11,
         rental_start_date: Date.new(2026, 2, 15),
@@ -124,7 +124,7 @@ RSpec.describe "Simulation steps", type: :request do
 
       get new_simulation_step_path(step: "property")
 
-      expect(field_value("simulation_city")).to eq("Nantes")
+      expect(field_value("simulation_city")).to eq("Prunay-le-Temple")
     end
   end
 
@@ -247,6 +247,28 @@ RSpec.describe "Simulation steps", type: :request do
       expect(field_value("simulation_loan_insurance")).to eq("21.16")
       expect(field_value("simulation_loan_guarantee_fees")).to eq("3527.57")
       expect(field_value("simulation_loan_application_fees")).to eq("2116.12")
+    end
+
+    it "proposes the rent the barometer observes, the provision deducted, and says where it comes from" do
+      create(:assumptions, user: user, monthly_charges: 50)
+      submit("property", PROPERTY.merge(city: "Orléans", surface: "30"))
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "rental")
+
+      expect(field_value("simulation_monthly_rent")).to eq("393")
+      expect(response.body).to include("14,75 €/m² × 30 m² = 443 € par mois, charges comprises.")
+      expect(response.body).to include("Provision de 50 € déduite, la proposition est de 393 € hors charges.")
+      expect(response.body).to include("Baromètre Pierria")
+    end
+
+    it "invents nothing for a commune the barometer does not cover" do
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "rental")
+
+      expect(response.body).to include("Pas de données pour cette commune, saisissez le loyer manuellement.")
+      expect(response.body).not_to include("Baromètre Pierria")
     end
 
     it "does not overwrite an amount already corrected by hand" do

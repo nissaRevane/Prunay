@@ -1,6 +1,33 @@
+<% simulation = f.object %>
+<% reference = simulation.rent_reference %>
+<% rate = reference&.rent_per_square_meter(simulation.property_type, simulation.surface) %>
+
 <div class="form-group">
   <%= f.label :monthly_rent %>
   <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true %>
+
+  <% if rate %>
+    <p class="form-hint">
+      <%= t("views.simulations.steps.rental.reference",
+            rate: number_to_currency(rate, unit: "€/m²"),
+            surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true),
+            amount: number_to_currency(simulation.market_rent, precision: 0)) %>
+      <% if simulation.monthly_charges.to_d.positive? %>
+        <%= t("views.simulations.steps.rental.reference_charges",
+              charges: number_to_currency(simulation.monthly_charges, precision: 0),
+              amount: number_to_currency(simulation.monthly_rent, precision: 0)) %>
+      <% end %>
+    </p>
+    <p class="form-hint">
+      <%= t("views.simulations.steps.rental.reference_caution",
+            city: reference.city, listings: number_with_delimiter(reference.listings)) %>
+      <%= t("views.simulations.steps.rental.reference_source_html",
+            link: link_to(t("views.simulations.steps.rental.reference_source"), RentReference::SOURCE_URL,
+                          target: "_blank", rel: "noopener")) %>
+    </p>
+  <% elsif RentReference.covers?(simulation.property_type) %>
+    <p class="form-hint"><%= t("views.simulations.steps.rental.reference_missing") %></p>
+  <% end %>
 </div>
 
 <div class="form-group">

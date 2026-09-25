@@ -101,6 +101,10 @@ class Simulation < ApplicationRecord
 
   def estimate(field) = Estimate.new(assumptions).for(field, surface)
 
+  def rent_reference = RentReference.for(city)
+
+  def market_rent = rent_reference&.monthly_rent(property_type, surface)
+
   def name
     I18n.t(
       "simulations.name",

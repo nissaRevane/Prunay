@@ -49,9 +49,11 @@ module Simulation::Step
   end
 
   def rental_defaults(simulation)
+    charges = simulation.estimate(:monthly_charges)
+
     {
-      "monthly_rent" => simulation.estimate(:monthly_rent),
-      "monthly_charges" => simulation.estimate(:monthly_charges),
+      "monthly_rent" => monthly_rent(simulation, charges),
+      "monthly_charges" => charges,
       "occupancy_months" => simulation.assumptions.occupancy_months,
       "rental_start_date" => rental_start_date(simulation)
     }
@@ -59,6 +61,13 @@ module Simulation::Step
 
   def charge_defaults(simulation)
     (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
+  end
+
+  # Le baromètre énonce un loyer charges comprises : la provision en sort avant la proposition.
+  def monthly_rent(simulation, charges)
+    market = simulation.market_rent
+
+    market.nil? ? simulation.estimate(:monthly_rent) : [market - charges, 0].max
   end
 
   def rental_start_date(simulation) = simulation.purchase_date.present? ? simulation.purchase_date >> 1 : nil

@@ -52,6 +52,18 @@ RSpec.describe Simulation::Step do
       )
     end
 
+    it "proposes the rent the barometer observes in the city" do
+      covered = draft(city: "Orléans", property_type: "apartment", surface: 30)
+
+      expect(described_class.defaults("rental", covered)["monthly_rent"]).to eq(443)
+    end
+
+    it "falls back on the references of the account outside the hundred cities" do
+      uncovered = draft(city: "Prunay-le-Temple", property_type: "apartment", surface: 50)
+
+      expect(described_class.defaults("rental", uncovered)["monthly_rent"]).to eq(650)
+    end
+
     it "leaves a month of vacancy a year" do
       expect(described_class.defaults("rental", draft(surface: 50))["occupancy_months"]).to eq(11)
     end

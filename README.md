@@ -84,6 +84,17 @@ docker compose run --rm web bundle exec rspec
   and 370 € a year to keep it furnished. Every one of these references is the account's own
   (`Assumptions`) - what is described here is what Prunay supposes until its owner says
   otherwise.
+- **The rent proposed from the market where the market is known:** on the hundred largest
+  cities, the rent pre-filled on the letting page is read in the Pierria barometer
+  (`RentReference`, a quarterly CSV versioned in `db/data`) instead of being scaled from the
+  account's reference: the price per square metre of the city - T1-T2 up to
+  `RentReference::SMALL_APARTMENT_SURFACE`, T3 and beyond above it, the house column for a
+  house - multiplied by the surface. Those are asking rents, charges included, so the
+  provision for charges is deducted before the figure is proposed, and the page shows the
+  multiplication, the number of listings behind it and the source. Outside those hundred
+  cities, and for a parking or a whole building, the barometer says nothing and the account's
+  reference takes over - nothing is invented. `rake rent_reference:update` resolves the
+  current edition on data.gouv.fr, checks it and rewrites the file.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page - proposed at a tenth of the project cost, recomputed in the browser as the price is
   typed - and the credit page asks only for a rate, a duration and the borrower's insurance
@@ -308,6 +319,7 @@ config/
 ├── routes.rb           # Application routes
 └── database.yml        # Database configuration
 db/
+├── data/               # The Pierria barometer, one CSV per edition in force
 ├── migrate/            # Database migrations
 ├── seed_data.json      # The demo account, in the export format
 └── seeds.rb            # Reads seed_data.json, idempotent

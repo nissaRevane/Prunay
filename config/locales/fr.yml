@@ -238,6 +238,12 @@ fr:
           title: Le crédit
         rental:
           title: La location
+          reference: "%{rate} × %{surface} m² = %{amount} par mois, charges comprises."
+          reference_charges: "Provision de %{charges} déduite, la proposition est de %{amount} hors charges."
+          reference_caution: "Loyer d'annonce relevé à %{city} sur %{listings} annonces : un repère de marché, pas un loyer garanti."
+          reference_source: Baromètre Pierria
+          reference_source_html: "Source : %{link}"
+          reference_missing: Pas de données pour cette commune, saisissez le loyer manuellement.
         charges:
           title: Les charges annuelles
       edit:
