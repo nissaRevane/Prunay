@@ -14,7 +14,7 @@ class RentReference
   BYTE_ORDER_MARK = "﻿".freeze
 
   # Au-delà, le baromètre range le logement avec les T3 et plus.
-  SMALL_APARTMENT_SURFACE = 45
+  SMALL_APARTMENT_SURFACE = 50
 
   COLUMNS = {
     "apartment" => { small: "loyer_m2_t1_t2_eur", large: "loyer_m2_t3_plus_eur" },

@@ -16,9 +16,9 @@ RSpec.describe RentReference do
   end
 
   describe "#rent_per_square_meter" do
-    it "reads the small apartments up to 45 m² and the larger ones beyond" do
-      expect(orleans.rent_per_square_meter("apartment", 45)).to eq(BigDecimal("14.75"))
-      expect(orleans.rent_per_square_meter("apartment", BigDecimal("45.01"))).to eq(BigDecimal("11.59"))
+    it "reads the small apartments up to 50 m² and the larger ones beyond" do
+      expect(orleans.rent_per_square_meter("apartment", 50)).to eq(BigDecimal("14.75"))
+      expect(orleans.rent_per_square_meter("apartment", BigDecimal("50.01"))).to eq(BigDecimal("11.59"))
     end
 
     it "reads the house column whatever the surface" do
