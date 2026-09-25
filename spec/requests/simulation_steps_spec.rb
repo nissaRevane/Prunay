@@ -257,8 +257,7 @@ RSpec.describe "Simulation steps", type: :request do
       get new_simulation_step_path(step: "rental")
 
       expect(field_value("simulation_monthly_rent")).to eq("393")
-      expect(response.body).to include("14,75 €/m² × 30 m² = 443 € par mois, charges comprises.")
-      expect(response.body).to include("Provision de 50 € déduite, la proposition est de 393 € hors charges.")
+      expect(response.body).to include("Orléans : 14,75 €/m² d'annonce, charges comprises")
       expect(response.body).to include("Baromètre Pierria")
     end
 

@@ -241,11 +241,8 @@ fr:
         charges:
           title: Les charges annuelles
       reference:
-        rent: "%{rate} × %{surface} m² = %{amount} par mois, charges comprises."
-        charges: "Provision de %{charges} déduite, la proposition est de %{amount} hors charges."
-        caution: "Loyer d'annonce relevé à %{city} sur %{listings} annonces : un repère de marché, pas un loyer garanti."
+        rent_html: "%{city} : %{rate} d'annonce, charges comprises — %{link}"
         source: Baromètre Pierria
-        source_html: "Source : %{link}"
         missing: Pas de données pour cette commune, saisissez le loyer manuellement.
       edit:
         title: Modifier la simulation
