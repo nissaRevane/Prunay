@@ -26,6 +26,10 @@ Prunay::Application.routes.draw do
   get  "simulations/rapide", to: "simulations/express#new",    as: :new_express_simulation
   post "simulations/rapide", to: "simulations/express#create", as: :express_simulations
 
+  # Le loyer du marché se lit à la volée : la ville et la surface suffisent à le demander.
+  get "simulations/rapide/loyer", to: "simulations/express#rent_reference",
+      as: :express_simulation_rent_reference
+
   # Tout le compte dans un fichier JSON, que db/seeds.rb sait relire.
   resource :export, only: [:show]
 

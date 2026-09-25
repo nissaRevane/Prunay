@@ -105,6 +105,13 @@ class Simulation < ApplicationRecord
 
   def market_rent = rent_reference&.monthly_rent(property_type, surface)
 
+  # Le baromètre énonce un loyer charges comprises : la provision en sort avant la proposition.
+  def proposed_rent
+    market = market_rent
+
+    market.nil? ? estimate(:monthly_rent) : [market - estimate(:monthly_charges), 0].max
+  end
+
   def name
     I18n.t(
       "simulations.name",

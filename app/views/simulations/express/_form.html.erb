@@ -1,19 +1,22 @@
-<%= form_with(model: simulation, scope: :simulation, url: express_simulations_path, class: "form") do |f| %>
+<%= form_with(model: simulation, scope: :simulation, url: express_simulations_path, class: "form",
+              data: { controller: "rent-estimate", action: "turbo:frame-load->rent-estimate#fill",
+                      rent_estimate_url_value: express_simulation_rent_reference_path }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <div class="wizard-panel form-inline">
     <div class="form-group form-group-full">
-      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true, "aria-label": t("views.simulations.express.property_type") %>
+      <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true, "aria-label": t("views.simulations.express.property_type"), data: { action: "change->rent-estimate#estimate" } %>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" data-action="change->rent-estimate#estimate input->rent-estimate#estimate">
       <%= f.label :city, t("views.simulations.express.city") %>
       <%= suggested_field f, :city, required: true %>
     </div>
 
     <div class="form-group">
       <%= f.label :surface, t("views.simulations.express.surface") %>
-      <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+      <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true,
+          data: { action: "input->rent-estimate#estimate" } %>
     </div>
 
     <div class="form-group">
@@ -23,12 +26,16 @@
 
     <div class="form-group">
       <%= f.label :monthly_rent, t("views.simulations.express.monthly_rent") %>
-      <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+      <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true,
+          data: { rent_estimate_target: "rent", action: "input->rent-estimate#lock" } %>
     </div>
+
+    <%= render "simulations/express/rent_reference", simulation: simulation %>
   </div>
 
   <div class="form-actions">
     <%= f.submit t("views.simulations.express.create"), class: "btn btn-primary" %>
-    <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline" %>
+    <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline",
+        data: { turbo_frame: "_top" } %>
   </div>
 <% end %>

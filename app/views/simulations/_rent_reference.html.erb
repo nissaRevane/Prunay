@@ -1,0 +1,25 @@
+<% reference = simulation.rent_reference %>
+<% rate = reference&.rent_per_square_meter(simulation.property_type, simulation.surface) %>
+
+<% if rate %>
+  <p class="form-hint" data-rent-estimate-amount="<%= Assumptions.whole(simulation.proposed_rent) %>">
+    <%= t("views.simulations.reference.rent",
+          rate: number_to_currency(rate, unit: "€/m²"),
+          surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true),
+          amount: number_to_currency(simulation.market_rent, precision: 0)) %>
+    <% if simulation.estimate(:monthly_charges).to_d.positive? %>
+      <%= t("views.simulations.reference.charges",
+            charges: number_to_currency(simulation.estimate(:monthly_charges), precision: 0),
+            amount: number_to_currency(simulation.proposed_rent, precision: 0)) %>
+    <% end %>
+  </p>
+  <p class="form-hint">
+    <%= t("views.simulations.reference.caution",
+          city: reference.city, listings: number_with_delimiter(reference.listings)) %>
+    <%= t("views.simulations.reference.source_html",
+          link: link_to(t("views.simulations.reference.source"), RentReference::SOURCE_URL,
+                        target: "_blank", rel: "noopener")) %>
+  </p>
+<% elsif simulation.city.present? && RentReference.covers?(simulation.property_type) %>
+  <p class="form-hint"><%= t("views.simulations.reference.missing") %></p>
+<% end %>

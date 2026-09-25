@@ -18,6 +18,15 @@ RSpec.describe "Express simulations", type: :request do
                   simulation_purchase_price simulation_monthly_rent])
     end
 
+    it "wires the rent field to the market without asking for a click" do
+      get new_express_simulation_path
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("form.form")["data-rent-estimate-url-value"]).to eq(express_simulation_rent_reference_path)
+      expect(doc.at_css("#simulation_monthly_rent")["data-rent-estimate-target"]).to eq("rent")
+      expect(doc.at_css("turbo-frame#rent_reference")["data-rent-estimate-target"]).to eq("frame")
+    end
+
     it "offers the detailed course as a way out" do
       get new_express_simulation_path
 
@@ -42,6 +51,32 @@ RSpec.describe "Express simulations", type: :request do
       get root_path
 
       expect(Nokogiri::HTML(response.body).at_css(".recent-simulations")).to be_nil
+    end
+  end
+
+  describe "GET /simulations/rapide/loyer" do
+    it "reads the market of the city and carries the amount it proposes" do
+      create(:assumptions, user: user, monthly_charges: 50)
+
+      get express_simulation_rent_reference_path(property_type: "apartment", city: "Orléans", surface: "30")
+
+      expect(response.body).to include("14,75 €/m² × 30 m² = 443 € par mois, charges comprises.")
+      expect(response.body).to include("Provision de 50 € déduite, la proposition est de 393 € hors charges.")
+      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-amount]")["data-rent-estimate-amount"])
+        .to eq("393")
+    end
+
+    it "invents nothing for a commune the barometer does not cover" do
+      get express_simulation_rent_reference_path(property_type: "apartment", city: "Prunay-le-Temple", surface: "30")
+
+      expect(response.body).to include("Pas de données pour cette commune, saisissez le loyer manuellement.")
+      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-amount]")).to be_nil
+    end
+
+    it "says nothing at all while the city is still to be typed" do
+      get express_simulation_rent_reference_path(property_type: "apartment", city: "", surface: "30")
+
+      expect(Nokogiri::HTML(response.body).at_css("p")).to be_nil
     end
   end
 

@@ -33,6 +33,9 @@ application.register("notary-fees", NotaryFeesController)
 import ProjectionController from "controllers/projection_controller"
 application.register("projection", ProjectionController)
 
+import RentEstimateController from "controllers/rent_estimate_controller"
+application.register("rent-estimate", RentEstimateController)
+
 import StatementController from "controllers/statement_controller"
 application.register("statement", StatementController)
 

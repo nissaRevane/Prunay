@@ -93,8 +93,12 @@ docker compose run --rm web bundle exec rspec
   provision for charges is deducted before the figure is proposed, and the page shows the
   multiplication, the number of listings behind it and the source. Outside those hundred
   cities, and for a parking or a whole building, the barometer says nothing and the account's
-  reference takes over - nothing is invented. `rake rent_reference:update` resolves the
-  current edition on data.gouv.fr, checks it and rewrites the file.
+  reference takes over - nothing is invented. The quick form reads the same reference as the
+  city and the surface are typed (a turbo-frame under the field, `rent_estimate_controller.js`):
+  it fills the rent only while the field is still empty and never touches it again once
+  something has been typed there, so the sentence informs without ever overwriting an answer.
+  `rake rent_reference:update` resolves the current edition on data.gouv.fr, checks it and
+  rewrites the file.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
   page - proposed at a tenth of the project cost, recomputed in the browser as the price is
   typed - and the credit page asks only for a rate, a duration and the borrower's insurance

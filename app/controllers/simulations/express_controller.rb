@@ -4,7 +4,7 @@ module Simulations
 
     throttle name: "create", to: 20, within: 1.minute, only: :create
 
-    before_action :set_recent
+    before_action :set_recent, only: [:new, :create]
 
     def new = @simulation = current_user.simulations.build
 
@@ -21,11 +21,21 @@ module Simulations
       end
     end
 
+    def rent_reference
+      simulation = current_user.simulations.build(reference_params)
+
+      render partial: "simulations/express/rent_reference", locals: { simulation: simulation }
+    end
+
     private
 
     def set_recent = @recent = current_user.simulations.order(purchase_date: :desc).limit(RECENT)
 
     def assumptions = Assumptions.for(current_user).economic
+
+    def reference_params
+      params.permit(:property_type, :city, :surface).to_h
+    end
 
     def express_params
       params.fetch(:simulation, ActionController::Parameters.new)

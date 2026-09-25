@@ -346,6 +346,12 @@ a.nav-user-name:hover {
   margin-bottom: 0;
 }
 
+/* Un cadre Turbo est en ligne par défaut : le repère de loyer qu'il porte tiendrait sur la
+   ligne du champ. */
+.form-reference {
+  display: block;
+}
+
 .form-group[hidden],
 .form-row[hidden] {
   display: none;
