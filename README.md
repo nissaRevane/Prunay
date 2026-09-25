@@ -90,9 +90,9 @@ docker compose run --rm web bundle exec rspec
   account's reference: the price per square metre of the city - T1-T2 up to
   `RentReference::SMALL_APARTMENT_SURFACE`, T3 and beyond above it, the house column for a
   house - multiplied by the surface. Those are asking rents, charges included, so the
-  provision for charges is deducted before the figure is proposed, and a single line under
-  the field says the price per square metre it read, that it includes charges, and where it
-  comes from. Outside those hundred
+  provision for charges is deducted before the figure is proposed, and the only thing shown
+  under the field is the price per square metre it read, linked to the barometer, which
+  names the source and says those are asking rents charges included. Outside those hundred
   cities, and for a parking or a whole building, the barometer says nothing and the account's
   reference takes over - nothing is invented. The quick form reads the same reference as the
   city and the surface are typed (a turbo-frame under the field, `rent_estimate_controller.js`):

@@ -60,7 +60,9 @@ RSpec.describe "Express simulations", type: :request do
 
       get express_simulation_rent_reference_path(property_type: "apartment", city: "Orléans", surface: "30")
 
-      expect(response.body).to include("Orléans : 14,75 €/m² d'annonce, charges comprises")
+      rate = Nokogiri::HTML(response.body).at_css(".form-hint a")
+      expect(rate.text).to eq("14,75 €/m²")
+      expect(rate["href"]).to eq(RentReference::SOURCE_URL)
       expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-amount]")["data-rent-estimate-amount"])
         .to eq("393")
     end

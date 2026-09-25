@@ -3,10 +3,8 @@
 
 <% if rate %>
   <p class="form-hint" data-rent-estimate-amount="<%= Assumptions.whole(simulation.proposed_rent) %>">
-    <%= t("views.simulations.reference.rent_html", city: reference.city,
-          rate: number_to_currency(rate, unit: "€/m²"),
-          link: link_to(t("views.simulations.reference.source"), RentReference::SOURCE_URL,
-                        target: "_blank", rel: "noopener")) %>
+    <%= link_to number_to_currency(rate, unit: "€/m²"), RentReference::SOURCE_URL,
+                title: t("views.simulations.reference.source"), target: "_blank", rel: "noopener" %>
   </p>
 <% elsif simulation.city.present? && RentReference.covers?(simulation.property_type) %>
   <p class="form-hint"><%= t("views.simulations.reference.missing") %></p>

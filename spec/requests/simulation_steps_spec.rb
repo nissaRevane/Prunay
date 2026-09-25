@@ -257,7 +257,9 @@ RSpec.describe "Simulation steps", type: :request do
       get new_simulation_step_path(step: "rental")
 
       expect(field_value("simulation_monthly_rent")).to eq("393")
-      expect(response.body).to include("Orléans : 14,75 €/m² d'annonce, charges comprises")
+      rate = Nokogiri::HTML(response.body).at_css(".form-hint a")
+      expect(rate.text).to eq("14,75 €/m²")
+      expect(rate["href"]).to eq(RentReference::SOURCE_URL)
       expect(response.body).to include("Baromètre Pierria")
     end
 

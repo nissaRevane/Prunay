@@ -241,8 +241,7 @@ fr:
         charges:
           title: Les charges annuelles
       reference:
-        rent_html: "%{city} : %{rate} d'annonce, charges comprises — %{link}"
-        source: Baromètre Pierria
+        source: "Loyer d'annonce charges comprises, relevé par le Baromètre Pierria"
         missing: Pas de données pour cette commune, saisissez le loyer manuellement.
       edit:
         title: Modifier la simulation
