@@ -346,10 +346,31 @@ a.nav-user-name:hover {
   margin-bottom: 0;
 }
 
-/* Un cadre Turbo est en ligne par défaut : le repère de loyer qu'il porte tiendrait sur la
-   ligne du champ. */
+/* Le repère du marché tient au bout de la ligne du loyer, dans une troisième colonne que le
+   cadre Turbo occupe une fois chargé. La commune non couverte, elle, s'explique en dessous :
+   sa phrase ne rentre pas à côté d'un champ. */
 .form-reference {
+  display: none;
+}
+
+.form-reference:has(.form-hint) {
   display: block;
+}
+
+.form-inline .form-group-reference:has(.form-reference-rate) {
+  grid-template-columns: 4.5rem 1fr auto;
+}
+
+.form-inline .form-group-reference:has(.form-reference-missing) .form-reference {
+  grid-column: 2;
+}
+
+.form-inline .form-reference .form-hint {
+  margin: 0;
+}
+
+.form-reference-rate {
+  white-space: nowrap;
 }
 
 .form-group[hidden],
