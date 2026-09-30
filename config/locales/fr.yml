@@ -220,6 +220,8 @@ fr:
         surface: Surface
         purchase_price: Prix
         monthly_rent: Loyer
+        monthly_rent_blank: Estimé
+        monthly_rent_estimate: "≈ %{amount}"
         create: Simuler
         detailed: Tous les détails
         all: Voir toutes mes simulations

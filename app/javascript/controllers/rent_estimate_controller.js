@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Le loyer du marché sous le champ, dès que la ville et la surface sont là. Il ne remplit
-// qu'un champ resté vide : une estimation ne recouvre jamais une réponse déjà donnée.
+// Le loyer estimé s'affiche en indication dans le champ, jamais en valeur : laissé vide,
+// le loyer est celui que le serveur propose, et ce qui a été tapé n'est jamais recouvert.
 const DELAY = 300
 
 const ANSWERS = ["simulation[property_type]", "simulation[city]", "simulation[surface]"]
@@ -11,15 +11,12 @@ export default class extends Controller {
   static values = { url: String }
 
   connect() {
-    this.answered = this.rentTarget.value.trim() !== ""
+    this.blank = this.rentTarget.placeholder
+    this.#propose()
   }
 
   disconnect() {
     clearTimeout(this.timer)
-  }
-
-  lock() {
-    this.answered = true
   }
 
   estimate() {
@@ -27,13 +24,13 @@ export default class extends Controller {
     this.timer = setTimeout(() => this.#load(), DELAY)
   }
 
-  fill(event) {
-    if (event.target !== this.frameTarget) return
+  propose(event) {
+    if (event.target === this.frameTarget) this.#propose()
+  }
 
-    const amount = this.frameTarget.querySelector("[data-rent-estimate-amount]")?.dataset.rentEstimateAmount
-    if (!amount || this.answered || this.rentTarget.value.trim() !== "") return
-
-    this.rentTarget.value = amount
+  #propose() {
+    const estimate = this.frameTarget.querySelector("[data-rent-estimate-placeholder]")
+    this.rentTarget.placeholder = estimate?.dataset.rentEstimatePlaceholder || this.blank
   }
 
   #load() {
@@ -53,5 +50,6 @@ export default class extends Controller {
   #clear() {
     this.frameTarget.removeAttribute("src")
     this.frameTarget.replaceChildren()
+    this.#propose()
   }
 }

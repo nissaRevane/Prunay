@@ -96,8 +96,10 @@ docker compose run --rm web bundle exec rspec
   cities, and for a parking or a whole building, the barometer says nothing and the account's
   reference takes over - nothing is invented. The quick form reads the same reference as the
   city and the surface are typed (a turbo-frame under the field, `rent_estimate_controller.js`):
-  it fills the rent only while the field is still empty and never touches it again once
-  something has been typed there, so the sentence informs without ever overwriting an answer.
+  there the rent is the one answer that may be left out. The estimate is shown as the
+  field's placeholder, never written in it, so a half-typed surface or a cleared field cannot
+  leave a stale figure behind; a rent left empty is completed on the server with the same
+  proposed rent, like the other defaults of `Simulation::Preset`.
   `rake rent_reference:update` resolves the current edition on data.gouv.fr, checks it and
   rewrites the file.
 - **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase

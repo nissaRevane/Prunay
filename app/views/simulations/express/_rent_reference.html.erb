@@ -1,3 +1,8 @@
 <%= turbo_frame_tag "rent_reference", class: "form-reference", data: { rent_estimate_target: "frame" } do %>
   <%= render "simulations/rent_reference", simulation: simulation %>
+
+  <% if simulation.city.present? && simulation.surface.present? %>
+    <%= tag.span hidden: true, data: { rent_estimate_placeholder: t("views.simulations.express.monthly_rent_estimate",
+                                                                    amount: number_to_currency(simulation.proposed_rent, precision: 0)) } %>
+  <% end %>
 <% end %>

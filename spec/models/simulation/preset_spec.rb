@@ -42,6 +42,15 @@ RSpec.describe Simulation::Preset do
     expect(simulation).to have_attributes(occupancy_months: 11, monthly_charges: 0)
   end
 
+  it "proposes the market rent when none is given: 14,75 €/m² × 30 m² in Orléans, rounded to 443" do
+    simulation = described_class.complete(
+      build(:simulation, property_type: "apartment", city: "Orléans", surface: 30,
+                         purchase_price: 100_000, monthly_rent: nil)
+    )
+
+    expect(simulation.monthly_rent).to eq(443)
+  end
+
   it "is complete enough to be saved" do
     expect(simulation).to be_valid
     expect(simulation.save).to be(true)

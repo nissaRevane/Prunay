@@ -27,6 +27,14 @@ RSpec.describe "Express simulations", type: :request do
       expect(doc.at_css("turbo-frame#rent_reference")["data-rent-estimate-target"]).to eq("frame")
     end
 
+    it "lets the rent be left empty, the estimate standing in for it" do
+      get new_express_simulation_path
+
+      rent = Nokogiri::HTML(response.body).at_css("#simulation_monthly_rent")
+      expect(rent["required"]).to be_nil
+      expect(rent["placeholder"]).to eq("Estimé")
+    end
+
     it "offers the detailed course as a way out" do
       get new_express_simulation_path
 
@@ -63,15 +71,16 @@ RSpec.describe "Express simulations", type: :request do
       rate = Nokogiri::HTML(response.body).at_css(".form-hint a")
       expect(rate.text).to eq("14,75 €/m²")
       expect(rate["href"]).to eq(RentReference::SOURCE_URL)
-      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-amount]")["data-rent-estimate-amount"])
-        .to eq("393")
+      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-placeholder]")["data-rent-estimate-placeholder"])
+        .to eq("≈ 393 €")
     end
 
-    it "invents nothing for a commune the barometer does not cover" do
-      get express_simulation_rent_reference_path(property_type: "apartment", city: "Prunay-le-Temple", surface: "30")
+    it "falls back on the account's reference for a commune the barometer does not cover" do
+      get express_simulation_rent_reference_path(property_type: "apartment", city: "Prunay-le-Temple", surface: "50")
 
       expect(response.body).to include("Pas de données pour cette commune, saisissez le loyer manuellement.")
-      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-amount]")).to be_nil
+      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-placeholder]")["data-rent-estimate-placeholder"])
+        .to eq("≈ 650 €")
     end
 
     it "says nothing at all while the city is still to be typed" do
@@ -87,6 +96,21 @@ RSpec.describe "Express simulations", type: :request do
         .to change(user.simulations, :count).by(1)
 
       expect(response).to redirect_to(user.simulations.last)
+    end
+
+    it "takes the proposed rent when the field is left empty: 14,75 €/m² on 30 m² less 50 € of charges" do
+      create(:assumptions, user: user, monthly_charges: 50)
+
+      post express_simulations_path,
+           params: { simulation: ANSWERS.merge(city: "Orléans", surface: "30", monthly_rent: "") }
+
+      expect(user.simulations.last).to have_attributes(monthly_rent: 393, monthly_charges: 50)
+    end
+
+    it "keeps the rent typed rather than the market's" do
+      post express_simulations_path, params: { simulation: ANSWERS.merge(city: "Orléans", surface: "30") }
+
+      expect(user.simulations.last.monthly_rent).to eq(800)
     end
 
     it "completes the answers with the usual defaults" do
