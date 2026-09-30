@@ -26,22 +26,52 @@
   </dialog>
 </div>
 
-<% if @simulations.any? %>
-  <div class="simulation-grid">
-    <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
-  </div>
+<% if @types.any? %>
+  <%= form_with url: simulations_path, method: :get, class: "simulation-filters",
+      data: { controller: "filter", turbo_frame: "simulations", turbo_action: "advance" } do |form| %>
+    <%= form.search_field :q, value: @filters["q"], class: "form-control simulation-filters-search",
+        placeholder: t("views.simulations.index.search"), autocomplete: "off",
+        aria: { label: t("views.simulations.index.search") }, data: { action: "input->filter#search" } %>
 
-  <% if @pages > 1 %>
-    <nav class="pagination" aria-label="<%= t("views.simulations.index.pagination") %>">
-      <% if @page > 1 %>
-        <%= link_to t("views.simulations.index.previous_page"), simulations_path(page: @page - 1), class: "btn btn-outline" %>
-      <% end %>
-      <span class="pagination-position"><%= t("views.simulations.index.page", page: @page, pages: @pages) %></span>
-      <% if @page < @pages %>
-        <%= link_to t("views.simulations.index.next_page"), simulations_path(page: @page + 1), class: "btn btn-outline" %>
-      <% end %>
-    </nav>
+    <% if @types.many? %>
+      <div class="simulation-filters-types" role="radiogroup" aria-label="<%= t("views.simulations.index.type_filter") %>">
+        <label class="filter-pill">
+          <%= form.radio_button :type, "", checked: @filters["type"].blank?, data: { action: "filter#submit" } %>
+          <%= t("views.simulations.index.all_types") %>
+        </label>
+        <% @types.each do |type| %>
+          <label class="filter-pill">
+            <%= form.radio_button :type, type, checked: @filters["type"] == type, data: { action: "filter#submit" } %>
+            <%= t("simulations.property_type_icons.#{type}") %> <%= t("simulations.property_types.#{type}") %>
+          </label>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
-<% else %>
-  <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
+<% end %>
+
+<%= turbo_frame_tag "simulations", data: { turbo_action: "advance" } do %>
+  <% if @simulations.any? %>
+    <div class="simulation-grid">
+      <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
+    </div>
+
+    <% if @pages > 1 %>
+      <nav class="pagination" aria-label="<%= t("views.simulations.index.pagination") %>">
+        <% if @page > 1 %>
+          <%= link_to t("views.simulations.index.previous_page"), simulations_path(@filters.merge(page: @page - 1)),
+              class: "btn btn-outline" %>
+        <% end %>
+        <span class="pagination-position"><%= t("views.simulations.index.page", page: @page, pages: @pages) %></span>
+        <% if @page < @pages %>
+          <%= link_to t("views.simulations.index.next_page"), simulations_path(@filters.merge(page: @page + 1)),
+              class: "btn btn-outline" %>
+        <% end %>
+      </nav>
+    <% end %>
+  <% elsif @types.any? %>
+    <p class="empty-state"><%= t("views.simulations.index.no_match") %></p>
+  <% else %>
+    <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
+  <% end %>
 <% end %>

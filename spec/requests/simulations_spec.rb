@@ -72,6 +72,91 @@ RSpec.describe "Simulations", type: :request do
       end
     end
 
+    context "when filtered" do
+      before do
+        create(:simulation, user: user, city: "Rennes", address: "12 rue de Nantes", purchase_date: Date.new(2024, 3, 1))
+        create(:simulation, user: user, city: "Nantes", property_type: "house", purchase_date: Date.new(2026, 1, 15))
+        create(:simulation, user: user, city: "Orléans", address: "3 place du Martroi", purchase_date: Date.new(2025, 7, 9))
+      end
+
+      def cards = Nokogiri::HTML(response.body).css(".simulation-grid .simulation-card-link").map { |link| link.text.strip }
+
+      it "keeps the cards whose city or address holds the search" do
+        get simulations_path(q: "nantes")
+
+        expect(cards).to eq(["🏠 Nante-50", "🏢 Renne-50"])
+      end
+
+      it "ignores accents and case on either side" do
+        get simulations_path(q: "ORLEANS")
+
+        expect(cards).to eq(["🏢 Orléa-50"])
+      end
+
+      it "wants every word somewhere in the city or the address" do
+        get simulations_path(q: "rennes nantes")
+
+        expect(cards).to eq(["🏢 Renne-50"])
+      end
+
+      it "treats a percent sign as a letter, not a wildcard" do
+        get simulations_path(q: "%")
+
+        expect(cards).to be_empty
+        expect(Nokogiri::HTML(response.body).at_css(".empty-state").text.strip).to eq(
+          I18n.t("views.simulations.index.no_match")
+        )
+      end
+
+      it "keeps one property type" do
+        get simulations_path(type: "house")
+
+        expect(cards).to eq(["🏠 Nante-50"])
+      end
+
+      it "ignores a property type it does not know" do
+        get simulations_path(type: "castle")
+
+        expect(cards.size).to eq(3)
+      end
+
+      it "offers a pill per property type held, plus all of them" do
+        get simulations_path(type: "house")
+
+        pills = Nokogiri::HTML(response.body).css(".filter-pill")
+
+        expect(pills.map { |pill| pill.text.squish }).to eq(["Tous", "🏢 Appartement", "🏠 Maison"])
+        expect(pills.map { |pill| pill.at_css("input")["checked"] }).to eq([nil, nil, "checked"])
+      end
+
+      it "carries the filters over to the next page" do
+        stub_const("SimulationsController::PER_PAGE", 1)
+
+        get simulations_path(q: "nantes", type: "apartment")
+        expect(cards).to eq(["🏢 Renne-50"])
+
+        get simulations_path(q: "nantes")
+        expect(Nokogiri::HTML(response.body).at_css(".pagination a")["href"]).to eq(simulations_path(q: "nantes", page: 2))
+      end
+    end
+
+    it "offers no type pill while every property is of the same type" do
+      create(:simulation, user: user)
+
+      get simulations_path
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.at_css(".simulation-filters-search")).to be_present
+      expect(doc.at_css(".filter-pill")).to be_nil
+    end
+
+    it "offers no search before the first simulation" do
+      get simulations_path
+
+      expect(Nokogiri::HTML(response.body).at_css(".simulation-filters")).to be_nil
+    end
+
     it "names each card after the property it describes" do
       simulation = create(:simulation, user: user, property_type: "house", city: "Rennes", surface: 62.5)
 

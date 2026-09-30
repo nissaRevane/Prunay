@@ -7,11 +7,14 @@ class SimulationsController < ApplicationController
   before_action :set_simulation, only: [:show, :dashboard, :statement, :edit, :update, :destroy]
 
   def index
-    owned = current_user.simulations.order(purchase_date: :desc)
+    owned = current_user.simulations
+    @filters = params.slice(:q, :type).permit(:q, :type).to_h.compact_blank
+    @types = Simulation::PROPERTY_TYPES & owned.distinct.pluck(:property_type)
+    found = owned.search(@filters["q"]).of_type(@filters["type"]).order(purchase_date: :desc)
 
-    @pages = [(owned.count / PER_PAGE.to_f).ceil, 1].max
+    @pages = [(found.count / PER_PAGE.to_f).ceil, 1].max
     @page = params[:page].to_i.clamp(1, @pages)
-    @simulations = owned.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
+    @simulations = found.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
     @new_simulation = current_user.simulations.build
   end
 

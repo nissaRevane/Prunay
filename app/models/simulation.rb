@@ -33,6 +33,13 @@ class Simulation < ApplicationRecord
 
   after_save { @loan = nil }
 
+  scope :search, ->(query) {
+    query.to_s.split.reduce(all) do |found, term|
+      found.where("unaccent(city || ' ' || coalesce(address, '')) ILIKE unaccent(?)", "%#{sanitize_sql_like(term)}%")
+    end
+  }
+  scope :of_type, ->(type) { PROPERTY_TYPES.include?(type) ? where(property_type: type) : all }
+
   validates :property_type, presence: true, inclusion: { in: PROPERTY_TYPES, allow_blank: true },
             on: [:create, :update, :property]
   validates :city, presence: true, on: [:create, :update, :property]

@@ -18,6 +18,9 @@ application.register("exit-year", ExitYearController)
 import ExpressFormController from "controllers/express_form_controller"
 application.register("express-form", ExpressFormController)
 
+import FilterController from "controllers/filter_controller"
+application.register("filter", FilterController)
+
 import InlineEditController from "controllers/inline_edit_controller"
 application.register("inline-edit", InlineEditController)
 

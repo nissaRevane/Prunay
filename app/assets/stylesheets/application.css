@@ -1088,6 +1088,52 @@ body:has(.home) main.container {
   gap: 1rem;
 }
 
+.simulation-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.simulation-filters-search {
+  flex: 1 1 16rem;
+  max-width: 24rem;
+}
+
+.simulation-filters-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-pill {
+  position: relative;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.875rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filter-pill:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-primary-dark);
+}
+
+.filter-pill:has(input:focus-visible) {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
 .pagination {
   display: flex;
   align-items: center;

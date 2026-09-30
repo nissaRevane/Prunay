@@ -189,6 +189,10 @@ fr:
         title: Mes simulations
         new: Nouvelle simulation
         empty: Aucune simulation enregistrée.
+        no_match: Aucune simulation ne correspond à cette recherche.
+        search: Rechercher une ville, une adresse…
+        type_filter: Type de bien
+        all_types: Tous
         close: Fermer
         under_regime: "Au %{regime}"
         best_exit: "revendu la %{year}ᵉ année (%{date})"
