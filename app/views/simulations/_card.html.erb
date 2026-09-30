@@ -5,7 +5,8 @@
   <header class="panel-header">
     <hgroup>
       <h2 class="panel-title">
-        <%= link_to simulation.name, simulation_path(simulation), class: "panel-link-target" %>
+        <%= link_to simulation.name, simulation_path(simulation), class: "panel-link-target",
+            data: { turbo_frame: "_top" } %>
       </h2>
       <p class="hint">
         <%= t("views.simulations.index.purchased_on", date: l(simulation.purchase_date, format: :abbr_month_year)) %>
