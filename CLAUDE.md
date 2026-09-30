@@ -3,13 +3,13 @@
 Simulateur de rentabilité d'un investissement locatif. Rails 8, Ruby 3.3, PostgreSQL,
 Hotwire, Devise, RSpec, Docker.
 
-**Le domaine se lit dans le [README](README.md)** - ce qui existe, pourquoi, et comment
-chaque calcul est posé. Le lire avant de toucher au calcul, à la projection ou à la
-fiscalité. Ce fichier-ci ne porte que les conventions de travail.
-
-> Le README est la référence sur les règles, pas toujours sur les noms : quelques
-> constantes ont déménagé depuis (`Loan::PAYMENT_DAY`, `Simulation::Step::NAMES`,
-> `Taxation::DepreciationPlan::COMPONENTS`). Vérifier dans le code avant de citer un nom.
+**Le domaine se lit dans [`docs/`](docs)** - les règles, les choix de modélisation et ce qui
+n'est volontairement pas simulé, un fichier par sujet : [saisie](docs/inputs.md),
+[crédit](docs/credit.md), [fiscalité](docs/taxation.md), [projection](docs/projection.md).
+Lire celui qui concerne le changement avant de toucher au calcul. Ces documents ne citent
+pas de constantes ni de colonnes : les noms se lisent dans le code. Un changement de règle
+met à jour le document dans le même commit. Ce fichier-ci ne porte que les conventions de
+travail.
 
 ## Ce qui prime sur les règles générales
 

@@ -1,377 +1,39 @@
-# Prunay - Rental Investment Profitability Simulator
+# Prunay
 
-A Ruby on Rails 8 application to estimate the profitability of a rental real estate
-investment.
+A simulator for the profitability of a rental property investment. You describe a property,
+its purchase, its financing, its letting and its charges, and Prunay projects it over thirty
+years under the four French tax regimes, side by side: micro-foncier, foncier réel, micro-BIC
+and LMNP.
 
-> **Status:** first simulator. A simulation describes a property, its purchase, how it is
-> financed - outright or on credit - its letting, its annual charges and the tax the rents
-> cost, projected over thirty years, under four tax regimes read side by side: the
-> micro-foncier, the foncier réel, the micro-BIC and the LMNP.
+Rails 8 · Ruby 3.3 · PostgreSQL 16 · Hotwire · Devise · RSpec · Docker
 
-## Tech Stack
-
-- **Ruby** 3.3 / **Rails** 8.0
-- **PostgreSQL** 16
-- **Hotwire** (Turbo + Stimulus)
-- **Devise** for authentication
-- **RSpec** for testing
-- **Docker** + **Docker Compose**
-
-## Quick Start
+## Quick start
 
 ```bash
-# Build and start the application
 docker compose build
-docker compose run --rm web rails db:prepare
-docker compose run --rm web rails db:test:prepare
+docker compose run --rm web rails db:prepare db:test:prepare
 docker compose up
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser.
+Open [http://localhost:3001](http://localhost:3001) and sign in with `demo@prunay.app` /
+`password123`. The ports are 3001 (web) and 5434 (PostgreSQL), so Prunay can run next to
+Milly on the same machine.
 
-> The ports are 3001 (web) and 5434 (PostgreSQL) rather than the Rails defaults, so
-> Prunay and Milly can run side by side on the same machine.
-
-### Demo Account
-
-- **Email:** demo@prunay.app
-- **Password:** password123
-
-## Running Tests
+## Tests
 
 ```bash
 docker compose run --rm web bundle exec rspec
 ```
 
-## What Exists Today
+## Deployment
 
-- **Authentication:** sign up, sign in, sign out, forgotten password, "remember me".
-  Every controller is behind `authenticate_user!` by default (`ApplicationController`);
-  the public landing page is the single explicit opt-out.
-- **Settings** (`/reglages`, behind the email in the top menu): two tabs. *Account* holds
-  identity, password change, and the JSON export of the
-  whole account (`/export`) - the assumptions and every simulation, written in the
-  exact shape `db/seeds.rb` reads back, so an export can re-feed a database. The password is
-  never exported: Devise only keeps a digest, and a random one takes its place.
-- **Landing page:** the public shop window, for visitors.
-- **Simulations** (`/simulations`, and the home page of a signed-in user): the full CRUD,
-  grouped by purchase year in the same accordion Milly uses for its bilans. There is no
-  dashboard above the list: the brand leads to it, and the top menu carries only what the
-  brand does not - the assumptions, the single general setting.
-- **Creation page by page** (`/simulations/new`, which opens `/simulations/new/property`):
-  the property, the purchase, the credit *if there is one*, the letting, the annual charges.
-  Nothing is written to the database before the last page - the answers accumulate in the
-  session, and each page validates only its own fields (see the validation contexts named
-  after `Simulation::STEPS`). The credit page is conditional: it only opens for a purchase
-  whose box is ticked (`Simulation::STEP_CONDITIONS`), so the walk is four pages long for a
-  purchase paid outright and five for a purchase financed by a loan - the progress bar reads
-  `Simulation#steps`, never the constant. The pages only help someone discovering the form:
-  correcting a figure afterwards happens where the figure is read.
-- **Correcting a simulation in place:** every answer the user gave is a click away on the
-  tab that shows it - the value turns into the field that asked for it, and the field saves
-  itself as soon as it changes (`inline_edit_controller.js`). No edit button, no save
-  button. The server answers with the whole page (`simulations/_detail`, replaced by a Turbo
-  Stream), because everything on it is derived and one corrected figure remakes ten; a
-  refused value leaves the page as it was and answers with the message alone. The single
-  form of `/simulations/:id/edit` remains, reachable from the list, for what one field
-  cannot express on its own: turning a purchase paid outright into a purchase financed by a
-  credit takes five answers at once.
-- **Amounts proposed from the answers already given:** the rent and most of the annual
-  charges are pre-filled from a reference amount for 50 m², scaled by the square root of
-  the surface and rounded to the nearest ten euros - orders of magnitude to correct, not a
-  calculation. Three of them do not follow the surface at all: an accountant's fee is flat,
-  and a letting agent or a rent guarantee is proposed at zero because neither can be
-  assumed. The furniture and its upkeep are read on the same 50 m²: 2 110 € to furnish it
-  and 370 € a year to keep it furnished. Every one of these references is the account's own
-  (`Assumptions`) - what is described here is what Prunay supposes until its owner says
-  otherwise.
-- **The rent proposed from the market where the market is known:** on the hundred largest
-  cities, the rent pre-filled on the letting page is read in the Pierria barometer
-  (`RentReference`, a quarterly CSV versioned in `db/data`) instead of being scaled from the
-  account's reference: the price per square metre of the city - T1-T2 up to
-  `RentReference::SMALL_APARTMENT_SURFACE`, T3 and beyond above it, the house column for a
-  house - multiplied by the surface. Those are asking rents, charges included, so the
-  provision for charges is deducted before the figure is proposed, and the only thing shown
-  under the field is the price per square metre it read, linked to the barometer, which
-  names the source and says those are asking rents charges included. Outside those hundred
-  cities, and for a parking or a whole building, the barometer says nothing and the account's
-  reference takes over - nothing is invented. The quick form reads the same reference as the
-  city and the surface are typed (a turbo-frame under the field, `rent_estimate_controller.js`):
-  there the rent is the one answer that may be left out. The estimate is shown as the
-  field's placeholder, never written in it, so a half-typed surface or a cleared field cannot
-  leave a stale figure behind; a rent left empty is completed on the server with the same
-  proposed rent, like the other defaults of `Simulation::Preset`.
-  `rake rent_reference:update` resolves the current edition on data.gouv.fr, checks it and
-  rewrites the file.
-- **The credit** (`AmortizationSchedule`): the down payment is asked for on the purchase
-  page - proposed at a tenth of the project cost, recomputed in the browser as the price is
-  typed - and the credit page asks only for a rate, a duration and the borrower's insurance
-  premium. Everything else is derived: the capital borrowed is the project cost less the
-  down payment, and the monthly payment comes out of the constant-annuity formula
-  `M = C × i / (1 − (1 + i)^−n)`, rounded to the cent. The schedule that follows is Milly's - interest on the outstanding capital,
-  principal for the rest, the last payment settling the rounding residue - but read the
-  other way round: Milly copies a payment already negotiated, Prunay computes the payment
-  that a rate and a duration imply. Repayment starts on the fifth that follows the signature
-  (`Simulation::LOAN_PAYMENT_DAY`): the fifth of the month of the deed when it is signed
-  between the 1st and the 5th, the fifth of the month after when it is signed later. The
-  table is a tab of its own on the simulation page.
-- **The borrower's insurance** (`loan_insurance`): a bank does not lend without it, so the
-  credit page asks for the premium it charges every month, proposed at the rate the account
-  settles (`Assumptions#loan_insurance_rate` - 0,12 % of the capital borrowed a year) and
-  corrected as soon as the loan offer states the real figure. The
-  premium is the same from the first payment to the last: it is read on the capital
-  borrowed on day one, not on the outstanding capital, and it repays none of it. It sits in
-  its own column of the schedule, adds itself to what the bank actually debits each month,
-  and is counted apart from the interest - what the credit costs is the two together.
-- **The assumptions** (`Assumptions`): everything an account supposes, held on one page,
-  `/reglages/hypotheses`, the second tab of the settings, also linked from the economic
-  conditions of every simulation. Nothing is written there until its owner
-  changes something, and until then the page opens on what Prunay assumes. Three kinds live
-  side by side there. *The economic conditions* - three annual rates that make a simulation
-  age: what the rents gain each year (1 % by default), what the property gains in value
-  (1 %), and the inflation that weighs on the charges (2 %), plus the household's tax
-  bracket. *The amounts proposed* - the references the creation pages pre-fill, the credit
-  the bank is supposed to offer (3,6 % over twenty years, the insurance at 0,12 % of the
-  capital a year, the guarantee at 1,667 %, the application fees at 1 % with a 500 € floor),
-  and the months let. *What a resale costs* - 400 € of diagnostics and 500 € of refurbishment
-  for 50 m²; these two are read afresh every time a page is drawn, so correcting one
-  recomputes every simulation, where the first two kinds only reach the simulations still to
-  be created. The taxation is the one thing that does not settle here: a bracket is chosen
-  from the scale, the rest of it is the law - the notary's fees included (see `Taxation` and
-  `Simulation::NOTARY_FEES_RATE`).
-  The economic conditions live in two places. Every simulation carries its own copy of the
-  four, taken from those defaults the day it is created - correcting the defaults afterwards never rewrites a projection
-  already read. None of the creation pages asks for them: they are corrected, once the
-  simulation exists, from a tab of its own on the simulation page, one rate at a time like
-  every other value, and the page comes back on that tab (`?tab=economic_conditions`). That
-  tab holds one assumption that is not a rate and belongs to the simulation alone: the
-  discount obtained at the purchase (`purchase_discount`, zero by default), what the buyer
-  reckons the property is worth above what he paid for it. `Simulation#market_value` is the
-  sum of the two, and it is what the projection compounds: the resale starts from the real
-  value, while the notary fees, the capital borrowed, the depreciation and the fiscal value of
-  the capital gain all stay on the price actually paid. A discount is therefore a gain from
-  the first day - a real one, and taxed as such.
-- **The taxation** (`Taxation`): four regimes, each a tab of the simulation page and a
-  projection of its own - the same property, the same rents, the same charges, and the tax
-  alone to separate them. What they share sits on `Taxation::Regime`: the marginal bracket of
-  the household (0, 11, 30, 41 or 45 %, chosen with the other assumptions of the simulation,
-  30 % by default) and the social charges, which no bracket governs - a household the scale
-  does not reach still owes them - what `#total` names is that income tax and nothing else.
-  Only the assessment, the allowance, the social rate and the charges the regime pays of its
-  own - `#own_charge_lines`, which the projection adds to the charges of the year - are each
-  regime's own. What the two furnished regimes share sits on `Taxation::Bic`.
-  - **The micro-foncier** (`Taxation::MicroFoncier`), for a bare letting: the assessment is
-    the year's rent excluding charges - the provision for charges the tenant repays is
-    collected with the rent but is not a revenue, it settles an expense - reduced by the flat
-    30 % allowance that stands in for every deductible charge. 17.2 % of social charges.
-  - **The foncier réel** (`Taxation::FoncierReel`), the same letting declared for real: no
-    allowance, but the year's charges and the interest of the loan - the insurance premium
-    included - deducted from that same rent. A deficit is not carried forward: a year that
-    gained nothing owes nothing, and nothing passes to the next. 17.2 % of social charges.
-  - **The micro-BIC** (`Taxation::MicroBic`), for a furnished letting: a furnished rent is not
-    a property income but a commercial receipt, and it shows three times. The assessment
-    counts the provision for charges, which the two foncier regimes leave out, and the
-    allowance is half the receipts. The social charges are 18.6 % and not 17.2: the 2026
-    social security financing act raised the CSG on capital income to 10.6 % and spared
-    property income and property capital gains alone. A furnished letting also owes the CFE,
-    which the property income never pays: it is not a tax on the income but a tax on the
-    premises, and it is counted as a charge of the year, above the pre-tax result, not with
-    the income tax. Its real base is the rental value the commune assesses, and, that being
-    out of reach, Prunay takes 30 % of one monthly rent - the rent of the year, so the tax
-    follows its growth. A real regime would deduct it from its assessment; the micro-BIC has
-    only its flat allowance, which already stands in for every charge, the CFE included. It
-    is not asked of the user. The 77 700 € ceiling of receipts above which the regime closes
-    is not checked. The rent, itself, is not the one entered: a furnished letting is let dearer
-    than a bare one, and the two furnished regimes raise the entered rent by the 5 % premium of
-    `Taxation::Bic::RENT_PREMIUM_RATE` - the receipts, the cash flow and the CFE all follow it,
-    the charges alone staying those of a bare letting. A furnished letting also has furniture
-    to buy and to keep: the furniture is asked for on the purchase page (`furniture`) and its
-    upkeep with the annual charges (`furniture_maintenance`, in `REGIME_CHARGES` since the
-    two foncier regimes owe neither, and inflating year by year like every other charge, the
-    accountant included). The furniture is paid in cash on the day of the
-    signature - never borrowed, the capital of the loan ignores it - and only under a
-    furnished regime: the cost of the project, the initial outlay and the capital immobilized
-    all carry it there and nowhere else. Its upkeep is a charge of the year like the CFE, and
-    the LMNP deducts it for real where the micro-BIC has only its allowance - for its part of
-    plain upkeep, that is: see the depreciation below for the rest.
-  - **The LMNP** (`Taxation::Lmnp`), the same furnished letting declared for real: the receipts
-    of the micro-BIC, the 18.6 % and the CFE, but no allowance at all - the charges, the CFE
-    itself, the accountant and the interest of the loan are deducted for what they cost, and
-    on top of them the depreciation, the only expense the taxman admits without a payment. The
-    plan (`Taxation::DepreciationPlan`) has one line per component, each in a straight line from
-    the first year let: the building - the price paid and the notary fees, less the 15 % of land
-    that does not wear out (`LAND_SHARE`) - over 32 years, the initial works over 12 and the
-    furniture over 7 (`COMPONENTS`), the last annuity settling the base to the cent. The
-    durations sit in the middle of the usual ranges; the first year is a whole one, so there is
-    no prorata. The upkeep of the years feeds the plan too: a property is not kept for thirty
-    years without a boiler or a kitchen, nor furniture without being replaced, and Prunay reads
-    both in the two upkeep charges rather than asking for them - half of the upkeep of the
-    property is heavy works, four fifths of the upkeep of the furniture is its renewal
-    (`CAPITALIZED_SHARES`). The money leaves the cash flow the year it is paid, under every
-    regime; the LMNP alone deducts only the remainder at once and opens, every year, a tranche
-    of works over 12 years and one of furniture over 7 at the price of the year, so that the
-    deduction of the durable share is delayed rather than lost - and, unlike a charge, carried
-    forward when the year cannot hold it. The default upkeep of the furniture (370 € for 50 m²)
-    is sized for that: the furniture renewed every seven years, and the upkeep on top. The depreciation cannot create a deficit: it is deducted within the result before
-    depreciation - receipts less charges, the regime's own and the interest - and what does not
-    fit is carried forward without limit of time (art. 39 C CGI), component by component, to be
-    deducted the first year that has room for it; this is precisely what makes the LMNP pay no
-    tax for years. The order in which the components are deducted - the building, then the works,
-    then the furniture - is Prunay's choice, not the law's, which reasons in bulk: it matters only
-    for the capital gain below, and errs on the side of giving more back. The deficit itself,
-    charges above receipts, is still not carried forward. The accountant is the one charge a
-    single regime pays: it is asked of the user like the others (500 € by default,
-    `accounting_fees`), kept out of `ANNUAL_CHARGES` since no other regime owes it
-    (`Simulation::REGIME_CHARGES`), and weighs on the LMNP's cash flow alone. What the
-    depreciation spares of the tax is not spared for good: the resale gives it back, see the
-    capital gain below.
+Kamal on a single VPS (`config/deploy.yml`), triggered by GitHub Actions.
 
-  The parameters tab lists the CFE and the accountant with the annual charges, each noted as
-  the regime's own and left out of their total, and details the calculation line by line; the
-  tax weighs on the cash flow of every year of the projection. The depreciation lowers the
-  assessment and never the cash flow: it appears in the detail of the tax - the annuity of each
-  component, what the previous years left waiting and what will still wait, the sum being what
-  the year deducts, preceded by the share of the upkeep the year capitalizes instead of
-  deducting - and, under the LMNP alone, as the plan itself in the parameters tab: base, years
-  and annuity per component, and the tranche each year opens.
-  The resale of a year is taxed apart (`Taxation::CapitalGain`), under the regime of private
-  individuals: the gain is what the price of that year gets above the fiscal value of the
-  property - the price paid, the notary fees, and from the sixth year the flat 15 % of works
-  the taxman assumes without an invoice, the real works being the other, exclusive option that
-  Prunay does not simulate. Under the LMNP, the building actually deducted up to that year is
-  taken back out of that value: the 2025 finance act reintegrates the depreciation into the
-  gain, and it is the price of the years that owed no tax on the rents. Neither the works, whose
-  depreciation the act leaves out since the flat 15 % already stands for them, nor the
-  furniture, a movable that no property gain concerns, nor what still waits in the carry-forward
-  comes back. The sale view of that regime
-  names it on a line of its own, under the acquisition value that would otherwise be the whole
-  fiscal value; every other regime depreciates nothing and has nothing to give back. It bears 19 % of income tax and 17.2 % of social charges, each on
-  what its own allowance for the years held leaves it: nothing for five years, then 6 % a year
-  until the gain escapes the income tax after twenty-two, and 1.65 % then 9 % a year until it
-  escapes the social charges after thirty. The surtax on gains above 50 000 € is not
-  simulated. The sale view of a year's statement deducts that tax right after the price of the
-  property, before the bank is cleared.
-  Selling costs something before it is taxed (`SaleCosts`): the mandatory diagnostics, a flat
-  400 € whatever the property, putting it back in order, 500 € for 50 m² and the square root of
-  the surface from there - twice the surface is not twice the work. No agency: the property is
-  supposed to be sold between individuals. The costs are deducted from the price in the sale
-  view, above the capital gain tax, and they inflate year by year like every other expense of
-  the projection. They do not lower the taxable gain: only an agency commission would, and
-  works only against invoices Prunay does not simulate.
-  Clearing the loan before its term costs one more thing, and it is the bank's, not the sale's
-  (`Loan#early_repayment_fee`): 3 % of the capital repaid, capped at six months of its
-  interest - under 6 % a year the cap is what applies, so it is half the rate on what is still
-  owed. The sale view deducts it right after the capital, and it falls to nothing the year the
-  loan is cleared.
-- **The projection:** thirty lines, one per anniversary of the purchase. The table carries
-  six columns and no commentary - the year, its month, its rent, its cash flow, the capital
-  still immobilized and the internal rate of return. The charges, the tax and the annuity
-  weigh on the cash flow without a column of their own: they are what the parameters tab is
-  for, and a table one
-  reads to decide is not a table that explains itself. The rent column and the year's statement
-  read the way the regime declares: excluding charges under the two foncier regimes, where the
-  provision the tenant repays is neither a revenue nor a deductible charge, and charges included
-  under the two furnished regimes, which declare it and deduct the whole charges in return - either reading
-  leaves the same pre-tax result, the provision moving on both sides at once.
-  The statement is read twice over: a summary of one line per amount, and, behind the Détail
-  button of its header, the calculation of each of those lines folded under it - the rent at the
-  month, every charge indexed as the year bears it, the interest apart from the insurance
-  premium, the assessment down to the two rates that strike it, and, on the sale view, what the
-  costs are made of, how the fiscal value leaves or leaves no gain, and what the years have
-  already given back of the investment. Beside the labels that need one, a question mark holds
-  a sentence of explanation on hover: what the line covers and what it deliberately leaves out.
-  The annual rent counts only the months actually
-  let, and the annuity - the insurance premium included - is read from the schedule year by
-  year: twelve payments while the loan runs, what is left of it the year it is cleared,
-  nothing after. What is immobilized on day one is what actually leaves the buyer's pocket -
-  the whole project when it is paid outright, the down payment alone when a credit finances
-  the rest, since the capital borrowed is repaid by the annuities the projection already
-  deducts, and the furniture on top of it under a furnished regime.
-  The rate - the TRI of the column (`InternalRateOfReturn`) - is read on the flows the
-  operation would actually have known had it stopped that year: what left the buyer's pocket
-  on the first day, the cash flow of every year held, and the proceeds of the resale added to
-  the last, exactly the figures the year's sale view shows, discounted instead of summed. It
-  is the annual rate that annuls their present value, sought by bisection since the equation
-  has no closed form; the day of the signature has no rate, having but a single flow, and
-  neither has an operation that never gives anything back - the column then reads a dash. It
-  says in one number what the sale profit and the years it took to make it say in two, and it
-  is the one column the four regimes can be compared on directly.
-  Neither the rents nor the charges are the same on every line: the first year
-  carries the amounts as they were typed - it describes the twelve months that follow the
-  purchase - and each year after compounds them by its rate. Under the table, two totals: the
-  cash flow accumulated over the horizon, and what the property is then worth - the purchase
-  price and its discount alone compounded, since neither the notary fees nor the works are
-  resold.
+## How the numbers are computed
 
-- **The comparison:** a tab of its own where the four regimes are read on the same axes rather
-  than one panel at a time. Two charts, thirty-one points each, drawn server-side as plain SVG:
-  the capital still immobilized year after year, which crosses zero the year the operation has
-  paid itself back, and the profit a resale that year would leave, once the loan is cleared and
-  the costs, the capital gain tax and the capital still engaged are taken off. Both scales
-  always span zero - it is that crossing one comes to read - and a legend closes each curve on
-  its thirtieth year.
+The rules, the modelling choices and what is deliberately left out are in [`docs/`](docs):
 
-## Project Structure
-
-```
-app/
-├── controllers/        # ApplicationController (auth guard), Pages, Simulations,
-│                       # Simulations::Steps (the four-page creation), Assumptions and
-│                       # Simulations::EconomicConditions, Users::Registrations
-├── models/             # User, Simulation, Assumptions, Loan, Projection,
-│                       # AmortizationSchedule, Taxation, LineChart
-├── views/              # ERB templates with Hotwire (layout, navbar, devise, landing, simulations)
-├── javascript/         # Stimulus controllers
-└── assets/             # CSS design system
-config/
-├── locales/fr.yml      # French translations
-├── routes.rb           # Application routes
-└── database.yml        # Database configuration
-db/
-├── data/               # The Pierria barometer, one CSV per edition in force
-├── migrate/            # Database migrations
-├── seed_data.json      # The demo account, in the export format
-└── seeds.rb            # Reads seed_data.json, idempotent
-spec/
-├── models/             # Model unit tests
-├── requests/           # Request/integration tests
-└── factories/          # FactoryBot factories
-```
-
-## Data Model
-
-- **User** (firstname, lastname, email) - has at most one **Assumptions**, everything his
-  account supposes: the four economic conditions every simulation he creates inherits
-  (rent_growth_rate, property_growth_rate, inflation_rate, marginal_tax_rate), the amounts
-  and the credit the creation pages propose, and the rules every one of his simulations is
-  computed with. The row only exists once he has changed something; `Assumptions.for` stands
-  in for it until then, and the columns carry the defaults.
-- **Simulation** - belongs to a user, and has no name of its own: it reads as
-  "Appartement à Nantes", from its type and its city.
-  - *the property:* property_type, address, city, energy_rating, surface
-  - *the purchase:* purchase_price, initial_works, furniture (which the furnished regimes
-    alone pay, in cash), purchase_date
-  - *the financing:* credit, down_payment, loan_rate, loan_duration_years, loan_insurance -
-    the capital borrowed, the monthly payment and the amortization schedule are derived from
-    them, never stored (like the notary fees)
-  - *the letting:* monthly_rent (excluding charges, the only taxable part, and that of a bare
-    letting - the furnished regimes add their premium to it), monthly_charges
-    (the provision the tenant repays on top of it), occupancy_months and rental_start_date -
-    a month after the purchase unless answered otherwise; the first projection year only
-    counts the months that follow it (let from 1 July of a year bought on 1 January, eleven
-    months let a year make 5.5), and the tenant only repays the provision of those months
-  - *the annual charges*, grouped by what generates them (`Simulation::CHARGE_GROUPS`, from
-    which `ANNUAL_CHARGES` derives - a charge is added to a group and nowhere else):
-    - *owning the property:* property_tax, insurance, maintenance, condominium_fees
-    - *letting it:* management_fees, rent_guarantee
-    - *the furnished letting:* accounting_fees - the accountant of the LMNP - and
-      furniture_maintenance, which the two furnished regimes pay; `REGIME_CHARGES` keeps both
-      out of `ANNUAL_CHARGES`: the regime pays them, not the property
-    - *the rest:* other_charges
-  - *the economic conditions:* rent_growth_rate, property_growth_rate, inflation_rate and
-    marginal_tax_rate - the same four columns as `Assumptions`, copied from the user's
-    defaults at the creation and corrected afterwards for this simulation alone, plus
-    purchase_discount, which belongs to this simulation only and is corrected in the same tab
-
-  The thirty-year projection is derived, never stored: see `Simulation#projection` and its
-  `Year` struct, the tax of the year included.
+- [Inputs](docs/inputs.md): what the user answers, and what Prunay proposes in their place
+- [Credit](docs/credit.md): the loan, its insurance, its early repayment
+- [Taxation](docs/taxation.md): the four regimes, the LMNP depreciation, the capital gain
+- [Projection](docs/projection.md): the thirty years, the resale, the rate of return
