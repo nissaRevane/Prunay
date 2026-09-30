@@ -17,6 +17,18 @@ RSpec.describe Simulation::Estimate do
       expect(estimate.for(:other_charges, 30)).to eq(80)
     end
 
+    it "proposes no condominium fees outside an apartment" do
+      %w[house parking building].each do |type|
+        expect(estimate.for(:condominium_fees, 50, type)).to eq(0)
+      end
+    end
+
+    it "proposes 1 500 € of upkeep for 50 m² outside an apartment, scaled like the rest" do
+      expect(estimate.for(:maintenance, 50, "house")).to eq(1_500)
+      expect(estimate.for(:maintenance, 200, "building")).to eq(3_000)
+      expect(estimate.for(:property_tax, 50, "house")).to eq(700)
+    end
+
     it "leaves the amounts that do not follow the surface where they are" do
       expect(estimate.for(:management_fees, 200)).to eq(0)
       expect(estimate.for(:rent_guarantee, 200)).to eq(0)

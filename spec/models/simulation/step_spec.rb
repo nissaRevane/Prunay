@@ -75,5 +75,10 @@ RSpec.describe Simulation::Step do
         "accounting_fees" => 500, "furniture_maintenance" => 370, "other_charges" => 100
       )
     end
+
+    it "swaps the condominium fees for heavier upkeep on a house" do
+      expect(described_class.defaults("charges", draft(surface: 50, property_type: "house")))
+        .to include("condominium_fees" => 0, "maintenance" => 1_500)
+    end
   end
 end

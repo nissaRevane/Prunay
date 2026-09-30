@@ -106,7 +106,7 @@ class Simulation < ApplicationRecord
     @assumptions ||= Assumptions.for(user)
   end
 
-  def estimate(field) = Estimate.new(assumptions).for(field, surface)
+  def estimate(field) = Estimate.new(assumptions).for(field, surface, property_type)
 
   def rent_reference = RentReference.for(city)
 
