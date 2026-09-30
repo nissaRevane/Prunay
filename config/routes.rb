@@ -5,10 +5,13 @@ Prunay::Application.routes.draw do
                                    sessions: "users/sessions",
                                    passwords: "users/passwords" }
 
-  # /mon-compte gathers the identity and the password change instead of scattering them in the navbar.
+  # Les réglages se règlent une fois : deux onglets derrière l'adresse du compte, hors du menu.
   devise_scope :user do
-    get "mon-compte", to: "users/registrations#edit", as: :account
+    get "reglages", to: "users/registrations#edit", as: :account
   end
+
+  get   "reglages/hypotheses", to: "assumptions#edit",   as: :edit_assumptions
+  patch "reglages/hypotheses", to: "assumptions#update", as: :assumptions
 
   # L'accueil d'un connecté, c'est le formulaire rapide et ses deux dernières simulations : la
   # liste complète se prend dans le menu.
@@ -32,9 +35,6 @@ Prunay::Application.routes.draw do
 
   # Tout le compte dans un fichier JSON, que db/seeds.rb sait relire.
   resource :export, only: [:show]
-
-  # Le seul réglage général, et la seule page qui justifie une entrée de menu.
-  resource :assumptions, only: [:edit, :update], path: "hypotheses"
 
   # Celles d'une simulation vivent dans un onglet : elles ne se demandent pas pendant la création.
   resources :simulations, except: [:create] do

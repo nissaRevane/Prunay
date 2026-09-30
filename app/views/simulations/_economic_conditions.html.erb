@@ -5,6 +5,10 @@
     <h2><%= t("views.simulations.show.economic_conditions_detail") %></h2>
   </div>
 
+  <p class="section-hint"><%= t("views.simulations.show.economic_conditions_hint_html",
+                                assumptions: link_to(t("views.simulations.show.economic_conditions_link"),
+                                                     edit_assumptions_path)) %></p>
+
   <% url = simulation_economic_conditions_path(simulation, regime: params[:regime]) %>
 
   <dl class="detail-grid">

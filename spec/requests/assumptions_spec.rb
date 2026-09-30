@@ -5,7 +5,7 @@ RSpec.describe "Assumptions", type: :request do
 
   before { sign_in user }
 
-  describe "GET /hypotheses/edit" do
+  describe "GET /reglages/hypotheses" do
     it "opens on what Prunay assumes as long as nothing has been decided" do
       get edit_assumptions_path
 
@@ -36,7 +36,29 @@ RSpec.describe "Assumptions", type: :request do
     end
   end
 
-  describe "PATCH /hypotheses" do
+  describe "the settings tabs" do
+    it "opens the assumptions as the second tab of the settings, next to the account" do
+      get edit_assumptions_path
+
+      tabs = Nokogiri::HTML(response.body).css("nav.tabs .tab")
+      expect(tabs.map { |tab| tab["href"] }).to eq([account_path, edit_assumptions_path])
+      expect(tabs.map { |tab| tab["aria-current"] }).to eq([nil, "page"])
+    end
+
+    it "keeps the assumptions tab active when a refused update renders the page again" do
+      patch assumptions_path, params: { assumptions: { rent_growth_rate: "" } }
+
+      expect(Nokogiri::HTML(response.body).at_css("nav.tabs .tab.is-active")["href"]).to eq(edit_assumptions_path)
+    end
+
+    it "opens the account as the first tab" do
+      get account_path
+
+      expect(Nokogiri::HTML(response.body).at_css("nav.tabs .tab.is-active")["href"]).to eq(account_path)
+    end
+  end
+
+  describe "PATCH /reglages/hypotheses" do
     it "writes the assumptions of a user who had none" do
       expect {
         patch assumptions_path,
@@ -101,6 +123,13 @@ RSpec.describe "Assumptions", type: :request do
         .to eq([simulation_economic_conditions_path(simulation)])
       expect(panel.css("input[type=submit], button[type=submit]")).to be_empty
       expect(panel.css(".detail-item").size).to eq(Assumptions::ECONOMIC.size + 1)
+    end
+
+    it "points to the account assumptions, the only way to them outside the settings" do
+      get simulation_path(simulation)
+
+      link = Nokogiri::HTML(response.body).at_css("#panel-economic_conditions .section-hint a")
+      expect(link["href"]).to eq(edit_assumptions_path)
     end
 
     it "returns the whole page on that tab once a rate is saved" do

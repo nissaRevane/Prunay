@@ -1,13 +1,9 @@
-<div class="account-page">
-  <div class="page-header">
-    <div>
-      <h1><%= t("views.account.show.title") %></h1>
-      <p class="page-header-hint"><%= resource.email %></p>
-    </div>
+<%= render "shared/settings_tabs", current: :account %>
 
-    <div class="page-header-actions">
-      <%= link_to t("views.account.show.export"), export_path, class: "btn btn-outline", data: { turbo: false } %>
-    </div>
+<div class="account-page">
+  <div class="section-header">
+    <h2><%= resource.email %></h2>
+    <%= link_to t("views.account.show.export"), export_path, class: "btn btn-outline", data: { turbo: false } %>
   </div>
 
   <div class="account">

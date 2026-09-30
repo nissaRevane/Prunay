@@ -899,7 +899,6 @@ a.icon-btn:hover {
 /* Account */
 .account-page {
   max-width: 480px;
-  margin: 0 auto;
 }
 
 .account {
@@ -1733,6 +1732,10 @@ body:has(.home) main.container {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+}
+
+a.tab {
+  text-decoration: none;
 }
 
 .tab:hover {

@@ -48,7 +48,8 @@ docker compose run --rm web bundle exec rspec
 - **Authentication:** sign up, sign in, sign out, forgotten password, "remember me".
   Every controller is behind `authenticate_user!` by default (`ApplicationController`);
   the public landing page is the single explicit opt-out.
-- **Account page** (`/mon-compte`): identity, password change, and the JSON export of the
+- **Settings** (`/reglages`, behind the email in the top menu): two tabs. *Account* holds
+  identity, password change, and the JSON export of the
   whole account (`/export`) - the assumptions and every simulation, written in the
   exact shape `db/seeds.rb` reads back, so an export can re-feed a database. The password is
   never exported: Devise only keeps a digest, and a random one takes its place.
@@ -123,7 +124,8 @@ docker compose run --rm web bundle exec rspec
   its own column of the schedule, adds itself to what the bank actually debits each month,
   and is counted apart from the interest - what the credit costs is the two together.
 - **The assumptions** (`Assumptions`): everything an account supposes, held on one page,
-  `/hypotheses`, reachable from the top menu. Nothing is written there until its owner
+  `/reglages/hypotheses`, the second tab of the settings, also linked from the economic
+  conditions of every simulation. Nothing is written there until its owner
   changes something, and until then the page opens on what Prunay assumes. Three kinds live
   side by side there. *The economic conditions* - three annual rates that make a simulation
   age: what the rents gain each year (1 % by default), what the property gains in value

@@ -1,11 +1,8 @@
 <%# Tout ce qu'un compte suppose, dans l'ordre où une simulation le rencontre. La revente vient
     à part : elle seule pèse sur les simulations déjà écrites. %>
-<div class="page-header">
-  <div>
-    <h1><%= t("views.assumptions.edit.title") %></h1>
-    <p class="page-header-hint"><%= t("views.assumptions.edit.subtitle", surface: Simulation::Estimate::REFERENCE_SURFACE) %></p>
-  </div>
-</div>
+<%= render "shared/settings_tabs", current: :assumptions %>
+
+<p class="section-hint"><%= t("views.assumptions.edit.subtitle", surface: Simulation::Estimate::REFERENCE_SURFACE) %></p>
 
 <div class="section">
   <%= render "shared/errors", resource: @assumptions %>

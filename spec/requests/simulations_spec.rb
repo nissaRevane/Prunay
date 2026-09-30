@@ -1408,13 +1408,13 @@ RSpec.describe "Simulations", type: :request do
   end
 
   describe "the navigation shell" do
-    it "carries the simulations and the general settings in the top menu of a signed-in user" do
+    it "carries the simulations alone in the top menu of a signed-in user, the settings behind the email" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.at_css(".navbar-logo")["href"]).to eq(root_path)
       expect(doc.css(".navbar-menu .nav-link").map { |link| link["href"] })
-        .to eq([simulations_path, edit_assumptions_path])
+        .to eq([simulations_path])
       expect(doc.at_css(".nav-user-name")["href"]).to eq(account_path)
       expect(doc.at_css(".nav-user-name").text).to eq(user.email)
     end

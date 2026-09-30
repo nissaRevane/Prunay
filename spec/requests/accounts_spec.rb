@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Account", type: :request do
   let(:user) { create(:user) }
 
-  describe "GET /mon-compte" do
+  describe "GET /reglages" do
     it "requires an authenticated user" do
       get account_path
 

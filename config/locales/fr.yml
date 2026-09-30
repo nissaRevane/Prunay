@@ -155,13 +155,16 @@ fr:
     nav:
       menu: Menu
       simulations: Mes simulations
-      assumptions: Hypothèses
       sign_out: Déconnexion
       sign_in: Connexion
       sign_up: Inscription
+    settings:
+      title: Réglages
+      tabs:
+        account: Compte
+        assumptions: Hypothèses
     account:
       show:
-        title: Mon compte
         new_password: Nouveau mot de passe
         update_password: Changer mon mot de passe
         export: Exporter mes données
@@ -170,7 +173,6 @@ fr:
         delete_confirm: "Supprimer définitivement votre compte et toutes vos données ? Cette action est irréversible."
     assumptions:
       edit:
-        title: Hypothèses
         subtitle: "Ce que Prunay propose à chaque nouvelle simulation. Les montants qui suivent la surface sont énoncés pour %{surface} m²."
         economic: Conditions économiques
         economic_hint: "Recopiées le jour de la création : les corriger ne touche pas aux simulations déjà enregistrées."
@@ -318,6 +320,8 @@ fr:
         annual_rent_total_hint: charges comprises, vacance déduite
         charges_detail: Les charges annuelles
         economic_conditions_detail: Les conditions économiques
+        economic_conditions_hint_html: "Propres à cette simulation. Celles des prochaines se règlent dans %{assumptions}."
+        economic_conditions_link: vos hypothèses
         annual_charges_total: Total des charges annuelles
         business_tax: CFE
         depreciation_plan_detail: Le plan d'amortissement

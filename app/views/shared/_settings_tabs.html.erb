@@ -1,0 +1,10 @@
+<div class="page-header">
+  <h1><%= t("views.settings.title") %></h1>
+</div>
+
+<nav class="tabs" aria-label="<%= t("views.settings.title") %>">
+  <% { account: account_path, assumptions: edit_assumptions_path }.each do |tab, path| %>
+    <%= link_to t("views.settings.tabs.#{tab}"), path, class: ["tab", ("is-active" if tab == current)],
+        aria: { current: ("page" if tab == current) } %>
+  <% end %>
+</nav>
