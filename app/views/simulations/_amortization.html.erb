@@ -3,22 +3,22 @@
 <div class="section">
   <% loan = simulation.loan %>
   <div class="stat-grid">
-    <div class="stat-card">
-      <span class="stat-label"><%= Simulation.human_attribute_name(:borrowed_capital) %></span>
-      <span class="stat-value"><%= number_to_currency(loan.capital) %></span>
-      <span class="stat-hint"><%= t("views.simulations.show.amortization_rate_hint",
+    <div class="panel stack">
+      <span class="label"><%= Simulation.human_attribute_name(:borrowed_capital) %></span>
+      <span class="figure"><%= number_to_currency(loan.capital) %></span>
+      <span class="hint"><%= t("views.simulations.show.amortization_rate_hint",
                                     rate: number_to_percentage(loan.annual_rate, precision: 2, strip_insignificant_zeros: true)) %></span>
     </div>
-    <div class="stat-card">
-      <span class="stat-label"><%= t("views.simulations.show.amortization_duration") %></span>
-      <span class="stat-value"><%= t("views.simulations.show.payment_count", months: schedule.rows.size) %></span>
-      <span class="stat-hint"><%= t("views.simulations.show.amortization_first_payment_hint",
+    <div class="panel stack">
+      <span class="label"><%= t("views.simulations.show.amortization_duration") %></span>
+      <span class="figure"><%= t("views.simulations.show.payment_count", months: schedule.rows.size) %></span>
+      <span class="hint"><%= t("views.simulations.show.amortization_first_payment_hint",
                                     date: l(loan.first_payment_on, format: :long)) %></span>
     </div>
-    <div class="stat-card stat-card-highlight">
-      <span class="stat-label"><%= t("views.simulations.show.amortization_total_payment") %></span>
-      <span class="stat-value"><%= number_to_currency(loan.total_monthly_payment) %></span>
-      <span class="stat-hint">
+    <div class="panel panel-highlight stack">
+      <span class="label"><%= t("views.simulations.show.amortization_total_payment") %></span>
+      <span class="figure"><%= number_to_currency(loan.total_monthly_payment) %></span>
+      <span class="hint">
         <%= if loan.insurance.positive?
               t("views.simulations.show.amortization_insurance_hint", insurance: number_to_currency(loan.insurance))
             else
@@ -26,19 +26,23 @@
             end %>
       </span>
     </div>
+    <div class="panel stack">
+      <span class="label"><%= t("views.simulations.show.total_loan_cost") %></span>
+      <span class="figure"><%= number_to_currency(schedule.total_interest + schedule.total_insurance) %></span>
+    </div>
   </div>
 
   <div class="table-scroll table-scroll-tall">
-    <table class="table table-compact">
+    <table class="table">
       <thead>
         <tr>
           <th><%= t("views.simulations.show.payment_number") %></th>
           <th><%= t("views.simulations.show.due_on") %></th>
-          <th class="text-right"><%= t("views.simulations.show.payment") %></th>
-          <th class="text-right"><%= t("views.simulations.show.interest") %></th>
-          <th class="text-right"><%= t("views.simulations.show.principal") %></th>
-          <th class="text-right"><%= t("views.simulations.show.insurance") %></th>
-          <th class="text-right"><%= t("views.simulations.show.remaining_capital") %></th>
+          <th class="num"><%= t("views.simulations.show.payment") %></th>
+          <th class="num"><%= t("views.simulations.show.interest") %></th>
+          <th class="num"><%= t("views.simulations.show.principal") %></th>
+          <th class="num"><%= t("views.simulations.show.insurance") %></th>
+          <th class="num"><%= t("views.simulations.show.remaining_capital") %></th>
         </tr>
       </thead>
       <tbody>
@@ -49,19 +53,14 @@
               <span class="hide-on-mobile"><%= l(row.due_on, format: :long) %></span>
               <span class="show-on-mobile"><%= l(row.due_on, format: :default) %></span>
             </td>
-            <td class="text-right"><%= number_to_currency(row.payment) %></td>
-            <td class="text-right text-danger"><%= number_to_currency(row.interest) %></td>
-            <td class="text-right"><%= number_to_currency(row.principal) %></td>
-            <td class="text-right text-danger"><%= number_to_currency(row.insurance) %></td>
-            <td class="text-right"><%= number_to_currency(row.remaining_capital) %></td>
+            <td class="num"><%= number_to_currency(row.payment) %></td>
+            <td class="num"><%= number_to_currency(row.interest) %></td>
+            <td class="num"><%= number_to_currency(row.principal) %></td>
+            <td class="num"><%= number_to_currency(row.insurance) %></td>
+            <td class="num"><%= number_to_currency(row.remaining_capital) %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
-  </div>
-
-  <div class="section-total">
-    <span><%= t("views.simulations.show.total_loan_cost") %></span>
-    <span><%= number_to_currency(schedule.total_interest + schedule.total_insurance) %></span>
   </div>
 </div>

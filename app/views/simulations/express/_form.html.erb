@@ -3,7 +3,7 @@
                       rent_estimate_url_value: express_simulation_rent_reference_path }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
-  <div class="wizard-panel form-inline">
+  <div class="panel form-inline">
     <div class="form-group form-group-full">
       <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true, "aria-label": t("views.simulations.express.property_type"), data: { action: "change->rent-estimate#estimate" } %>
     </div>
@@ -33,7 +33,7 @@
     </div>
   </div>
 
-  <div class="form-actions">
+  <div class="actions">
     <%= f.submit t("views.simulations.express.create"), class: "btn btn-primary" %>
     <%= link_to t("views.simulations.express.detailed"), new_simulation_path, class: "btn btn-outline",
         data: { turbo_frame: "_top" } %>

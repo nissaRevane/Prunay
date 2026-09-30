@@ -2,10 +2,10 @@
 <% rate = reference&.rent_per_square_meter(simulation.property_type, simulation.surface) %>
 
 <% if rate %>
-  <p class="form-hint form-reference-rate">
+  <p class="hint form-reference-rate">
     <%= link_to number_to_currency(rate, unit: "€/m²"), RentReference::SOURCE_URL,
                 title: t("views.simulations.reference.source"), target: "_blank", rel: "noopener" %>
   </p>
 <% elsif simulation.city.present? && RentReference.covers?(simulation.property_type) %>
-  <p class="form-hint form-reference-missing"><%= t("views.simulations.reference.missing") %></p>
+  <p class="hint form-reference-missing"><%= t("views.simulations.reference.missing") %></p>
 <% end %>

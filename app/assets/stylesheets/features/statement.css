@@ -1,0 +1,26 @@
+/* La fiche d'une année, dans sa modale : ses deux lectures et la finesse du détail sur une même ligne. */
+
+.statement-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header:has(+ .statement-controls) {
+  padding-bottom: var(--space-2);
+  border-bottom: none;
+}
+
+.statement-controls .tabs {
+  flex: 1;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .statement-controls {
+    padding: 0 var(--space-3);
+  }
+}

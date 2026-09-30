@@ -3,6 +3,6 @@
 
   <% if simulation.city.present? && simulation.surface.present? %>
     <%= tag.span hidden: true, data: { rent_estimate_placeholder: t("views.simulations.express.monthly_rent_estimate",
-                                                                    amount: number_to_currency(simulation.proposed_rent, precision: 0)) } %>
+                                                                    amount: euros(simulation.proposed_rent)) } %>
   <% end %>
 <% end %>

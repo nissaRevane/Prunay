@@ -1,27 +1,29 @@
 <%# Une colonne par régime, une barre par série, empilée poste par poste et rendue par le
     serveur : chaque tranche porte son montant dès qu'elle est assez haute. %>
-<div class="chart">
-  <svg class="chart-svg" viewBox="0 0 <%= BarChart::WIDTH %> <%= BarChart::HEIGHT %>"
-       role="img" aria-label="<%= title %>">
-    <% chart.columns.each_with_index do |column, index| %>
-      <% column.bars.each_with_index do |bar, slot| %>
-        <% chart.segments(bar).each do |segment| %>
-          <rect class="chart-bar chart-part-<%= segment.component %>" x="<%= chart.bar_x(index, slot) %>"
-                y="<%= segment.y %>" width="<%= chart.bar_width %>" height="<%= segment.height %>" />
-          <% if segment.labelled? %>
-            <text class="chart-bar-label" x="<%= chart.bar_center(index, slot) %>" y="<%= segment.middle + 4 %>"
-                  text-anchor="middle"><%= number_to_currency(segment.amount, precision: 0) %></text>
+<div class="panel chart">
+  <div class="chart-plot">
+    <svg class="chart-svg" viewBox="0 0 <%= BarChart::WIDTH %> <%= BarChart::HEIGHT %>"
+         role="img" aria-label="<%= title %>">
+      <% chart.columns.each_with_index do |column, index| %>
+        <% column.bars.each_with_index do |bar, slot| %>
+          <% chart.segments(bar).each do |segment| %>
+            <rect class="chart-bar chart-part-<%= segment.component %>" x="<%= chart.bar_x(index, slot) %>"
+                  y="<%= segment.y %>" width="<%= chart.bar_width %>" height="<%= segment.height %>" />
+            <% if segment.labelled? %>
+              <text class="chart-bar-label" x="<%= chart.bar_center(index, slot) %>" y="<%= segment.middle + 4 %>"
+                    text-anchor="middle"><%= euros(segment.amount) %></text>
+            <% end %>
           <% end %>
+
+          <text class="chart-bar-total" x="<%= chart.bar_center(index, slot) %>" y="<%= chart.y(bar.total) - 8 %>"
+                text-anchor="middle"><%= euros(bar.total) %></text>
         <% end %>
 
-        <text class="chart-bar-total" x="<%= chart.bar_center(index, slot) %>" y="<%= chart.y(bar.total) - 8 %>"
-              text-anchor="middle"><%= number_to_currency(bar.total, precision: 0) %></text>
+        <text class="chart-label" x="<%= chart.x(index) %>" y="<%= chart.bottom + 24 %>"
+              text-anchor="middle"><%= column.label %></text>
       <% end %>
-
-      <text class="chart-label" x="<%= chart.x(index) %>" y="<%= chart.bottom + 24 %>"
-            text-anchor="middle"><%= column.label %></text>
-    <% end %>
-  </svg>
+    </svg>
+  </div>
 
   <ul class="chart-legend">
     <% chart.components.each do |component| %>

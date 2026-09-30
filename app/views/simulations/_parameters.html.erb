@@ -1,13 +1,13 @@
 <%# Les hypothèses de la simulation : à gauche l'opération, à droite l'année. Chaque valeur saisie
     se corrige d'un clic ; ce qui se calcule ne se clique pas. %>
-<div class="parameters">
+<div class="columns">
 <div>
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.purchase_detail") %></h2>
   </div>
 
-  <dl class="rows sum">
+  <dl class="panel rows">
     <%= editable_detail simulation, :purchase_price, number_to_currency(simulation.purchase_price) do |f| %>
       <%= f.number_field :purchase_price, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
@@ -27,7 +27,7 @@
     <% end %>
 
     <% Taxation::NAMES.each do |regime| %>
-      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+      <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
         <dd class="detail-value"><%= number_to_currency(simulation.total_investment_under(regime)) %></dd>
       <% end %>
@@ -46,9 +46,8 @@
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
   </div>
 
-  <dl class="rows sum">
-    <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent),
-        value_class: "text-success", regimes: regimes_without_rent_premium do |f| %>
+  <dl class="panel rows">
+    <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), regimes: regimes_without_rent_premium do |f| %>
       <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
@@ -56,9 +55,9 @@
       <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label">
           <%= t("views.simulations.show.furnished_rent") %>
-          <span class="detail-note"><%= t("views.simulations.show.furnished_rent_hint", rate: rent_premium_label(regime)) %></span>
+          <span class="note"><%= t("views.simulations.show.furnished_rent_hint", rate: rent_premium_label(regime)) %></span>
         </dt>
-        <dd class="detail-value text-success"><%= number_to_currency(simulation.monthly_rent_under(regime)) %></dd>
+        <dd class="detail-value"><%= number_to_currency(simulation.monthly_rent_under(regime)) %></dd>
       <% end %>
     <% end %>
 
@@ -76,10 +75,10 @@
     <% end %>
 
     <% Taxation::NAMES.each do |regime| %>
-      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+      <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label">
           <%= t("views.simulations.show.annual_rent_total") %>
-          <span class="detail-note"><%= t("views.simulations.show.annual_rent_total_hint") %></span>
+          <span class="note"><%= t("views.simulations.show.annual_rent_total_hint") %></span>
         </dt>
         <dd class="detail-value"><%= number_to_currency(simulation.annual_rent_under(regime)) %></dd>
       <% end %>
@@ -92,7 +91,7 @@
     <h2><%= t("views.simulations.show.charges_detail") %></h2>
   </div>
 
-  <dl class="rows sum">
+  <dl class="panel rows">
     <% Simulation::ANNUAL_CHARGES.each do |charge| %>
       <%= editable_detail simulation, charge, number_to_currency(simulation.public_send(charge)) do |f| %>
         <%= f.number_field charge, step: "0.01", min: "0", class: "form-control", required: true %>
@@ -112,7 +111,7 @@
     <% end %>
 
     <% Taxation::NAMES.each do |regime| %>
-      <%= tag.div class: "detail-item sum-total", hidden: true, data: regime_scope(regime) do %>
+      <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label"><%= t("views.simulations.show.annual_charges_total") %></dt>
         <dd class="detail-value"><%= number_to_currency(annual_charges_under(simulation, regime)) %></dd>
       <% end %>

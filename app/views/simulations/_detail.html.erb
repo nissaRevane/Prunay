@@ -18,7 +18,7 @@
 
 <div data-controller="tabs" data-tabs-name-value="<%= opened %>" data-tabs-regime-value="<%= shown_regime %>"
      data-action="click@window->tabs#closeOutside keydown.esc->tabs#closeOptions">
-  <div class="tabs simulation-tabs" role="tablist">
+  <div class="tabs" role="tablist">
     <% simulation_tabs(schedule).each do |name| %>
       <% if taxation_tab?(name) %>
         <%= render "simulations/regime_tab", regime: shown_regime, opened: opened %>
@@ -33,7 +33,7 @@
   </div>
 
   <% panels.each do |name| %>
-    <%= tag.div class: "tab-panel", role: "tabpanel", id: "panel-#{name}",
+    <%= tag.div role: "tabpanel", id: "panel-#{name}",
                 aria: { labelledby: panel_label_id(name) },
                 data: { tabs_target: "panel", tab_name: name }, hidden: name != opened do %>
       <%= render "simulations/#{name}", simulation: simulation, projections: projections,

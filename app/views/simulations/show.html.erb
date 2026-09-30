@@ -4,7 +4,7 @@
              tab: @tab, regime: @regime, exit_year: @exit_year %>
 <% end %>
 
-<div class="form-actions">
+<div class="actions">
   <%= link_to t("views.simulations.show.back"), simulations_path, class: "btn btn-outline" %>
   <%= button_to t("views.simulations.show.delete"), simulation_path(@simulation), method: :delete, class: "btn btn-danger",
       form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } } %>

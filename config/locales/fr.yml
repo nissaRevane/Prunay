@@ -153,6 +153,8 @@ fr:
       parking: "🅿️"
       building: "🏘️"
   views:
+    flash:
+      close: Fermer
     nav:
       menu: Menu
       simulations: Mes simulations
@@ -451,17 +453,17 @@ fr:
       throttled: Trop de demandes en peu de temps. Patientez quelques minutes avant de réessayer.
   number:
     format:
-      delimiter: " "
+      delimiter: "\u202F"
       separator: ","
     percentage:
       format:
-        delimiter: " "
+        delimiter: "\u202F"
         separator: ","
-        format: "%n %"
+        format: "%n\u202F%"
     currency:
       format:
         unit: "€"
-        delimiter: " "
+        delimiter: "\u202F"
         separator: ","
         precision: 2
-        format: "%n %u"
+        format: "%n\u202F%u"

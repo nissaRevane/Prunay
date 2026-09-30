@@ -1,0 +1,46 @@
+/* Les jetons : couleurs, échelles fermées de texte et d'espace. Une valeur absente d'ici ne s'invente pas dans un écran. */
+
+:root {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-bg: #eff6ff;
+  --color-on-primary: #ffffff;
+
+  --color-positive: #16a34a;
+  --color-positive-bg: #f0fdf4;
+  --color-positive-border: #bbf7d0;
+  --color-negative: #dc2626;
+  --color-negative-bg: #fef2f2;
+  --color-negative-border: #fecaca;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-backdrop: rgba(15, 23, 42, 0.45);
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.25);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+
+  --radius: 8px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --control-size: 2.25rem;
+}

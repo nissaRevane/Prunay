@@ -8,10 +8,10 @@
         <tr>
           <th><%= t("views.simulations.show.year") %></th>
           <th><%= t("views.simulations.show.date") %></th>
-          <th class="text-right"><%= t("views.simulations.show.#{projection.rent_column}") %></th>
-          <th class="text-right"><%= t("views.simulations.show.cash_flow") %></th>
-          <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
-          <th class="text-right"><%= t("views.simulations.show.internal_rate_of_return") %></th>
+          <th class="num"><%= t("views.simulations.show.#{projection.rent_column}") %></th>
+          <th class="num"><%= t("views.simulations.show.cash_flow") %></th>
+          <th class="num"><%= t("views.simulations.show.immobilized_capital") %></th>
+          <th class="num"><%= t("views.simulations.show.internal_rate_of_return") %></th>
         </tr>
       </thead>
       <tbody>
@@ -22,15 +22,11 @@
               <button type="button" class="row-toggle" aria-haspopup="dialog"><%= year.number %></button>
             </td>
             <td><%= l(year.date, format: :month_year) %></td>
-            <td class="text-right"><%= number_to_currency(projection.rent_of(year)) %></td>
-            <td class="text-right <%= year.cash_flow.negative? ? 'text-danger' : 'text-success' %>"><%= number_to_currency(year.cash_flow) %></td>
-            <td class="text-right <%= year.recovered? ? 'text-success' : 'text-danger' %>">
-              <%= number_to_currency(year.immobilized_capital) %>
-            </td>
+            <td class="num"><%= euros(projection.rent_of(year)) %></td>
+            <td class="num <%= tone(year.cash_flow) %>"><%= euros(year.cash_flow) %></td>
+            <td class="num"><%= euros(year.immobilized_capital) %></td>
             <% rate = projection.internal_rate_of_return(year) %>
-            <td class="text-right <%= rate.negative? ? 'text-danger' : 'text-success' unless rate.nil? %>">
-              <%= internal_rate_of_return_label(rate) %>
-            </td>
+            <td class="num <%= rate_tone(rate) %>"><%= internal_rate_of_return_label(rate) %></td>
           </tr>
         <% end %>
       </tbody>

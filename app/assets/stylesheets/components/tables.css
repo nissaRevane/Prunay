@@ -1,0 +1,98 @@
+/* Les tableaux : en-tête en libellés, nombres alignés à droite, défilement propre sur petit écran. */
+
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.table td {
+  white-space: nowrap;
+}
+
+.table th {
+  background: var(--color-bg);
+}
+
+.table .num {
+  text-align: right;
+}
+
+.table-scroll-tall {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.table-scroll-tall thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.row-expandable {
+  cursor: pointer;
+}
+
+.row-expandable:hover td {
+  background: var(--color-bg);
+}
+
+.row-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.row-toggle::before {
+  content: "\203A";
+  color: var(--color-text-muted);
+}
+
+.table .is-highlighted td {
+  background: var(--color-primary-bg);
+  font-weight: 600;
+}
+
+.table .is-highlighted td:first-child {
+  box-shadow: inset 3px 0 var(--color-primary);
+}
+
+/* Le tableau défile sous sa première colonne : la ligne garde son nom. */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: var(--space-2);
+  }
+
+  .table th:first-child,
+  .table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .table-scroll-tall thead th:first-child {
+    z-index: 3;
+  }
+}

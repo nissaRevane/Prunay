@@ -10,30 +10,22 @@
       <thead>
         <tr>
           <th><%= t("views.simulations.show.ranking_regime") %></th>
-          <th class="text-right"><%= t("views.simulations.show.internal_rate_of_return") %></th>
-          <th class="text-right"><%= t("views.simulations.index.monthly_cash_flow") %></th>
-          <th class="text-right"><%= t("views.simulations.show.ranking_taxes") %></th>
-          <th class="text-right"><%= t("views.simulations.show.immobilized_capital") %></th>
-          <th class="text-right"><%= t("views.simulations.show.ranking_sale_profit") %></th>
+          <th class="num"><%= t("views.simulations.show.internal_rate_of_return") %></th>
+          <th class="num"><%= t("views.simulations.index.monthly_cash_flow") %></th>
+          <th class="num"><%= t("views.simulations.show.ranking_taxes") %></th>
+          <th class="num"><%= t("views.simulations.show.immobilized_capital") %></th>
+          <th class="num"><%= t("views.simulations.show.ranking_sale_profit") %></th>
         </tr>
       </thead>
       <tbody>
         <% dashboard.rows.each do |row| %>
-          <%= tag.tr class: class_names("ranking-row", "is-best" => row.regime == dashboard.regime) do %>
+          <%= tag.tr class: class_names("is-highlighted" => row.regime == dashboard.regime) do %>
             <td><%= t("views.simulations.show.tab_#{row.regime}") %></td>
-            <td class="text-right <%= "text-danger" if row.rate&.negative? %>">
-              <%= internal_rate_of_return_label(row.rate) %>
-            </td>
-            <td class="text-right <%= row.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
-              <%= number_to_currency(row.monthly_cash_flow, precision: 0) %>
-            </td>
-            <td class="text-right"><%= number_to_currency(row.taxes, precision: 0) %></td>
-            <td class="text-right">
-              <%= number_to_currency(row.immobilized_capital, precision: 0) %>
-            </td>
-            <td class="text-right <%= row.sale_profit.negative? ? "text-danger" : "text-success" %>">
-              <%= number_to_currency(row.sale_profit, precision: 0) %>
-            </td>
+            <td class="num <%= rate_tone(row.rate) %>"><%= internal_rate_of_return_label(row.rate) %></td>
+            <td class="num <%= tone(row.monthly_cash_flow) %>"><%= euros(row.monthly_cash_flow) %></td>
+            <td class="num"><%= euros(row.taxes) %></td>
+            <td class="num"><%= euros(row.immobilized_capital) %></td>
+            <td class="num <%= tone(row.sale_profit) %>"><%= euros(row.sale_profit) %></td>
           <% end %>
         <% end %>
       </tbody>

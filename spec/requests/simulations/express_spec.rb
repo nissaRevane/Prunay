@@ -49,10 +49,10 @@ RSpec.describe "Express simulations", type: :request do
       get root_path
 
       doc = Nokogiri::HTML(response.body)
-      cards = doc.css(".recent-simulations .simulation-card .simulation-card-link")
+      cards = doc.css(".recent-simulations .simulation-card .panel-link-target")
 
       expect(cards.map { |link| link.text.strip }).to eq(["🏢 Nante-50"])
-      expect(doc.at_css(".recent-simulations .simulation-card-all")["href"]).to eq(simulations_path)
+      expect(doc.at_css(".recent-simulations-all")["href"]).to eq(simulations_path)
     end
 
     it "leaves the recent section out when nothing has been simulated yet" do
@@ -68,11 +68,11 @@ RSpec.describe "Express simulations", type: :request do
 
       get express_simulation_rent_reference_path(property_type: "apartment", city: "Orléans", surface: "30")
 
-      rate = Nokogiri::HTML(response.body).at_css(".form-hint a")
-      expect(rate.text).to eq("14,75 €/m²")
+      rate = Nokogiri::HTML(response.body).at_css(".form-reference-rate a")
+      expect(rate.text).to eq("14,75 €/m²")
       expect(rate["href"]).to eq(RentReference::SOURCE_URL)
       expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-placeholder]")["data-rent-estimate-placeholder"])
-        .to eq("≈ 393 €")
+        .to eq("≈ 393 €")
     end
 
     it "falls back on the account's reference for a commune the barometer does not cover" do
@@ -80,7 +80,7 @@ RSpec.describe "Express simulations", type: :request do
 
       expect(response.body).to include("Pas de données pour cette commune, saisissez le loyer manuellement.")
       expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-placeholder]")["data-rent-estimate-placeholder"])
-        .to eq("≈ 650 €")
+        .to eq("≈ 650 €")
     end
 
     it "says nothing at all while the city is still to be typed" do

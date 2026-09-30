@@ -1,0 +1,192 @@
+/* Ce qui n'appartient qu'aux simulations : accueil, barre de filtres, phrase du bien, étiquette énergie, frise. */
+
+body:has(.home) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body:has(.home) main.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+.home {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 22rem);
+  align-content: center;
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.recent-simulations {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--space-3);
+}
+
+.recent-simulations-all {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 5rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (min-width: 900px) {
+  .home:has(.recent-simulations) {
+    grid-template-columns: repeat(2, 22rem);
+  }
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.toolbar-search {
+  flex: 1 1 16rem;
+  max-width: 24rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.summary {
+  margin-top: var(--space-1);
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.dpe {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--dpe-color, var(--color-border));
+  border-bottom: none;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dpe,
+.dpe:hover,
+.dpe:focus-visible {
+  color: var(--dpe-ink, var(--color-text-muted));
+}
+
+.dpe:hover,
+.dpe:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.dpe small {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.dpe-letter {
+  border-bottom: 1px dashed currentColor;
+}
+
+/* Les sept classes du diagnostic : A et G foncent pour que le blanc s'y lise. */
+.dpe-a { --dpe-color: #2a8534; --dpe-ink: #fff; }
+.dpe-b { --dpe-color: #33cc31; --dpe-ink: var(--color-text); }
+.dpe-c { --dpe-color: #cbfc34; --dpe-ink: var(--color-text); }
+.dpe-d { --dpe-color: #fbfc07; --dpe-ink: var(--color-text); }
+.dpe-e { --dpe-color: #fbcc05; --dpe-ink: var(--color-text); }
+.dpe-f { --dpe-color: #fc9935; --dpe-ink: var(--color-text); }
+.dpe-g { --dpe-color: #e00b18; --dpe-ink: #fff; }
+
+.wizard-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.wizard-progress-step {
+  display: flex;
+  flex: 1 1 160px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.wizard-progress-step.is-done {
+  border-color: var(--color-positive);
+  color: var(--color-text);
+}
+
+.wizard-progress-step.is-current {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.wizard-progress-number {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--color-bg);
+  border-radius: 50%;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.wizard-progress-step.is-current .wizard-progress-number {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.wizard-progress-step.is-done .wizard-progress-number {
+  background: var(--color-positive);
+  color: var(--color-on-primary);
+}
+
+/* Sur un petit écran, seule l'étape en cours dit son nom. */
+@media (max-width: 768px) {
+  .wizard-progress {
+    flex-wrap: nowrap;
+  }
+
+  .wizard-progress-step {
+    flex: none;
+  }
+
+  .wizard-progress-step.is-current {
+    flex: 1;
+  }
+
+  .wizard-progress-step:not(.is-current) .wizard-progress-label {
+    display: none;
+  }
+}

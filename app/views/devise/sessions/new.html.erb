@@ -1,4 +1,4 @@
-<div class="auth-container">
+<div class="panel auth">
   <h2>Connexion</h2>
 
   <%= render "shared/errors", resource: resource %>
@@ -19,7 +19,7 @@
       <%= f.label :remember_me, "Se souvenir de moi" %>
     </div>
 
-    <div class="form-actions">
+    <div class="actions">
       <%= f.submit "Se connecter", class: "btn btn-primary" %>
     </div>
   <% end %>

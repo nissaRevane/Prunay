@@ -1,0 +1,244 @@
+/* Les formulaires : champ, groupe, rangée, cadre, montant calculé, édition en place et suggestions. */
+
+.form {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: var(--space-3);
+}
+
+.form-group label,
+.form-label,
+.assumption-field label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.form-control {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+}
+
+.form-group-half {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-check label {
+  margin-bottom: 0;
+  color: var(--color-text);
+}
+
+/* Un montant calculé : la forme d'un champ, en trait discontinu. */
+.form-static {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.form-fieldset {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.form-fieldset legend {
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.charge-group + .charge-group {
+  margin-top: var(--space-4);
+}
+
+.charge-group > .label {
+  margin-bottom: var(--space-2);
+}
+
+.assumption-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-1) var(--space-5);
+}
+
+.assumption-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.assumption-field label {
+  margin-bottom: 0;
+  font-weight: 400;
+}
+
+.assumption-field .form-control {
+  flex: none;
+  width: 7.5rem;
+  text-align: right;
+}
+
+.assumption-field select.form-control {
+  text-align: left;
+}
+
+.form-inline .form-group {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-inline .form-group-full {
+  grid-template-columns: 1fr;
+}
+
+.form-inline .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-inline .form-group label {
+  margin-bottom: 0;
+}
+
+.form-reference {
+  display: none;
+}
+
+.form-reference:has(.hint) {
+  display: block;
+}
+
+.form-inline .form-group-reference:has(.form-reference-rate) {
+  grid-template-columns: 4.5rem 1fr auto;
+}
+
+.form-inline .form-group-reference:has(.form-reference-missing) .form-reference {
+  grid-column: 2;
+}
+
+.form-reference-rate {
+  white-space: nowrap;
+}
+
+/* Une valeur qui s'enregistre seule : le trait discontinu la dit corrigeable. */
+.inline-edit-display {
+  padding: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--color-text-muted);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.inline-edit-display:hover,
+.inline-edit-display:focus-visible {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  outline: none;
+}
+
+.inline-edit-form .form-control {
+  padding: var(--space-1) var(--space-2);
+  font-weight: 500;
+}
+
+.inline-word .inline-edit-form:not([hidden]) {
+  display: inline-block;
+}
+
+.inline-word .form-control {
+  width: auto;
+  font-size: inherit;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: 30;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.autocomplete-option {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.autocomplete-option:hover,
+.autocomplete-option[aria-selected="true"] {
+  background: var(--color-bg);
+}
+
+.autocomplete-context {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.inline-word .autocomplete {
+  display: inline-block;
+}
+
+.inline-word .autocomplete-list {
+  right: auto;
+  min-width: min(18rem, calc(100vw - 2 * var(--space-3)));
+}
+
+@media (max-width: 768px) {
+  .form-control {
+    font-size: var(--text-base);
+  }
+}

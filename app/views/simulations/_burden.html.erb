@@ -2,12 +2,14 @@
     dépenses et revenus côte à côte, puis l'impôt seul. %>
 <% default = t("views.simulations.show.comparison_#{SimulationsHelper::BURDEN_MEASURES.first}_burden") %>
 <div class="section" data-controller="carousel" data-carousel-index-value="0">
-  <div class="section-header carousel-header">
-    <button type="button" class="carousel-step" data-action="carousel#previous"
-            aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+  <div class="section-header">
     <h2 data-carousel-target="title"><%= default %></h2>
-    <button type="button" class="carousel-step" data-action="carousel#next"
-            aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
+    <div class="stepper">
+      <button type="button" class="icon-btn" data-action="carousel#previous"
+              aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+      <button type="button" class="icon-btn" data-action="carousel#next"
+              aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
+    </div>
   </div>
 
   <% SimulationsHelper::BURDEN_MEASURES.each_with_index do |measure, index| %>
