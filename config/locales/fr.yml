@@ -6,6 +6,7 @@ fr:
       short: "%d %b"
       # Une projection se lit par années : le jour n'y ajoute rien.
       month_year: "%b-%Y"
+      abbr_month_year: "%b %Y"
     day_names: [dimanche, lundi, mardi, mercredi, jeudi, vendredi, samedi]
     abbr_day_names: [dim, lun, mar, mer, jeu, ven, sam]
     month_names: [~, janvier, février, mars, avril, mai, juin, juillet, août, septembre, octobre, novembre, décembre]
@@ -188,6 +189,7 @@ fr:
       index:
         title: Mes simulations
         new: Nouvelle simulation
+        new_short: "+ Nouvelle"
         empty: Aucune simulation enregistrée.
         no_match: Aucune simulation ne correspond à cette recherche.
         search: Rechercher une ville, une adresse…
@@ -197,10 +199,10 @@ fr:
         under_regime: "Au %{regime}"
         best_exit: "revendu la %{year}ᵉ année (%{date})"
         no_best_exit: Aucune revente ne rend l'opération rentable sur trente ans.
-        initial_outlay: Mise de départ
+        purchased_on: "Achat %{date}"
+        rate: TRI
         monthly_cash_flow: Cash-flow / mois
         first_full_year: "(1ʳᵉ année)"
-        destroy: Supprimer cette simulation
         pagination: Pages de simulations
         page: "Page %{page} sur %{pages}"
         previous_page: "← Précédentes"

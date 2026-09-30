@@ -24,8 +24,7 @@ RSpec.describe Simulation::BestReturn do
     expect(best.rate).to eq(every_rate.max)
   end
 
-  it "reads the outlay and the first full year under the winning regime" do
-    expect(best.initial_outlay).to eq(216_612)
+  it "reads the first full year under the winning regime" do
     expect(best.monthly_cash_flow).to eq(BigDecimal("755.85"))
   end
 

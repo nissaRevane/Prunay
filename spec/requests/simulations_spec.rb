@@ -177,7 +177,10 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-header .simulation-card-rate").text.strip).to eq(return_percentage(4))
+      rate = doc.at_css(".simulation-card-header .simulation-card-rate")
+
+      expect(rate.text.gsub(/\s+/, " ").strip).to eq("#{I18n.t("views.simulations.index.rate")} #{return_percentage(4)}")
+      expect(rate["class"].split).not_to include("text-success")
       expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
         I18n.t("views.simulations.index.best_exit", date: 2055, year: 30)
       )
@@ -197,7 +200,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css(".simulation-card-exit").text).not_to include(regime)
     end
 
-    it "shows what the winning regime asks up front and leaves each month" do
+    it "shows only what the winning regime leaves each month" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
       get simulations_path
@@ -205,10 +208,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       figures = doc.css(".simulation-card-figure dd").map { |cell| cell.text.gsub(/\s+/, " ").strip }
 
-      expect(figures).to eq([
-        currency(216_612, precision: 0).gsub(/\s+/, " "),
-        currency(756, precision: 0).gsub(/\s+/, " ")
-      ])
+      expect(figures).to eq([currency(756, precision: 0).gsub(/\s+/, " ")])
     end
 
     it "carries the purchase date beside the name, and the address below it" do
@@ -218,9 +218,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-title .simulation-card-date").text.strip).to eq(
-        I18n.l(Date.new(2026, 6, 30), format: :month_year)
-      )
+      expect(doc.at_css(".simulation-card-title .simulation-card-date").text.strip).to eq("Achat juin 2026")
       expect(doc.at_css(".simulation-card-meta .simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
     end
 
@@ -232,21 +230,18 @@ RSpec.describe "Simulations", type: :request do
       expect(Nokogiri::HTML(response.body).at_css(".simulation-card-meta")).to be_nil
     end
 
-    it "carries the delete button alone, in the card header" do
+    it "leaves the deletion to the detail page" do
       simulation = create(:simulation, user: user)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      removal = doc.at_css(".simulation-card-header form.button_to")
 
       expect(doc.css("a[href='#{edit_simulation_path(simulation)}']")).to be_empty
-      expect(removal["action"]).to eq(simulation_path(simulation))
-      expect(removal.at_css("input[name=_method]")["value"]).to eq("delete")
-      expect(removal.at_css("button")["aria-label"]).to eq(I18n.t("views.simulations.index.destroy"))
+      expect(doc.css(".simulation-card form.button_to")).to be_empty
     end
 
-    it "shrinks the new-simulation label to a plus without losing it" do
+    it "shortens the new-simulation label without losing it" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
@@ -254,7 +249,7 @@ RSpec.describe "Simulations", type: :request do
 
       expect(action["aria-label"]).to eq(I18n.t("views.simulations.index.new"))
       expect(action.at_css(".hide-on-mobile").text.strip).to eq(I18n.t("views.simulations.index.new"))
-      expect(action.at_css(".show-on-mobile").text.strip).to eq("+")
+      expect(action.at_css(".show-on-mobile").text.strip).to eq("+ Nouvelle")
     end
 
     it "carries the express form in a pop-in rather than sending to another page" do

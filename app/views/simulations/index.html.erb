@@ -1,4 +1,4 @@
-<%# Le bouton se réduit à un plus plutôt que de passer sous le titre, et la création rapide
+<%# Le bouton se réduit plutôt que de passer sous le titre, et la création rapide
     s'ouvre en pop-in : on ne quitte pas la liste pour cinq réponses. %>
 <div data-controller="express-form">
   <div class="page-header page-header-inline">
@@ -6,7 +6,7 @@
     <button type="button" class="btn btn-primary" data-action="express-form#open"
             aria-label="<%= t("views.simulations.index.new") %>">
       <span class="hide-on-mobile"><%= t("views.simulations.index.new") %></span>
-      <span class="show-on-mobile" aria-hidden="true">+</span>
+      <span class="show-on-mobile" aria-hidden="true"><%= t("views.simulations.index.new_short") %></span>
     </button>
   </div>
 
