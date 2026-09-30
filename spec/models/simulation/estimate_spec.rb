@@ -29,6 +29,13 @@ RSpec.describe Simulation::Estimate do
       expect(estimate.for(:property_tax, 50, "house")).to eq(700)
     end
 
+    it "reads the upkeep outside an apartment from its own reference" do
+      raised = described_class.new(Assumptions.new(maintenance: 800, other_types_maintenance: 2_000))
+
+      expect(raised.for(:maintenance, 50, "house")).to eq(2_000)
+      expect(raised.for(:maintenance, 50, "apartment")).to eq(800)
+    end
+
     it "leaves the amounts that do not follow the surface where they are" do
       expect(estimate.for(:management_fees, 200)).to eq(0)
       expect(estimate.for(:rent_guarantee, 200)).to eq(0)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_01_000025) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_01_000026) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -46,6 +46,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_01_000025) do
     t.decimal "occupancy_months", precision: 4, scale: 1, default: "11.0", null: false
     t.integer "loan_duration_years", default: 20, null: false
     t.integer "purchase_delay_months", default: 3, null: false
+    t.decimal "other_types_maintenance", precision: 12, scale: 2, default: "1500.0", null: false
     t.index ["user_id"], name: "index_assumptions_on_user_id", unique: true
   end
 

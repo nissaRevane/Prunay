@@ -4,8 +4,8 @@ class Assumptions < ApplicationRecord
   ECONOMIC = [*RATES, :marginal_tax_rate].freeze
 
   # Les montants proposés valent pour Estimate::REFERENCE_SURFACE.
-  SCALED_AMOUNTS = %i[monthly_rent property_tax insurance maintenance condominium_fees other_charges
-                      furniture furniture_maintenance].freeze
+  SCALED_AMOUNTS = %i[monthly_rent property_tax insurance maintenance other_types_maintenance
+                      condominium_fees other_charges furniture furniture_maintenance].freeze
 
   FIXED_AMOUNTS = %i[monthly_charges management_fees rent_guarantee accounting_fees].freeze
 

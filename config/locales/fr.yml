@@ -79,6 +79,7 @@ fr:
         property_tax: Taxe foncière
         insurance: Assurance PNO
         maintenance: Entretien et gros travaux
+        other_types_maintenance: "Entretien et gros travaux (maison, parking, immeuble)"
         condominium_fees: Copropriété
         management_fees: Gestion
         rent_guarantee: "Loyers impayés"

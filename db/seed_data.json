@@ -12,6 +12,7 @@
     "property_tax": 700,
     "insurance": 150,
     "maintenance": 1000,
+    "other_types_maintenance": 1500,
     "condominium_fees": 1000,
     "other_charges": 100,
     "furniture": 2110,

@@ -31,7 +31,7 @@ correct, not a calculation. The exceptions:
 - **Furniture upkeep**: sized so that the furniture can be renewed every seven years, with
   ordinary upkeep on top (see the LMNP in [taxation](taxation.md)).
 - **Outside an apartment**: no condominium fees are proposed (the user can still enter some),
-  and the upkeep reference rises to 1 500 € for 50 m², whatever the account says.
+  and the upkeep has a reference of its own in the account (1 500 € for 50 m² by default).
 - **Down payment**: a tenth of the project cost, recomputed as the price is typed.
 
 Every reference belongs to the user's account (`Assumptions`). Before the account changes

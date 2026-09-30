@@ -6,9 +6,6 @@ class Simulation::Estimate
 
   ROUNDING = 10
 
-  # Hors appartement : pas de copropriété, et un entretien plus lourd.
-  OTHER_TYPES_MAINTENANCE = 1_500
-
   attr_reader :assumptions
 
   def initialize(assumptions)
@@ -37,7 +34,7 @@ class Simulation::Estimate
 
     case field.to_sym
     when :condominium_fees then 0
-    when :maintenance then OTHER_TYPES_MAINTENANCE
+    when :maintenance then assumptions.other_types_maintenance
     else assumptions.public_send(field)
     end
   end

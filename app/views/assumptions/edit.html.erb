@@ -54,6 +54,7 @@
       <%= assumption_grid do %>
         <% Simulation::CHARGE_GROUPS.values.flatten.each do |charge| %>
           <%= assumption_field f, charge %>
+          <%= assumption_field f, :other_types_maintenance if charge == :maintenance %>
         <% end %>
       <% end %>
     </fieldset>
