@@ -34,7 +34,16 @@ export default class extends Controller {
 
   toggleOptions() {
     this.optionsTarget.hidden = !this.optionsTarget.hidden
+    if (!this.optionsTarget.hidden) this.placeOptions()
     this.regimeToggleTarget.setAttribute("aria-expanded", !this.optionsTarget.hidden)
+  }
+
+  placeOptions() {
+    const host = this.optionsTarget.offsetParent.getBoundingClientRect()
+    const tab = this.regimeToggleTarget.getBoundingClientRect()
+
+    this.optionsTarget.style.left = `${tab.left - host.left}px`
+    this.optionsTarget.style.top = `${tab.bottom - host.top}px`
   }
 
   closeOptions() {

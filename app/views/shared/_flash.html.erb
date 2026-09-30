@@ -4,7 +4,7 @@
   <% if flash[key].present? %>
     <div class="<%= class_names("alert", style) %>" data-controller="alert" data-alert-target="container">
       <%= flash[key] %>
-      <button class="alert-close" data-action="click->alert#dismiss">&times;</button>
+      <button type="button" class="icon-btn" data-action="click->alert#dismiss" aria-label="<%= t("views.flash.close") %>">&times;</button>
     </div>
   <% end %>
 <% end %>

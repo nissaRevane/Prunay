@@ -67,6 +67,11 @@ une division entière et un prêt à 3 % ne coûterait rien. `.round(2)` sur les
 Frais de notaire, capital emprunté, mensualité, tableau d'amortissement, projection, impôt :
 tous recalculés. N'ajouter une colonne que pour une réponse que l'utilisateur donne lui-même.
 
+### L'interface
+Un écran se construit sur les jetons et les primitives de [`docs/ui.md`](docs/ui.md) : pas de
+valeur brute, pas de nouvelle boîte, `tone`/`rate_tone` pour le signe, `euros` pour l'arrondi.
+Un besoin général modifie la primitive, jamais un écran. Vérifier à 375 px.
+
 ### Où vivent les choses
 - `Simulation`, `User`, `Assumptions` : les seuls ActiveRecord.
 - `Loan`, `AmortizationSchedule`, `Projection`, `Taxation::*`, `Simulation::Estimate`,

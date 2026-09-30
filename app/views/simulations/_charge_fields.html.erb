@@ -4,7 +4,7 @@
 
 <% Simulation::CHARGE_GROUPS.each do |group, fields| %>
   <div class="charge-group">
-    <p class="charge-group-title"><%= t("views.simulations.charges.groups.#{group}.title") %></p>
+    <p class="label"><%= t("views.simulations.charges.groups.#{group}.title") %></p>
 
     <% fields.each_slice(2) do |row| %>
       <div class="form-row">

@@ -3,7 +3,7 @@
 <%= tag.div class: "detail-item", hidden: regimes.present?,
             data: { controller: "inline-edit" }.merge(regimes ? regime_scope(regimes) : {}) do %>
   <dt class="detail-label"><%= label %></dt>
-  <dd class="<%= class_names("detail-value", value_class) %>">
+  <dd class="detail-value">
     <button type="button" class="inline-edit-display" data-inline-edit-target="display"
             data-action="inline-edit#open"><%= value %></button>
 
@@ -12,7 +12,7 @@
     <% end %>
 
     <% if note %>
-      <span class="detail-note"><%= note %></span>
+      <span class="note"><%= note %></span>
     <% end %>
   </dd>
 <% end %>

@@ -7,13 +7,13 @@
 <%= form_with(model: @simulation, scope: :simulation, url: new_simulation_step_path(step: @step), method: :patch, class: "form") do |f| %>
   <%= render "shared/errors", resource: @simulation %>
 
-  <div class="wizard-panel">
-    <h2 class="wizard-panel-title"><%= t("views.simulations.steps.#{@step}.title") %></h2>
+  <div class="panel">
+    <h2 class="panel-title"><%= t("views.simulations.steps.#{@step}.title") %></h2>
 
     <%= render "simulations/steps/#{@step}", f: f %>
   </div>
 
-  <div class="form-actions">
+  <div class="actions">
     <%= f.submit @step_index == @steps.size - 1 ? t("views.simulations.steps.create") : t("views.simulations.steps.next"), class: "btn btn-primary" %>
     <% if @previous_step %>
       <%= link_to t("views.simulations.steps.back"), new_simulation_step_path(step: @previous_step), class: "btn btn-outline" %>

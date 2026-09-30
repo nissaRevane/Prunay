@@ -1,7 +1,7 @@
 # La meilleure sortie possible : le plus haut TRI parmi tous les régimes et toutes les années
 # de revente. C'est par lui que la liste compare les biens.
 class Simulation::BestReturn
-  Exit = Struct.new(:rate, :regime, :year, :date, :initial_outlay, :monthly_cash_flow, keyword_init: true)
+  Exit = Struct.new(:rate, :regime, :year, :date, :monthly_cash_flow, keyword_init: true)
 
   attr_reader :simulation
 
@@ -19,8 +19,6 @@ class Simulation::BestReturn
 
   def date = best&.date
 
-  def initial_outlay = best&.initial_outlay
-
   def monthly_cash_flow = best&.monthly_cash_flow
 
   private
@@ -29,16 +27,14 @@ class Simulation::BestReturn
     return @best if defined?(@best)
 
     # Le balayage coûte ~100 ms et ne dépend que de la ligne de la simulation.
-    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return"]) { search }
+    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return", 2]) { search }
   end
 
   def search
     found = scan
     return unless found
 
-    winner = projection(found.regime)
-    found.initial_outlay = winner.initial_outlay
-    found.monthly_cash_flow = (winner.year(1).cash_flow / 12).round(2)
+    found.monthly_cash_flow = (projection(found.regime).year(1).cash_flow / 12).round(2)
 
     found
   end

@@ -1,59 +1,46 @@
-<%# Un bien de la liste : son meilleur TRI, le régime et l'année qui le donnent, la mise et le
-    cash-flow mensuel. Rien ne s'y modifie : tout se corrige sur la fiche. %>
+<%# Un bien de la liste : son meilleur TRI, le régime et l'année qui le donnent, et le cash-flow
+    mensuel. Rien ne s'y modifie ni ne s'y supprime : tout se fait sur la fiche. %>
 <% best = simulation.best_return %>
-<article class="simulation-card">
-  <header class="simulation-card-header">
-    <div class="simulation-card-title">
-      <h2 class="simulation-card-name">
-        <%= link_to simulation.name, simulation_path(simulation), class: "simulation-card-link" %>
+<article class="panel panel-link stack simulation-card">
+  <header class="panel-header">
+    <hgroup>
+      <h2 class="panel-title">
+        <%= link_to simulation.name, simulation_path(simulation), class: "panel-link-target" %>
       </h2>
-      <span class="simulation-card-date"><%= l(simulation.purchase_date, format: :month_year) %></span>
-    </div>
+      <p class="hint">
+        <%= t("views.simulations.index.purchased_on", date: l(simulation.purchase_date, format: :abbr_month_year)) %>
+      </p>
+    </hgroup>
     <% if best.found? %>
-      <span class="simulation-card-rate <%= best.rate.negative? ? "text-danger" : "text-success" %>">
-        <%= internal_rate_of_return_label(best.rate) %>
+      <span class="num">
+        <span class="label"><%= t("views.simulations.index.rate") %></span>
+        <span class="figure <%= rate_tone(best.rate) %>"><%= internal_rate_of_return_label(best.rate) %></span>
       </span>
     <% end %>
-    <%= button_to "🗑️", simulation_path(simulation), method: :delete,
-        class: "btn btn-sm btn-danger simulation-card-remove",
-        form: { data: { turbo_confirm: t("views.simulations.show.confirm_delete") } },
-        aria: { label: t("views.simulations.index.destroy") } %>
   </header>
 
   <% if simulation.address.present? %>
-    <p class="simulation-card-meta">
-      <span class="simulation-card-address"><%= simulation.address %></span>
-    </p>
+    <p class="hint"><%= simulation.address %></p>
   <% end %>
 
   <% if best.found? %>
-    <p class="simulation-card-return">
-      <span class="simulation-card-regime">
+    <p class="hint">
+      <strong>
         <%= t("views.simulations.index.under_regime", regime: t("views.simulations.show.tab_#{best.regime}")) %>
-      </span>
-      <span class="simulation-card-exit">
-        <%= t("views.simulations.index.best_exit", date: best.date.year, year: best.year) %>
-      </span>
+      </strong>
+      <span><%= t("views.simulations.index.best_exit", date: best.date.year, year: best.year) %></span>
     </p>
 
-    <dl class="simulation-card-figures">
-      <div class="simulation-card-figure">
-        <dt><%= t("views.simulations.index.initial_outlay") %></dt>
-        <dd><%= number_to_currency(best.initial_outlay, precision: 0) %></dd>
-      </div>
-      <div class="simulation-card-figure">
-        <dt>
+    <dl class="rows panel-footer">
+      <div class="detail-item">
+        <dt class="detail-label">
           <%= t("views.simulations.index.monthly_cash_flow") %>
-          <span class="simulation-card-figure-note"><%= t("views.simulations.index.first_full_year") %></span>
+          <span class="note"><%= t("views.simulations.index.first_full_year") %></span>
         </dt>
-        <dd class="<%= best.monthly_cash_flow.negative? ? "text-danger" : "text-success" %>">
-          <%= number_to_currency(best.monthly_cash_flow, precision: 0) %>
-        </dd>
+        <dd class="detail-value <%= tone(best.monthly_cash_flow) %>"><%= euros(best.monthly_cash_flow) %></dd>
       </div>
     </dl>
   <% else %>
-    <p class="simulation-card-return simulation-card-exit">
-      <%= t("views.simulations.index.no_best_exit") %>
-    </p>
+    <p class="hint"><%= t("views.simulations.index.no_best_exit") %></p>
   <% end %>
 </article>

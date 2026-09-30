@@ -1,0 +1,101 @@
+/* Le panneau : la seule surface encadrée de l'application. Carte de liste, tuile chiffrée, formulaire, graphique. */
+
+.panel {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.panel-highlight {
+  border-color: var(--color-primary);
+}
+
+.panel-link:hover,
+.panel-link:focus-within {
+  border-color: var(--color-primary);
+}
+
+/* Le lien du titre couvre tout le panneau : la carte se clique entière. */
+.panel-link-target {
+  color: inherit;
+  text-decoration: none;
+}
+
+.panel-link-target::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+
+.panel-title {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.panel-header hgroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+  min-width: 0;
+}
+
+.panel-header .panel-title {
+  margin: 0;
+}
+
+.panel-footer {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.panel-corner {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+/* Dans un cadre qui en porte déjà un, le panneau n'est plus qu'un contenu. */
+.modal-body .panel {
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-3);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .stat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .panel {
+    padding: var(--space-3);
+  }
+}

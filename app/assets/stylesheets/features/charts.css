@@ -1,0 +1,124 @@
+/* Les graphiques rendus par le serveur, et leur palette : une couleur par régime, une par poste. */
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.chart-zero {
+  stroke: var(--color-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.chart-label {
+  fill: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.chart-label-y {
+  text-anchor: end;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--chart-color);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.chart-bar {
+  fill: var(--chart-color);
+}
+
+.chart-bar-label {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chart-bar-total {
+  fill: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chart-micro_foncier { --chart-color: #2563eb; }
+.chart-foncier_reel { --chart-color: #16a34a; }
+.chart-micro_bic { --chart-color: #d97706; }
+.chart-lmnp { --chart-color: #7c3aed; }
+
+.chart-part-notary_fees { --chart-color: #64748b; }
+.chart-part-property_tax { --chart-color: #2563eb; }
+.chart-part-business_tax { --chart-color: #d97706; }
+.chart-part-income_tax { --chart-color: #dc2626; }
+.chart-part-social_charges { --chart-color: #7c3aed; }
+.chart-part-capital_gain_tax { --chart-color: #0f766e; }
+.chart-part-property { --chart-color: #2563eb; }
+.chart-part-administrative { --chart-color: #0891b2; }
+.chart-part-financing { --chart-color: #d97706; }
+.chart-part-taxes { --chart-color: #dc2626; }
+.chart-part-rent { --chart-color: #16a34a; }
+.chart-part-provision { --chart-color: #65a30d; }
+.chart-part-capital_gain { --chart-color: #0f766e; }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.chart-swatch {
+  width: 0.75rem;
+  height: 0.25rem;
+  border-radius: 2px;
+  background: var(--chart-color);
+}
+
+.chart-swatch-block {
+  height: 0.75rem;
+}
+
+@media (min-width: 900px) {
+  .chart {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .chart-plot {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chart-legend {
+    flex-flow: column nowrap;
+    gap: var(--space-2);
+    margin-top: 0;
+  }
+}
+
+/* Sur un petit écran, la courbe garde une largeur lisible et défile. */
+@media (max-width: 768px) {
+  .chart-plot {
+    overflow-x: auto;
+  }
+
+  .chart-plot .chart-svg {
+    min-width: 42rem;
+  }
+}

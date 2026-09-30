@@ -121,10 +121,10 @@ module SimulationsHelper
     glyph = EXIT_YEAR_GLYPHS.fetch(direction)
     target = { exit_year_target: direction }
     unless year.between?(1, Projection::HORIZON_YEARS)
-      return tag.span(glyph, class: "exit-year-step exit-year-step-off", aria: { hidden: true }, data: target)
+      return tag.span(glyph, class: "icon-btn", aria: { hidden: true, disabled: true }, data: target)
     end
 
-    link_to glyph, dashboard_simulation_path(simulation, exit_year: year), class: "exit-year-step",
+    link_to glyph, dashboard_simulation_path(simulation, exit_year: year), class: "icon-btn",
             aria: { label: t("views.simulations.show.exit_year_#{direction}") },
             data: target.merge(action: "exit-year#remember", exit_year_year_param: year)
   end
@@ -145,15 +145,14 @@ module SimulationsHelper
   def chart_tick_label(value, measure)
     return return_rate_label(value) if rate_measure?(measure)
 
-    number_to_currency(value, precision: 0)
+    euros(value)
   end
 
   def editable_detail(simulation, field, value, url: parameters_url(simulation),
-                      label: Simulation.human_attribute_name(field), note: nil, value_class: nil,
-                      regimes: nil, &block)
+                      label: Simulation.human_attribute_name(field), note: nil, regimes: nil, &block)
     render(layout: "simulations/editable", locals: {
              simulation: simulation, label: label, note: note,
-             value: value, url: url, value_class: value_class, regimes: regimes
+             value: value, url: url, regimes: regimes
            }, &block)
   end
 
@@ -204,7 +203,7 @@ module SimulationsHelper
   def statement_hint(key)
     text = t("views.simulations.show.hint_#{key}")
 
-    tag.span("?", class: "statement-hint", tabindex: 0, role: "note", aria: { label: text },
+    tag.span("?", class: "help", tabindex: 0, role: "note", aria: { label: text },
                   data: { hint: text })
   end
 
@@ -293,7 +292,7 @@ module SimulationsHelper
   # Un montant se lit en euros, un taux en pourcents, le reste tel quel.
   def warning_value(name, value)
     case name
-    when :amount then number_to_currency(value)
+    when :amount then euros(value)
     when :rate then rate_label(value)
     else value
     end

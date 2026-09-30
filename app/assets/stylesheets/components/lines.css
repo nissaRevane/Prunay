@@ -1,0 +1,96 @@
+/* Les lignes libellé / valeur : en colonne (rows), en grille de fiches (detail-grid), avec sous-total, total et détail. */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.rows .detail-item {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.detail-label {
+  color: var(--color-text-muted);
+}
+
+.detail-label .note,
+.detail-value .note {
+  display: block;
+}
+
+.detail-value {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.rows .detail-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.rows .form-control {
+  width: 9rem;
+  text-align: right;
+}
+
+/* Le point d'interrogation suit son libellé et repousse le montant. */
+.rows .help {
+  margin-right: auto;
+}
+
+.detail-subtotal,
+.detail-total {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.detail-total {
+  border-top: 2px solid var(--color-text);
+  font-weight: 700;
+}
+
+.detail-subtotal .detail-label,
+.detail-total .detail-label {
+  color: var(--color-text);
+}
+
+/* Le total d'une addition se pose en pied de cadre, face à celui du cadre voisin. */
+.rows > .detail-total {
+  margin-top: auto;
+}
+
+.detail-breakdown {
+  margin: 0 0 var(--space-2) var(--space-1);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border);
+}
+
+.rows .detail-breakdown .detail-item {
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-3);
+}
+
+.detail-grid .detail-item {
+  gap: var(--space-1);
+}

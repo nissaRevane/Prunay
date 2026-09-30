@@ -37,3 +37,5 @@ The rules, the modelling choices and what is deliberately left out are in [`docs
 - [Credit](docs/credit.md): the loan, its insurance, its early repayment
 - [Taxation](docs/taxation.md): the four regimes, the LMNP depreciation, the capital gain
 - [Projection](docs/projection.md): the thirty years, the resale, the rate of return
+
+The interface conventions (tokens, primitives, amounts, mobile) are in [`docs/ui.md`](docs/ui.md).

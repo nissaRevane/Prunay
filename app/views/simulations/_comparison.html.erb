@@ -4,14 +4,16 @@
 
 <% default = SimulationsHelper::COMPARISON_MEASURES.index(SimulationsHelper::RATE_MEASURE) %>
 <div class="section" data-controller="carousel" data-carousel-index-value="<%= default %>">
-  <div class="section-header carousel-header">
-    <button type="button" class="carousel-step" data-action="carousel#previous"
-            aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+  <div class="section-header">
     <h2 data-carousel-target="title">
       <%= t("views.simulations.show.comparison_#{SimulationsHelper::RATE_MEASURE}") %>
     </h2>
-    <button type="button" class="carousel-step" data-action="carousel#next"
-            aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
+    <div class="stepper">
+      <button type="button" class="icon-btn" data-action="carousel#previous"
+              aria-label="<%= t("views.simulations.show.comparison_previous") %>">‹</button>
+      <button type="button" class="icon-btn" data-action="carousel#next"
+              aria-label="<%= t("views.simulations.show.comparison_next") %>">›</button>
+    </div>
   </div>
 
   <% SimulationsHelper::COMPARISON_MEASURES.each_with_index do |measure, index| %>

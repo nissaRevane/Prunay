@@ -1,0 +1,64 @@
+/* Les primitives de texte : libellé, indication, note, chiffre vedette, nombre et signe d'un montant. */
+
+/* Un libellé posé au-dessus de ce qu'il nomme : petit, en capitales, et gris. */
+.label,
+.table th,
+.detail-grid .detail-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.hint,
+.intro {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.intro {
+  margin-bottom: var(--space-3);
+}
+
+.note {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+.num,
+.figure {
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  white-space: nowrap;
+}
+
+.figure {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Le vert et le rouge ne disent qu'une chose : le signe d'un montant. */
+.is-positive {
+  color: var(--color-positive);
+}
+
+.is-negative {
+  color: var(--color-negative);
+}
+
+.hint strong {
+  color: var(--color-text);
+}
+
+@media (max-width: 768px) {
+  .figure {
+    font-size: var(--text-xl);
+  }
+}

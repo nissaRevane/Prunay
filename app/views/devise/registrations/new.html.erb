@@ -1,4 +1,4 @@
-<div class="auth-container">
+<div class="panel auth">
   <h2>Créer un compte</h2>
 
   <%= render "shared/errors", resource: resource %>
@@ -19,7 +19,7 @@
       <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control" %>
     </div>
 
-    <div class="form-actions">
+    <div class="actions">
       <%= f.submit "Créer mon compte", class: "btn btn-primary" %>
     </div>
   <% end %>

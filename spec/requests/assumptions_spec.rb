@@ -128,7 +128,7 @@ RSpec.describe "Assumptions", type: :request do
     it "points to the account assumptions, the only way to them outside the settings" do
       get simulation_path(simulation)
 
-      link = Nokogiri::HTML(response.body).at_css("#panel-economic_conditions .section-hint a")
+      link = Nokogiri::HTML(response.body).at_css("#panel-economic_conditions .intro a")
       expect(link["href"]).to eq(edit_assumptions_path)
     end
 

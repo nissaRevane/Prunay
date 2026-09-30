@@ -37,7 +37,7 @@ RSpec.describe "Simulations", type: :request do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      cities = doc.css(".simulation-grid .simulation-card .simulation-card-link").map { |link| link.text.strip }
+      cities = doc.css(".panel-grid .simulation-card .panel-link-target").map { |link| link.text.strip }
 
       expect(cities).to eq(["🏢 Nante-50", "🏢 Brest-50", "🏢 Renne-50"])
     end
@@ -50,7 +50,7 @@ RSpec.describe "Simulations", type: :request do
         create(:simulation, user: user, city: "Brest", purchase_date: Date.new(2025, 7, 9))
       end
 
-      def cards = Nokogiri::HTML(response.body).css(".simulation-grid .simulation-card-link").map { |link| link.text.strip }
+      def cards = Nokogiri::HTML(response.body).css(".panel-grid .simulation-card .panel-link-target").map { |link| link.text.strip }
 
       it "lays out one page and points to the next" do
         get simulations_path
@@ -79,7 +79,7 @@ RSpec.describe "Simulations", type: :request do
         create(:simulation, user: user, city: "Orléans", address: "3 place du Martroi", purchase_date: Date.new(2025, 7, 9))
       end
 
-      def cards = Nokogiri::HTML(response.body).css(".simulation-grid .simulation-card-link").map { |link| link.text.strip }
+      def cards = Nokogiri::HTML(response.body).css(".panel-grid .simulation-card .panel-link-target").map { |link| link.text.strip }
 
       it "keeps the cards whose city or address holds the search" do
         get simulations_path(q: "nantes")
@@ -123,7 +123,7 @@ RSpec.describe "Simulations", type: :request do
       it "offers a pill per property type held, plus all of them" do
         get simulations_path(type: "house")
 
-        pills = Nokogiri::HTML(response.body).css(".filter-pill")
+        pills = Nokogiri::HTML(response.body).css(".chip")
 
         expect(pills.map { |pill| pill.text.squish }).to eq(["Tous", "🏢 Appartement", "🏠 Maison"])
         expect(pills.map { |pill| pill.at_css("input")["checked"] }).to eq([nil, nil, "checked"])
@@ -147,14 +147,14 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-filters-search")).to be_present
-      expect(doc.at_css(".filter-pill")).to be_nil
+      expect(doc.at_css(".toolbar-search")).to be_present
+      expect(doc.at_css(".chip")).to be_nil
     end
 
     it "offers no search before the first simulation" do
       get simulations_path
 
-      expect(Nokogiri::HTML(response.body).at_css(".simulation-filters")).to be_nil
+      expect(Nokogiri::HTML(response.body).at_css(".toolbar")).to be_nil
     end
 
     it "names each card after the property it describes" do
@@ -163,7 +163,7 @@ RSpec.describe "Simulations", type: :request do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      link = doc.at_css(".simulation-card .simulation-card-link")
+      link = doc.at_css(".simulation-card .panel-link-target")
 
       expect(link.text.strip).to eq("🏠 Renne-63")
       expect(link["href"]).to eq(simulation_path(simulation))
@@ -177,8 +177,11 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-header .simulation-card-rate").text.strip).to eq(return_percentage(4))
-      expect(doc.at_css(".simulation-card-exit").text.gsub(/\s+/, " ").strip).to eq(
+      rate = doc.at_css(".simulation-card .panel-header > span")
+
+      expect(rate.text.gsub(/\s+/, " ").strip).to eq("#{I18n.t("views.simulations.index.rate")} #{return_percentage(4)}")
+      expect(rate.at_css(".figure")["class"].split).not_to include("is-positive")
+      expect(doc.at_css(".simulation-card > p.hint > span").text.gsub(/\s+/, " ").strip).to eq(
         I18n.t("views.simulations.index.best_exit", date: 2055, year: 30)
       )
     end
@@ -191,24 +194,21 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       regime = I18n.t("views.simulations.show.tab_lmnp")
 
-      expect(doc.at_css(".simulation-card-return .simulation-card-regime").text.strip).to eq(
+      expect(doc.at_css(".simulation-card > p.hint > strong").text.strip).to eq(
         I18n.t("views.simulations.index.under_regime", regime: regime)
       )
-      expect(doc.at_css(".simulation-card-exit").text).not_to include(regime)
+      expect(doc.at_css(".simulation-card > p.hint > span").text).not_to include(regime)
     end
 
-    it "shows what the winning regime asks up front and leaves each month" do
+    it "shows only what the winning regime leaves each month" do
       create(:simulation, user: user, purchase_price: 200_000, monthly_rent: 800)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      figures = doc.css(".simulation-card-figure dd").map { |cell| cell.text.gsub(/\s+/, " ").strip }
+      figures = doc.css(".simulation-card .panel-footer dd").map { |cell| cell.text.gsub(/\s+/, " ").strip }
 
-      expect(figures).to eq([
-        currency(216_612, precision: 0).gsub(/\s+/, " "),
-        currency(756, precision: 0).gsub(/\s+/, " ")
-      ])
+      expect(figures).to eq([currency(756, precision: 0).gsub(/\s+/, " ")])
     end
 
     it "carries the purchase date beside the name, and the address below it" do
@@ -218,10 +218,8 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
 
-      expect(doc.at_css(".simulation-card-title .simulation-card-date").text.strip).to eq(
-        I18n.l(Date.new(2026, 6, 30), format: :month_year)
-      )
-      expect(doc.at_css(".simulation-card-meta .simulation-card-address").text.strip).to eq("14 rue du Beau Laurier")
+      expect(doc.at_css(".simulation-card hgroup .hint").text.strip).to eq("Achat juin 2026")
+      expect(doc.css(".simulation-card > p.hint").first.text.strip).to eq("14 rue du Beau Laurier")
     end
 
     it "drops the address line of a property that has none" do
@@ -229,24 +227,21 @@ RSpec.describe "Simulations", type: :request do
 
       get simulations_path
 
-      expect(Nokogiri::HTML(response.body).at_css(".simulation-card-meta")).to be_nil
+      expect(Nokogiri::HTML(response.body).css(".simulation-card > p.hint").size).to eq(1)
     end
 
-    it "carries the delete button alone, in the card header" do
+    it "leaves the deletion to the detail page" do
       simulation = create(:simulation, user: user)
 
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      removal = doc.at_css(".simulation-card-header form.button_to")
 
       expect(doc.css("a[href='#{edit_simulation_path(simulation)}']")).to be_empty
-      expect(removal["action"]).to eq(simulation_path(simulation))
-      expect(removal.at_css("input[name=_method]")["value"]).to eq("delete")
-      expect(removal.at_css("button")["aria-label"]).to eq(I18n.t("views.simulations.index.destroy"))
+      expect(doc.css(".simulation-card form.button_to")).to be_empty
     end
 
-    it "shrinks the new-simulation label to a plus without losing it" do
+    it "shortens the new-simulation label without losing it" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
@@ -254,14 +249,14 @@ RSpec.describe "Simulations", type: :request do
 
       expect(action["aria-label"]).to eq(I18n.t("views.simulations.index.new"))
       expect(action.at_css(".hide-on-mobile").text.strip).to eq(I18n.t("views.simulations.index.new"))
-      expect(action.at_css(".show-on-mobile").text.strip).to eq("+")
+      expect(action.at_css(".show-on-mobile").text.strip).to eq("+ Nouvelle")
     end
 
     it "carries the express form in a pop-in rather than sending to another page" do
       get simulations_path
 
       doc = Nokogiri::HTML(response.body)
-      form = doc.at_css("dialog.express-modal turbo-frame#express_form form")
+      form = doc.at_css("dialog.modal turbo-frame#express_form form")
 
       expect(form["action"]).to eq(express_simulations_path)
       expect(form.css("input, select").map { |field| field["id"] }.compact.grep(/^simulation_/))
@@ -309,9 +304,9 @@ RSpec.describe "Simulations", type: :request do
       expect(rows.first.css("td").map { |td| td.text.gsub(/\s+/, " ").strip }).to eq([
         "0",
         "mar.-2025",
-        currency(0).gsub(/\s+/, " "),
-        currency(0).gsub(/\s+/, " "),
-        currency(236_612).gsub(/\s+/, " "),
+        currency(0, precision: 0).gsub(/\s+/, " "),
+        currency(0, precision: 0).gsub(/\s+/, " "),
+        currency(236_612, precision: 0).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.no_internal_rate_of_return")
       ])
     end
@@ -325,9 +320,9 @@ RSpec.describe "Simulations", type: :request do
       expect(cells).to eq([
         "1",
         "mar.-2026",
-        currency(11_000).gsub(/\s+/, " "),
-        currency(BigDecimal("7675.60")).gsub(/\s+/, " "),
-        currency(BigDecimal("228936.40")).gsub(/\s+/, " "),
+        currency(11_000, precision: 0).gsub(/\s+/, " "),
+        currency(BigDecimal("7675.60"), precision: 0).gsub(/\s+/, " "),
+        currency(BigDecimal("228936.40"), precision: 0).gsub(/\s+/, " "),
         return_percentage(BigDecimal("-12.6")).gsub(/\s+/, " ")
       ])
     end
@@ -335,8 +330,8 @@ RSpec.describe "Simulations", type: :request do
     it "renders the statement of each year as a dialog, closed until its row is clicked" do
       doc = statement_doc(simulation, :micro_foncier, 2)
       statement = doc.at_css("dialog#micro_foncier-year-2-statement")
-      lines = statement.css("#micro_foncier-year-2-result .statement-line").map do |line|
-        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = statement.css("#micro_foncier-year-2-result > .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip, line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(statement["open"]).to be_nil
@@ -356,7 +351,7 @@ RSpec.describe "Simulations", type: :request do
 
     it "offers a step to each neighbouring year, disabled at both ends of the projection" do
       steps = ->(year) do
-        statement_doc(simulation, :micro_foncier, year).css(".statement-step").map do |step|
+        statement_doc(simulation, :micro_foncier, year).css("[data-projection-step-param]").map do |step|
           [step["data-projection-step-param"], step["disabled"]]
         end
       end
@@ -369,9 +364,9 @@ RSpec.describe "Simulations", type: :request do
     it "simulates a sale from the same statement, behind a tab of its own" do
       doc = statement_doc(simulation, :micro_foncier, 2)
       sale = doc.at_css("dialog#micro_foncier-year-2-statement #micro_foncier-year-2-sale")
-      lines = sale.css(".statement-line").map do |line|
-        [line.at_css(".statement-label").text.strip.lines.first.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = sale.css("> .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip.lines.first.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(sale["hidden"]).not_to be_nil
@@ -394,10 +389,10 @@ RSpec.describe "Simulations", type: :request do
 
       doc = statement_doc(let_out, :micro_foncier, 1)
       result = doc.at_css("#micro_foncier-year-1-result")
-      details = result.css(".statement-detail")
-      lines = details.css(".statement-detail-line").map do |line|
-        [line.at_css(".statement-detail-label").text.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      details = result.css(".detail-breakdown")
+      lines = details.css(".detail-breakdown .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(details.map { |detail| detail["hidden"] }).to all(be_truthy)
@@ -422,9 +417,9 @@ RSpec.describe "Simulations", type: :request do
                                       marginal_tax_rate: 30)
 
       result = statement_doc(furnished, :lmnp, 1).at_css("#lmnp-year-1-result")
-      lines = result.css(".statement-detail-line").map do |line|
-        [line.at_css(".statement-detail-label").text.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = result.css(".detail-breakdown .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(lines).to eq([
@@ -448,9 +443,9 @@ RSpec.describe "Simulations", type: :request do
                                                    property_tax: 800, marginal_tax_rate: 30)
 
       result = statement_doc(indebted, :lmnp, 2).at_css("#lmnp-year-2-result")
-      lines = result.css(".statement-detail-line").map do |line|
-        [line.at_css(".statement-detail-label").text.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = result.css(".detail-breakdown .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(lines).to include(
@@ -466,9 +461,9 @@ RSpec.describe "Simulations", type: :request do
                                    accounting_fees: 500, maintenance: 1_000, furniture_maintenance: 350)
 
       result = statement_doc(upkept, :lmnp, 1).at_css("#lmnp-year-1-result")
-      lines = result.css(".statement-detail-line").map do |line|
-        [line.at_css(".statement-detail-label").text.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = result.css(".detail-breakdown .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(lines).to include(
@@ -482,7 +477,7 @@ RSpec.describe "Simulations", type: :request do
     end
 
     it "carries a hover explanation beside the labels that need one" do
-      hint = statement_doc(simulation, :micro_foncier, 1).at_css(".statement-hint")
+      hint = statement_doc(simulation, :micro_foncier, 1).at_css(".help")
 
       expect(hint["data-hint"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
       expect(hint["aria-label"]).to eq(I18n.t("views.simulations.show.hint_annual_rent_column"))
@@ -492,9 +487,9 @@ RSpec.describe "Simulations", type: :request do
       growing = create(:simulation, user: user, property_growth_rate: 2)
 
       sale = statement_doc(growing, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
-      lines = sale.css(".statement-detail-line").map do |line|
-        [line.at_css(".statement-detail-label").text.strip,
-         line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      lines = sale.css(".detail-breakdown .detail-item").map do |line|
+        [line.at_css(".detail-label").text.strip,
+         line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(lines).to eq([
@@ -512,7 +507,7 @@ RSpec.describe "Simulations", type: :request do
       discounted = create(:simulation, user: user, purchase_discount: 20_000)
 
       sale = statement_doc(discounted, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
-      lines = sale.css(".statement-detail-line").map { |line| line.at_css(".statement-detail-label").text.strip }
+      lines = sale.css(".detail-breakdown .detail-item").map { |line| line.at_css(".detail-label").text.strip }
 
       expect(lines.first(2)).to eq([I18n.t("views.simulations.show.detail_purchase_price"),
                                     I18n.t("views.simulations.show.detail_purchase_discount")])
@@ -526,12 +521,12 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       rent = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td")[2]
-      charges = statement_doc(let_out, :micro_foncier, 1).css(".statement-line")[1]
+      charges = statement_doc(let_out, :micro_foncier, 1).css(".modal-body > .detail-item")[1]
 
-      expect(rent.text.gsub(/\s+/, " ").strip).to eq(currency(12_000).gsub(/\s+/, " "))
-      expect(charges.at_css(".statement-note").text.gsub(/\s+/, " ").strip)
+      expect(rent.text.gsub(/\s+/, " ").strip).to eq(currency(12_000, precision: 0).gsub(/\s+/, " "))
+      expect(charges.at_css(".note").text.gsub(/\s+/, " ").strip)
         .to eq(I18n.t("views.simulations.show.provision_deducted", amount: currency(1_200)).gsub(/\s+/, " "))
-      expect(charges.at_css(".statement-amount").text.gsub(/\s+/, " ").strip)
+      expect(charges.at_css(".detail-value").text.gsub(/\s+/, " ").strip)
         .to eq(currency(-300).gsub(/\s+/, " "))
     end
 
@@ -542,15 +537,15 @@ RSpec.describe "Simulations", type: :request do
       get simulation_path(let_out)
 
       doc = Nokogiri::HTML(response.body)
-      lines = statement_doc(let_out, :micro_bic, 1).css(".statement-line")
+      lines = statement_doc(let_out, :micro_bic, 1).css(".modal-body > .detail-item")
       rent = lines[0]
       charges = lines[1]
 
       expect(doc.at_css("#panel-micro_bic thead th:nth-child(3)").text.strip)
         .to eq(I18n.t("views.simulations.show.annual_rent_including_charges_column"))
-      expect(rent.at_css(".statement-amount").text.gsub(/\s+/, " ").strip).to eq(currency(13_800).gsub(/\s+/, " "))
-      expect(charges.at_css(".statement-note")).to be_nil
-      expect(charges.at_css(".statement-amount").text.gsub(/\s+/, " ").strip)
+      expect(rent.at_css(".detail-value").text.gsub(/\s+/, " ").strip).to eq(currency(13_800).gsub(/\s+/, " "))
+      expect(charges.at_css(".note")).to be_nil
+      expect(charges.at_css(".detail-value").text.gsub(/\s+/, " ").strip)
         .to eq(currency(-1_815).gsub(/\s+/, " "))
     end
 
@@ -570,16 +565,16 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       cells = doc.css("#panel-foncier_reel tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
       statement = statement_doc(simulation, :foncier_reel, 1)
-      amounts = statement.css(".statement-line").to_h do |line|
-        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+      amounts = statement.css(".modal-body > .detail-item").to_h do |line|
+        [line.at_css(".detail-label").text.strip, line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(cells).to eq([
         "1",
         "mar.-2026",
-        currency(11_000).gsub(/\s+/, " "),
-        currency(7_452).gsub(/\s+/, " "),
-        currency(229_160).gsub(/\s+/, " "),
+        currency(11_000, precision: 0).gsub(/\s+/, " "),
+        currency(7_452, precision: 0).gsub(/\s+/, " "),
+        currency(229_160, precision: 0).gsub(/\s+/, " "),
         percentage(BigDecimal("-12.70")).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
@@ -595,17 +590,17 @@ RSpec.describe "Simulations", type: :request do
       cells = doc.css("#panel-micro_bic tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
       regime_tab = doc.at_css("#regime-micro_bic")
       amounts = statement_doc(simulation, :micro_bic, 1)
-                  .css("#micro_bic-year-1-result .statement-line").to_h do |line|
-        [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+                  .css("#micro_bic-year-1-result > .detail-item").to_h do |line|
+        [line.at_css(".detail-label").text.strip, line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
       expect(regime_tab).not_to be_nil
       expect(cells).to eq([
         "1",
         "mar.-2026",
-        currency(11_550).gsub(/\s+/, " "),
-        currency(BigDecimal("8160.85")).gsub(/\s+/, " "),
-        currency(BigDecimal("228451.15")).gsub(/\s+/, " "),
+        currency(11_550, precision: 0).gsub(/\s+/, " "),
+        currency(BigDecimal("8160.85"), precision: 0).gsub(/\s+/, " "),
+        currency(BigDecimal("228451.15"), precision: 0).gsub(/\s+/, " "),
         percentage(BigDecimal("-12.40")).gsub(/\s+/, " ")
       ])
       expect(amounts).to include(
@@ -617,9 +612,9 @@ RSpec.describe "Simulations", type: :request do
     it "renders the same year under every regime, the furnished rent and the tax apart" do
       statements = Taxation::NAMES.index_with do |regime|
         statement_doc(simulation, regime, 1)
-          .css("##{regime}-year-1-result .statement-line").to_h do |line|
-          [line.at_css(".statement-label").children.first.text.strip,
-           line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+          .css("##{regime}-year-1-result > .detail-item").to_h do |line|
+          [line.at_css(".detail-label").children.first.text.strip,
+           line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
         end
       end
       taxed = ["income_tax_column", "net_result", "cash_flow"].map { |key| I18n.t("views.simulations.show.#{key}") }
@@ -640,8 +635,8 @@ RSpec.describe "Simulations", type: :request do
 
       amounts = Taxation::NAMES.index_with do |regime|
         statement_doc(taxed, regime, 1)
-          .css("##{regime}-year-1-result .statement-line").to_h do |line|
-          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+          .css("##{regime}-year-1-result > .detail-item").to_h do |line|
+          [line.at_css(".detail-label").text.strip, line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
         end
       end
 
@@ -776,7 +771,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.purchase_detail") }
-      lines = section.css(".sum .detail-item").to_h do |item|
+      lines = section.css(".rows .detail-item").to_h do |item|
         [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
@@ -787,7 +782,7 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:furniture) => currency(0).gsub(/\s+/, " "),
         I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " ")
       )
-      expect(section.at_css(".sum-total .detail-label").text.strip)
+      expect(section.at_css(".detail-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
     end
 
@@ -801,7 +796,7 @@ RSpec.describe "Simulations", type: :request do
       furniture = section.css(".detail-item").find do |item|
         item.at_css(".detail-label").text.strip == Simulation.human_attribute_name(:furniture)
       end
-      totals = section.css(".sum-total").to_h do |item|
+      totals = section.css(".detail-total").to_h do |item|
         [item["data-regimes"], item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
@@ -824,7 +819,7 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:monthly_charges) => currency(0).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:occupancy_months) => I18n.t("views.simulations.show.occupancy_value", months: 11)
       )
-      expect(section.at_css(".sum-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
+      expect(section.at_css(".detail-total").text.gsub(/\s+/, " ")).to include(currency(11_000).gsub(/\s+/, " "))
     end
 
     it "reads the rent raised by the premium under the furnished regimes" do
@@ -833,7 +828,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.rental_detail") }
       premiums = section.css(".detail-item").select { |node| node.at_css(".detail-label").text.include?(I18n.t("views.simulations.show.furnished_rent")) }
-      totals = section.css(".sum-total").to_h do |node|
+      totals = section.css(".detail-total").to_h do |node|
         [node["data-regimes"], node.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
@@ -891,7 +886,7 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML(response.body)
       section = doc.css(".section").find { |node| node.at_css("h2")&.text&.strip == I18n.t("views.simulations.show.charges_detail") }
-      totals = section.css(".sum-total").to_h do |node|
+      totals = section.css(".detail-total").to_h do |node|
         [node["data-regimes"], node.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
       end
 
@@ -996,15 +991,15 @@ RSpec.describe "Simulations", type: :request do
         cells = doc.css("#panel-micro_foncier tbody tr.row-expandable")[1].css("td").map { |td| td.text.gsub(/\s+/, " ").strip }
 
         expect(headers.size).to eq(6)
-        expect(cells.third).to eq(currency(11_000).gsub(/\s+/, " "))
+        expect(cells.third).to eq(currency(11_000, precision: 0).gsub(/\s+/, " "))
         expect(cells.fourth)
-          .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment).gsub(/\s+/, " "))
+          .to eq(currency(11_000 - on_credit.annual_taxes - on_credit.loan.annual_payment, precision: 0).gsub(/\s+/, " "))
       end
 
       it "splits the annuity between the interest it charges and the capital it gives back" do
         statement = statement_doc(on_credit, :micro_foncier, 1)
-        amounts = statement.css(".statement-line").to_h do |line|
-          [line.at_css(".statement-label").text.strip, line.at_css(".statement-amount").text.gsub(/\s+/, " ").strip]
+        amounts = statement.css(".modal-body > .detail-item").to_h do |line|
+          [line.at_css(".detail-label").text.strip, line.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
         end
         year = on_credit.projection(:micro_foncier).years[1]
 
@@ -1034,7 +1029,7 @@ RSpec.describe "Simulations", type: :request do
             "#{currency(1_090.94)} #{I18n.t('views.simulations.show.insurance_included',
                                             amount: currency(19.32))}".gsub(/\s+/, " ")
         )
-        outlay = section.at_css(".sum").css(".detail-item").to_h do |item|
+        outlay = section.css(".rows").last.css(".detail-item").to_h do |item|
           [item.at_css(".detail-label").text.strip, item.at_css(".detail-value").text.gsub(/\s+/, " ").strip]
         end
 
@@ -1060,10 +1055,10 @@ RSpec.describe "Simulations", type: :request do
       def texts(nodes) = nodes.map { |node| node.text.gsub(/\s+/, " ").strip }
 
       def stat(node)
-        label = node.at_css(".stat-label").dup
-        label.at_css(".statement-hint")&.remove
+        label = node.at_css(".label").dup
+        label.at_css(".help")&.remove
 
-        [label.text.gsub(/\s+/, " ").strip, node.at_css(".stat-value").text.gsub(/\s+/, " ").strip]
+        [label.text.gsub(/\s+/, " ").strip, node.at_css(".figure").text.gsub(/\s+/, " ").strip]
       end
 
       def amounts(node)
@@ -1074,24 +1069,24 @@ RSpec.describe "Simulations", type: :request do
 
       it "names the rate it shows and the regime that returns it at the fifteenth year" do
         frame = dashboard_frame(neutral)
-        tile = frame.at_css(".stat-card-highlight")
+        tile = frame.at_css(".panel-highlight")
 
         expect(stat(tile))
           .to eq([I18n.t("views.simulations.show.dashboard_rate",
                          regime: I18n.t("views.simulations.show.tab_micro_bic")),
                   return_percentage(3.7).gsub(/\s+/, " ")])
-        expect(frame.at_css(".exit-year-value").text)
+        expect(frame.at_css(".exit-year .hint").text)
           .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
       end
 
       it "ranks the four regimes by the rate they return, the leading one marked" do
         frame = dashboard_frame(neutral)
-        rows = frame.css(".ranking-row")
+        rows = frame.css(".ranking tbody tr")
 
         expect(texts(rows.map { |row| row.at_css("td") }))
           .to eq([:micro_bic, :lmnp, :micro_foncier, :foncier_reel]
                    .map { |name| I18n.t("views.simulations.show.tab_#{name}") })
-        expect(rows.first["class"]).to include("is-best")
+        expect(rows.first["class"]).to include("is-highlighted")
         expect(texts(rows.first.css("td")))
           .to eq([I18n.t("views.simulations.show.tab_micro_bic"), return_percentage(3.7),
                   currency(741, precision: 0), currency(34_454, precision: 0),
@@ -1101,7 +1096,7 @@ RSpec.describe "Simulations", type: :request do
 
       it "lines up the capital still engaged, the monthly cash flow and the rate" do
         frame = dashboard_frame(neutral)
-        tiles = frame.css(".stat-card").to_h { |card| stat(card) }
+        tiles = frame.css(".stat-grid > .panel").to_h { |card| stat(card) }
 
         expect(tiles).to eq(
           I18n.t("views.simulations.show.dashboard_rate",
@@ -1112,14 +1107,14 @@ RSpec.describe "Simulations", type: :request do
       end
 
       it "hides the gross yield behind the rate, each face explained by its own hint" do
-        faces = dashboard_frame(neutral).at_css(".stat-card-switch").css(".stat-face")
+        faces = dashboard_frame(neutral).at_css(".stat-grid > [data-controller=carousel]").css("[data-carousel-target=slide]")
 
         expect(faces.map { |face| stat(face) })
           .to eq([[I18n.t("views.simulations.show.dashboard_rate",
                           regime: I18n.t("views.simulations.show.tab_micro_bic")),
                    return_percentage(3.7).gsub(/\s+/, " ")],
                   [I18n.t("views.simulations.show.dashboard_gross_yield"), percentage(4.65).gsub(/\s+/, " ")]])
-        expect(faces.map { |face| face.at_css(".statement-hint")["data-hint"] })
+        expect(faces.map { |face| face.at_css(".help")["data-hint"] })
           .to eq([I18n.t("views.simulations.show.hint_internal_rate_of_return"),
                   I18n.t("views.simulations.show.hint_gross_yield")])
         expect(faces.map { |face| face.key?("hidden") }).to eq([false, true])
@@ -1127,7 +1122,7 @@ RSpec.describe "Simulations", type: :request do
 
       it "breaks the capital engaged by a cash purchase and the first full year down to the euro" do
         frame = dashboard_frame(neutral)
-        columns = frame.css(".breakdown-column")
+        columns = frame.css(".column")
 
         expect(amounts(columns.first)).to eq(
           Simulation.human_attribute_name(:purchase_price) => currency(200_000).gsub(/\s+/, " "),
@@ -1145,7 +1140,7 @@ RSpec.describe "Simulations", type: :request do
 
       it "adds the cash flow already banked to the down payment of a purchase on credit" do
         on_credit = create(:simulation, :with_credit, user: user)
-        columns = dashboard_frame(on_credit).css(".breakdown-column")
+        columns = dashboard_frame(on_credit).css(".column")
 
         expect(amounts(columns.first)).to eq(
           Simulation.human_attribute_name(:down_payment) => currency(23_388).gsub(/\s+/, " "),
@@ -1160,7 +1155,7 @@ RSpec.describe "Simulations", type: :request do
       end
 
       it "warns of the yield alone when nothing else calls for it" do
-        warnings = texts(dashboard_frame(neutral).css(".warning"))
+        warnings = texts(dashboard_frame(neutral).css(".alert-warning"))
 
         expect(warnings)
           .to eq([I18n.t("views.simulations.show.warning_low_gross_yield", rate: percentage(4.65))])
@@ -1169,7 +1164,7 @@ RSpec.describe "Simulations", type: :request do
       it "warns of the rating and of the inflation the rate does not beat" do
         strained = create(:simulation, user: user, energy_rating: "F", monthly_rent: 100, inflation_rate: 2)
 
-        expect(texts(dashboard_frame(strained).css(".warning"))).to eq([
+        expect(texts(dashboard_frame(strained).css(".alert-warning"))).to eq([
           I18n.t("views.simulations.show.warning_energy_rating", rating: "F"),
           I18n.t("views.simulations.show.warning_below_inflation", rate: percentage(2)),
           I18n.t("views.simulations.show.warning_low_gross_yield", rate: percentage(0.58))
@@ -1178,7 +1173,7 @@ RSpec.describe "Simulations", type: :request do
 
       it "hands the arrow keys of the keyboard the very links the arrows on screen carry" do
         frame = dashboard_frame(neutral)
-        steps = frame.css(".exit-year-step")
+        steps = frame.css(".exit-year .icon-btn")
 
         expect(frame.at_css(".exit-year")["data-action"])
           .to eq("keydown.left@window->exit-year#previous keydown.right@window->exit-year#next")
@@ -1192,10 +1187,10 @@ RSpec.describe "Simulations", type: :request do
 
         frame = Nokogiri::HTML(response.body).at_css("turbo-frame#dashboard")
 
-        expect(texts(frame.css(".ranking-row td:first-child")))
+        expect(texts(frame.css(".ranking tbody tr td:first-child")))
           .to eq([:micro_bic, :micro_foncier, :lmnp, :foncier_reel]
                    .map { |name| I18n.t("views.simulations.show.tab_#{name}") })
-        expect(texts(frame.css(".ranking-row").first.css("td")).last)
+        expect(texts(frame.css(".ranking tbody tr").first.css("td")).last)
           .to eq(currency(26_941, precision: 0).gsub(/\s+/, " "))
       end
     end
@@ -1231,7 +1226,7 @@ RSpec.describe "Simulations", type: :request do
         expect(doc.at_css("#panel-comparison > .section h2").text.strip)
           .to eq(I18n.t("views.simulations.show.comparison_internal_rate_of_return"))
         expect(slides.map { |slide| slide.attribute("hidden").nil? }).to eq([false, false, true])
-        expect(doc.css("#panel-comparison > .section .carousel-step").size).to eq(2)
+        expect(doc.css("#panel-comparison > .section .stepper .icon-btn").size).to eq(2)
       end
 
       it "leaves the years without a positive rate off the rate chart" do
@@ -1240,8 +1235,8 @@ RSpec.describe "Simulations", type: :request do
         doc = Nokogiri::HTML(response.body)
         chart = doc.css("#panel-comparison > .section .chart").last
 
-        expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0,0 %")
-        expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("4,0 %")
+        expect(chart.at_css(".chart-label-y").text.gsub(/\s+/, " ").strip).to eq("0,0 %")
+        expect(chart.css(".chart-label-y").last.text.gsub(/\s+/, " ").strip).to eq("4,0 %")
         expect(chart.at_css("polyline.chart-micro_foncier")["points"].split.size).to eq(28)
       end
 
@@ -1249,7 +1244,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral)
 
         doc = Nokogiri::HTML(response.body)
-        burden = doc.at_css("turbo-frame#dashboard .carousel-header").parent
+        burden = doc.at_css("turbo-frame#dashboard .section[data-controller=carousel]")
         slides = burden.css("[data-carousel-target='slide']")
 
         expect(burden.at_css("h2").text.strip)
@@ -1292,7 +1287,7 @@ RSpec.describe "Simulations", type: :request do
         chart = burden_chart(doc, :tax)
         amounts = chart.css("text.chart-bar-label").map { |label| label.text.gsub(/\s+/, " ").strip }
 
-        expect(doc.at_css("#panel-comparison .exit-year-value").text)
+        expect(doc.at_css("#panel-comparison .exit-year .hint").text)
           .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
         expect(amounts.first(2)).to eq([currency(16_612, precision: 0).gsub(/\s+/, " "),
                                         currency(17_338, precision: 0).gsub(/\s+/, " ")])
@@ -1319,7 +1314,7 @@ RSpec.describe "Simulations", type: :request do
 
         expect(doc.at_css("turbo-frame#dashboard")).not_to be_nil
         expect(doc.css(".chart").size).to eq(2)
-        expect(doc.at_css(".exit-year-value").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10, date: 2035))
+        expect(doc.at_css(".exit-year .hint").text).to eq(I18n.t("views.simulations.show.exit_year", year: 10, date: 2035))
         expect(doc.css(".chart-legend-label").map(&:text))
           .to include(I18n.t("views.simulations.show.tax_capital_gain_tax"))
       end
@@ -1329,7 +1324,7 @@ RSpec.describe "Simulations", type: :request do
 
         doc = Nokogiri::HTML(response.body)
 
-        expect(doc.at_css("#panel-comparison .exit-year-value").text)
+        expect(doc.at_css("#panel-comparison .exit-year .hint").text)
           .to eq(I18n.t("views.simulations.show.exit_year", year: 15, date: 2040))
       end
 
@@ -1337,7 +1332,7 @@ RSpec.describe "Simulations", type: :request do
         get simulation_path(neutral, tab: "comparison", exit_year: 1)
 
         doc = Nokogiri::HTML(response.body)
-        steps = doc.css("#panel-comparison .exit-year-step")
+        steps = doc.css("#panel-comparison .exit-year .icon-btn")
 
         expect(steps.first.name).to eq("span")
         expect(steps.last["href"]).to eq(dashboard_simulation_path(neutral, exit_year: 2))
@@ -1375,7 +1370,7 @@ RSpec.describe "Simulations", type: :request do
       expect(response).to have_http_status(:success)
       expect(doc.css("dialog").size).to eq(1)
       expect(statement["data-year"]).to eq("1")
-      expect(statement.at_css("#foncier_reel-year-1-result .statement-amount").text.gsub(/\s+/, " ").strip)
+      expect(statement.at_css("#foncier_reel-year-1-result .detail-value").text.gsub(/\s+/, " ").strip)
         .to eq(currency(11_000).gsub(/\s+/, " "))
     end
 
@@ -1451,7 +1446,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("turbo-stream")["target"]).to eq("simulation_#{simulation.id}")
       expect(doc.at_css("#panel-micro_foncier")["hidden"]).to be_nil
       expect(doc.at_css("#panel-parameters .detail-value").text).to be_present
-      expect(doc.css("#panel-micro_foncier tbody tr")[1].text).to include(currency(12_000).gsub(/\s+/, " "))
+      expect(doc.css("#panel-micro_foncier tbody tr")[1].text).to include(currency(12_000, precision: 0).gsub(/\s+/, " "))
     end
 
     it "answers a refused value with the message alone" do

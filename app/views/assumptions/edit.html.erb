@@ -2,7 +2,7 @@
     à part : elle seule pèse sur les simulations déjà écrites. %>
 <%= render "shared/settings_tabs", current: :assumptions %>
 
-<p class="section-hint"><%= t("views.assumptions.edit.subtitle", surface: Simulation::Estimate::REFERENCE_SURFACE) %></p>
+<p class="intro"><%= t("views.assumptions.edit.subtitle", surface: Simulation::Estimate::REFERENCE_SURFACE) %></p>
 
 <div class="section">
   <%= render "shared/errors", resource: @assumptions %>
@@ -10,7 +10,7 @@
   <%= form_with(model: @assumptions, url: assumptions_path, method: :patch, class: "form") do |f| %>
     <fieldset class="form-fieldset">
       <legend><%= t("views.assumptions.edit.economic") %></legend>
-      <p class="form-hint"><%= t("views.assumptions.edit.economic_hint") %></p>
+      <p class="intro"><%= t("views.assumptions.edit.economic_hint") %></p>
 
       <%= render "assumptions/economic_fields", f: f %>
     </fieldset>
@@ -60,7 +60,7 @@
 
     <fieldset class="form-fieldset">
       <legend><%= t("views.assumptions.edit.sale") %></legend>
-      <p class="form-hint"><%= t("views.assumptions.edit.sale_hint") %></p>
+      <p class="intro"><%= t("views.assumptions.edit.sale_hint") %></p>
 
       <%= assumption_grid do %>
         <%= assumption_field f, :sale_diagnostics %>
@@ -68,7 +68,7 @@
       <% end %>
     </fieldset>
 
-    <div class="form-actions">
+    <div class="actions">
       <%= f.submit t("views.assumptions.edit.save"), class: "btn btn-primary" %>
       <%= link_to t("views.simulations.form.cancel"), authenticated_root_path, class: "btn btn-outline" %>
     </div>
