@@ -1,6 +1,10 @@
 <div class="form-group">
   <%= f.label :monthly_rent %>
-  <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true %>
+  <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true,
+      **lot_total_options(f.object, :monthly_rent) %>
+  <% if f.object.divided_into_lots? %>
+    <p class="hint"><%= t("views.simulations.lots.rent_sum", count: f.object.lots.size) %></p>
+  <% end %>
 
   <%= render "simulations/rent_reference", simulation: f.object %>
 </div>

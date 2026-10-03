@@ -26,10 +26,16 @@ class Simulation < ApplicationRecord
 
   MAX_LOAN_DURATION_YEARS = Projection::HORIZON_YEARS
 
+  LOT_FIELDS = %w[surface monthly_rent].freeze
+
+  MAX_LOTS = 20
+
   belongs_to :user
 
   before_validation :clear_loan_without_credit
   before_validation :align_rental_start_date
+
+  before_save :settle_lots
 
   after_save { @loan = nil }
 
@@ -45,6 +51,8 @@ class Simulation < ApplicationRecord
   validates :city, presence: true, on: [:create, :update, :property]
   validates :surface, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :property]
   validates :energy_rating, inclusion: { in: ENERGY_RATINGS, allow_blank: true }, on: [:create, :update, :property]
+  validates :lots, length: { maximum: MAX_LOTS }, on: [:create, :update, :property], if: :building?
+  validate :lots_well_formed, on: [:create, :update, :property], if: :building?
 
   validates :purchase_date, presence: true, on: [:create, :update, :purchase]
   validates :purchase_price, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :purchase]
@@ -97,6 +105,19 @@ class Simulation < ApplicationRecord
             on: [:create, :update]
 
   validate :within_quota, on: :create
+
+  def building? = property_type == "building"
+
+  def divided_into_lots? = building? && lots.any?
+
+  def lots=(rows)
+    super(Array(rows).map { |row| row.to_h.stringify_keys.slice(*LOT_FIELDS) }
+                     .reject { |row| row.values.all?(&:blank?) })
+  end
+
+  def surface = divided_into_lots? ? lot_total("surface") : super
+
+  def monthly_rent = divided_into_lots? ? lot_total("monthly_rent") : super
 
   def steps = Step.all_for(self)
 
@@ -235,6 +256,26 @@ class Simulation < ApplicationRecord
   end
 
   private
+
+  def lot_total(field) = lots.sum { |lot| lot[field].to_d }
+
+  def lots_well_formed
+    valid = lots.all? do |lot|
+      surface, rent = lot.values_at(*LOT_FIELDS).map { |value| BigDecimal(value.to_s, exception: false) }
+      surface&.positive? && rent && !rent.negative?
+    end
+
+    errors.add(:lots, :invalid) unless valid
+  end
+
+  # Les colonnes gardent la somme des lots, que le reste du calcul lit sans les connaître.
+  def settle_lots
+    return self.lots = [] unless building?
+    return if lots.empty?
+
+    self[:surface] = surface
+    self[:monthly_rent] = monthly_rent
+  end
 
   def rented_share(year)
     opening = purchase_date + (year - 1).years

@@ -83,7 +83,7 @@ class SimulationsController < ApplicationController
       :loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees, :loan_application_fees,
       :early_repayment_fee,
       :monthly_rent, :monthly_charges, :occupancy_months, :rental_start_date,
-      *Simulation::ANNUAL_CHARGES, *Simulation::REGIME_CHARGES
+      *Simulation::ANNUAL_CHARGES, *Simulation::REGIME_CHARGES, lots: Simulation::LOT_FIELDS
     )
   end
 end

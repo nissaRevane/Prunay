@@ -102,6 +102,58 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "the lots of a building" do
+    LOTS = [{ surface: "40", monthly_rent: "500" }, { surface: "60.5", monthly_rent: "720.5" }].freeze
+
+    it "takes the surface and the rent of a building as the sum of its lots: 40 + 60.5 m², 500 + 720.5 €" do
+      building = create(:simulation, property_type: "building", surface: 1, monthly_rent: 1, lots: LOTS)
+
+      expect(building).to have_attributes(divided_into_lots?: true, surface: 100.5, monthly_rent: 1_220.5)
+      expect(building.reload.attributes).to include("surface" => 100.5, "monthly_rent" => 1_220.5)
+    end
+
+    it "leans on the sum for everything else: 1 220.5 € × 12 months = 14 646 € a year" do
+      building = build(:simulation, property_type: "building", lots: LOTS)
+
+      expect(building.annual_rent_excluding_charges).to eq(14_646)
+    end
+
+    it "drops a row left blank" do
+      building = build(:simulation, property_type: "building", lots: [{ surface: "", monthly_rent: "" }, *LOTS])
+
+      expect(building.lots.size).to eq(2)
+    end
+
+    it "keeps the surface and the rent that were typed for a building with no lot" do
+      building = build(:simulation, property_type: "building", surface: 300, monthly_rent: 3_000, lots: [])
+
+      expect(building).to have_attributes(divided_into_lots?: false, surface: 300, monthly_rent: 3_000)
+    end
+
+    it "forgets the lots of a property that is no longer a building" do
+      house = create(:simulation, property_type: "house", surface: 90, monthly_rent: 1_000, lots: LOTS)
+
+      expect(house).to have_attributes(surface: 90, monthly_rent: 1_000)
+      expect(house.reload.lots).to eq([])
+    end
+
+    it "refuses a lot without a surface or with a negative rent" do
+      [{ surface: "", monthly_rent: "500" }, { surface: "40", monthly_rent: "-1" }].each do |lot|
+        building = build(:simulation, property_type: "building", lots: [lot])
+
+        expect(building).not_to be_valid(:property)
+        expect(building.errors[:lots]).to eq(["doivent chacun avoir une surface et un loyer"])
+      end
+    end
+
+    it "refuses a twenty-first lot" do
+      lots = Array.new(21) { { surface: "20", monthly_rent: "300" } }
+
+      expect(build(:simulation, property_type: "building", lots: lots.first(20))).to be_valid(:property)
+      expect(build(:simulation, property_type: "building", lots: lots)).not_to be_valid(:property)
+    end
+  end
+
   describe "#annual_rent" do
     it "counts only the months actually let" do
       expect(build(:simulation, monthly_rent: 800, occupancy_months: 11).annual_rent).to eq(8_800)

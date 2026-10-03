@@ -4,8 +4,13 @@
   <%= f.select :property_type, property_type_options, {}, class: "form-control" %>
 <% end %>
 
-<% surface = editable_word simulation, :surface, t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) do |f| %>
-  <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+<% surface_value = t("views.simulations.show.surface_value", surface: number_with_precision(simulation.surface, precision: 2, strip_insignificant_zeros: true)) %>
+<% if simulation.divided_into_lots? %>
+  <% surface = surface_value %>
+<% else %>
+  <% surface = editable_word simulation, :surface, surface_value do |f| %>
+    <%= f.number_field :surface, step: "0.01", min: "0", class: "form-control", required: true %>
+  <% end %>
 <% end %>
 
 <% address = editable_word simulation, :address, simulation.address.presence || t("views.simulations.show.address_not_provided") do |f| %>

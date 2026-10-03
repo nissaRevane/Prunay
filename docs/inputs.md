@@ -19,6 +19,19 @@ Once the simulation exists, the user corrects each value in place, where the fig
 The full edit form is still there for changes that take several answers at once, such as
 switching a cash purchase to a loan.
 
+## The lots of a building
+
+A whole building can be described lot by lot on the property page, page by page or on the
+edit form: each lot has a surface and a monthly rent. As long as one lot is given, the
+building's surface and rent are their sum and can't be typed. Everything downstream (the
+proposed charges, the tax, the projection) reads only that sum, so a building in lots is
+simulated exactly like a building entered as a whole. On the simulation page the sum is
+shown but can't be corrected in place: the lots are changed on the edit form. The quick
+form only asks for the whole.
+
+Emptying the list goes back to a surface and a rent typed for the whole building. Lots only
+belong to a building: changing the property type drops them.
+
 ## Proposed amounts
 
 The rent and most charges are proposed from a reference amount for 50 m², scaled by the

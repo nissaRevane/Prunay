@@ -27,6 +27,9 @@ application.register("inline-edit", InlineEditController)
 import LoanController from "controllers/loan_controller"
 application.register("loan", LoanController)
 
+import LotsController from "controllers/lots_controller"
+application.register("lots", LotsController)
+
 import NavbarController from "controllers/navbar_controller"
 application.register("navbar", NavbarController)
 

@@ -38,6 +38,10 @@ module SimulationsHelper
       credit_rounding_value: Simulation::Estimate::ROUNDING }
   end
 
+  def lot_total_options(simulation, field)
+    simulation.divided_into_lots? ? { value: Assumptions.whole(simulation.public_send(field)), disabled: true } : {}
+  end
+
   def property_type_options
     Simulation::PROPERTY_TYPES.map { |type| [t("simulations.property_types.#{type}"), type] }
   end

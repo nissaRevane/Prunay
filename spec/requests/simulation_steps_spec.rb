@@ -128,6 +128,47 @@ RSpec.describe "Simulation steps", type: :request do
     end
   end
 
+  describe "a building divided into lots" do
+    BUILDING = PROPERTY.merge(property_type: "building",
+                              lots: [{ surface: "" }, { surface: "40", monthly_rent: "500" },
+                                     { surface: "60", monthly_rent: "700" }]).freeze
+
+    it "creates the building with the surface and the rent of its lots: 40 + 60 m², 500 + 700 €" do
+      submit("property", BUILDING)
+      submit("purchase", PURCHASE)
+
+      get new_simulation_step_path(step: "rental")
+      rent = Nokogiri::HTML(response.body).at_css("#simulation_monthly_rent")
+      expect(rent.attributes).to include("value", "disabled")
+      expect(rent["value"]).to eq("1200")
+
+      submit("rental", RENTAL.except(:monthly_rent))
+      submit("charges", CHARGES)
+
+      expect(Simulation.last).to have_attributes(
+        surface: 100, monthly_rent: 1_200,
+        lots: [{ "surface" => "40", "monthly_rent" => "500" }, { "surface" => "60", "monthly_rent" => "700" }]
+      )
+    end
+
+    it "forgets every lot once the list has been emptied" do
+      submit("property", BUILDING)
+      submit("property", PROPERTY.merge(property_type: "building", surface: "250", lots: [{ surface: "" }]))
+      submit("purchase", PURCHASE)
+      submit("rental", RENTAL)
+      submit("charges", CHARGES)
+
+      expect(Simulation.last).to have_attributes(surface: 250, monthly_rent: 1_000, lots: [])
+    end
+
+    it "sends the list back to the page with the lot that was refused" do
+      submit("property", BUILDING.merge(lots: [{ surface: "", monthly_rent: "500" }]))
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.body).to include("doivent chacun avoir une surface et un loyer")
+    end
+  end
+
   describe "the economic conditions" do
     def walk
       submit("property", PROPERTY)

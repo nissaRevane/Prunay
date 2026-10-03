@@ -24,7 +24,11 @@ assumptions.save!
 # chiffres. C'est donc l'ensemble de ses champs qui l'identifie, et rejouer le fichier ne crée
 # rien de plus tant qu'il n'a pas changé.
 attributes = seed_data.fetch("simulations", []).map { |data| data.slice(*AccountExport::SIMULATION_FIELDS) }
-created = attributes.reject { |simulation| user.simulations.exists?(simulation) }
+# Un tableau dans where devient un IN : les lots se comparent en JSON.
+created = attributes.reject do |simulation|
+  user.simulations.where(simulation.except("lots"))
+      .exists?(["lots = ?::jsonb", simulation.fetch("lots", []).to_json])
+end
 created.each { |simulation| user.simulations.create!(simulation) }
 
 puts "Compte de démonstration : #{user_data["email"]} / #{user_data["password"]}"

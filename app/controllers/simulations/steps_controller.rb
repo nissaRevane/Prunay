@@ -1,7 +1,7 @@
 module Simulations
   class StepsController < ApplicationController
     STEP_ATTRIBUTES = {
-      "property" => [:property_type, :address, :city, :energy_rating, :surface],
+      "property" => [:property_type, :address, :city, :energy_rating, :surface, { lots: Simulation::LOT_FIELDS }],
       "purchase" => [:purchase_price, :initial_works, :furniture, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees, :early_repayment_fee],

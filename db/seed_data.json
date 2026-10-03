@@ -69,7 +69,8 @@
       "furniture": 2110,
       "furniture_maintenance": 210,
       "purchase_discount": 10000,
-      "rental_start_date": "2025-04-15"
+      "rental_start_date": "2025-04-15",
+      "lots": []
     },
     {
       "purchase_date": "2024-09-01",
@@ -106,7 +107,8 @@
       "furniture": 2830,
       "furniture_maintenance": 280,
       "purchase_discount": 0,
-      "rental_start_date": "2024-10-01"
+      "rental_start_date": "2024-10-01",
+      "lots": []
     }
   ]
 }

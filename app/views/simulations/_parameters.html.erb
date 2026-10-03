@@ -47,8 +47,18 @@
   </div>
 
   <dl class="panel rows">
-    <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), regimes: regimes_without_rent_premium do |f| %>
-      <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+    <% if simulation.divided_into_lots? %>
+      <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regimes_without_rent_premium) do %>
+        <dt class="detail-label">
+          <%= Simulation.human_attribute_name(:monthly_rent) %>
+          <span class="note"><%= t("views.simulations.lots.rent_sum", count: simulation.lots.size) %></span>
+        </dt>
+        <dd class="detail-value"><%= number_to_currency(simulation.monthly_rent) %></dd>
+      <% end %>
+    <% else %>
+      <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), regimes: regimes_without_rent_premium do |f| %>
+        <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
+      <% end %>
     <% end %>
 
     <% regimes_with_rent_premium.each do |regime| %>

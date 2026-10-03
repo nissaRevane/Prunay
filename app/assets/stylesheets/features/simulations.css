@@ -1,4 +1,4 @@
-/* Ce qui n'appartient qu'aux simulations : accueil, barre de filtres, sélection, phrase du bien, étiquette énergie, frise. */
+/* Ce qui n'appartient qu'aux simulations : accueil, barre de filtres, sélection, phrase du bien, étiquette énergie, frise, lots. */
 
 body:has(.home) {
   display: flex;
@@ -235,6 +235,22 @@ body:has(.home) main.container {
 .wizard-progress-step.is-done .wizard-progress-number {
   background: var(--color-positive);
   color: var(--color-on-primary);
+}
+
+.lot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.lot-grid:not(:has(.lot-row)) {
+  display: none;
+}
+
+.lot-row {
+  display: contents;
 }
 
 /* Sur un petit écran, seule l'étape en cours dit son nom. */
