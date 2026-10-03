@@ -1501,7 +1501,8 @@ RSpec.describe "Simulations", type: :request do
       simulation = create(:simulation, user: user, property_type: "building", surface: 200, monthly_rent: 2_000)
 
       patch simulation_path(simulation), params: {
-        simulation: { lots: [{ surface: "" }, { surface: "45", monthly_rent: "600" }, { surface: "55", monthly_rent: "650" }] }
+        simulation: { lots: { "-1" => { surface: "" }, "0" => { surface: "45", monthly_rent: "600" },
+                              "1" => { surface: "55", monthly_rent: "650" } } }
       }
 
       expect(simulation.reload).to have_attributes(surface: 100, monthly_rent: 1_250)

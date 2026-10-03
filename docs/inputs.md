@@ -21,13 +21,14 @@ switching a cash purchase to a loan.
 
 ## The lots of a building
 
-A whole building can be described lot by lot on the property page, page by page or on the
-edit form: each lot has a surface and a monthly rent. As long as one lot is given, the
-building's surface and rent are their sum and can't be typed. Everything downstream (the
-proposed charges, the tax, the projection) reads only that sum, so a building in lots is
-simulated exactly like a building entered as a whole. On the simulation page the sum is
-shown but can't be corrected in place: the lots are changed on the edit form. The quick
-form only asks for the whole.
+A whole building can be described lot by lot. Each answer stays on its own page: the
+property page lists the lots and their surfaces, and the letting page asks the rent of each
+lot, proposed from that lot's own surface. The edit form splits them the same way between
+its two groups. As long as one lot is given, the building's surface and rent are the sum of
+its lots and can't be typed. Everything downstream (the proposed charges, the tax, the
+projection) reads only that sum, so a building in lots is simulated exactly like a building
+entered as a whole. On the simulation page the sum is shown but can't be corrected in place:
+the lots are changed on the edit form. The quick form only asks for the whole.
 
 Emptying the list goes back to a surface and a rent typed for the whole building. Lots only
 belong to a building: changing the property type drops them.

@@ -5,7 +5,8 @@ module Simulations
       "purchase" => [:purchase_price, :initial_works, :furniture, :purchase_date, :credit, :down_payment],
       "credit" => [:loan_rate, :loan_duration_years, :loan_insurance, :loan_guarantee_fees,
                    :loan_application_fees, :early_repayment_fee],
-      "rental" => [:monthly_rent, :monthly_charges, :occupancy_months, :rental_start_date],
+      "rental" => [:monthly_rent, :monthly_charges, :occupancy_months, :rental_start_date,
+                   { lots: Simulation::LOT_FIELDS }],
       "charges" => Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES
     }.freeze
 

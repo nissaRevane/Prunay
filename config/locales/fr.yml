@@ -106,7 +106,8 @@ fr:
             base:
               quota_exceeded: "Vous avez atteint la limite de %{count} simulations : supprimez-en une pour en ajouter une autre."
             lots:
-              invalid: doivent chacun avoir une surface et un loyer
+              surface_missing: doivent chacun avoir une surface
+              rent_missing: doivent chacun avoir un loyer
               too_long: "ne peuvent dépasser %{count}"
   errors:
     messages:
@@ -267,7 +268,8 @@ fr:
         charges:
           title: Les charges annuelles
       lots:
-        hint: "Détaillez l'immeuble lot par lot : sa surface et son loyer deviennent leur somme."
+        hint: "Détaillez l'immeuble lot par lot : sa surface devient la somme des leurs, et la location demandera le loyer de chacun."
+        number: "Lot %{number}"
         add: Ajouter un lot
         remove: Retirer ce lot
         rent_sum:

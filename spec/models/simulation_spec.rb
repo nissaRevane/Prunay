@@ -137,13 +137,28 @@ RSpec.describe Simulation, type: :model do
       expect(house.reload.lots).to eq([])
     end
 
-    it "refuses a lot without a surface or with a negative rent" do
-      [{ surface: "", monthly_rent: "500" }, { surface: "40", monthly_rent: "-1" }].each do |lot|
-        building = build(:simulation, property_type: "building", lots: [lot])
+    it "orders lots given by index, wherever their fields were typed" do
+      building = build(:simulation, property_type: "building",
+                                    lots: { "10" => { surface: "60" }, "2" => { surface: "40", monthly_rent: "500" } })
 
-        expect(building).not_to be_valid(:property)
-        expect(building.errors[:lots]).to eq(["doivent chacun avoir une surface et un loyer"])
-      end
+      expect(building.lots).to eq([{ "surface" => "40", "monthly_rent" => "500" }, { "surface" => "60" }])
+    end
+
+    it "asks the surface of a lot with the property and its rent with the letting" do
+      building = build(:simulation, property_type: "building", lots: [{ surface: "40", monthly_rent: "" }])
+
+      expect(building).to be_valid(:property)
+      expect(building).not_to be_valid(:rental)
+      expect(building.errors[:lots]).to eq(["doivent chacun avoir un loyer"])
+    end
+
+    it "refuses a lot without a surface or with a negative rent" do
+      without_surface = build(:simulation, property_type: "building", lots: [{ surface: "", monthly_rent: "500" }])
+      negative_rent = build(:simulation, property_type: "building", lots: [{ surface: "40", monthly_rent: "-1" }])
+
+      expect(without_surface).not_to be_valid(:property)
+      expect(without_surface.errors[:lots]).to eq(["doivent chacun avoir une surface"])
+      expect(negative_rent).not_to be_valid(:rental)
     end
 
     it "refuses a twenty-first lot" do

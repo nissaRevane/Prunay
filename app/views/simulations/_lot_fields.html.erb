@@ -1,23 +1,23 @@
-<%# Les lots d'un immeuble. Le champ caché fait d'une liste vidée une réponse, et non un oubli. %>
+<%# Les lots d'un immeuble, côté bien : leur surface. Le champ caché fait d'une liste vidée une réponse. %>
 <% building = f.object.building? %>
 <%= tag.div class: "form-group", hidden: !building, data: { lots_target: "editor" } do %>
   <span class="form-label"><%= Simulation.human_attribute_name(:lots) %></span>
   <p class="hint"><%= t("views.simulations.lots.hint") %></p>
 
-  <%= hidden_field_tag "#{f.object_name}[lots][][surface]", "", id: nil, disabled: !building %>
+  <%= hidden_field_tag "#{f.object_name}[lots][-1][surface]", "", id: nil, disabled: !building %>
 
   <div class="lot-grid" data-lots-target="list">
+    <span></span>
     <span class="label"><%= Simulation.human_attribute_name(:surface) %></span>
-    <span class="label"><%= Simulation.human_attribute_name(:monthly_rent) %></span>
     <span></span>
 
-    <% f.object.lots.each do |lot| %>
-      <%= render "simulations/lot", f: f, lot: lot, disabled: !building %>
+    <% f.object.lots.each_with_index do |lot, index| %>
+      <%= render "simulations/lot", f: f, lot: lot, index: index, number: index + 1, rents: rents, disabled: !building %>
     <% end %>
   </div>
 
   <template data-lots-target="template">
-    <%= render "simulations/lot", f: f, lot: {}, disabled: false %>
+    <%= render "simulations/lot", f: f, lot: {}, index: "__INDEX__", number: nil, rents: rents, disabled: false %>
   </template>
 
   <button type="button" class="btn btn-outline btn-sm" data-action="lots#add"><%= t("views.simulations.lots.add") %></button>

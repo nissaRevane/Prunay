@@ -1,13 +1,21 @@
-<div class="form-group">
-  <%= f.label :monthly_rent %>
-  <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true, autofocus: true,
-      **lot_total_options(f.object, :monthly_rent) %>
-  <% if f.object.divided_into_lots? %>
-    <p class="hint"><%= t("views.simulations.lots.rent_sum", count: f.object.lots.size) %></p>
-  <% end %>
+<%= tag.div data: { controller: "lots", **lots_values } do %>
+  <div class="form-group">
+    <%= f.label :monthly_rent %>
+    <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true,
+        autofocus: !f.object.divided_into_lots?, data: { lots_target: "totalRent" },
+        **lot_total_options(f.object, :monthly_rent) %>
 
-  <%= render "simulations/rent_reference", simulation: f.object %>
-</div>
+    <% if f.object.divided_into_lots? %>
+      <p class="hint"><%= t("views.simulations.lots.rent_sum", count: f.object.lots.size) %></p>
+    <% else %>
+      <%= render "simulations/rent_reference", simulation: f.object %>
+    <% end %>
+  </div>
+
+  <% if f.object.divided_into_lots? %>
+    <%= render "simulations/lot_rent_fields", f: f, surfaces: true, template: false %>
+  <% end %>
+<% end %>
 
 <div class="form-group">
   <%= f.label :monthly_charges %>

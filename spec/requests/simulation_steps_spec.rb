@@ -130,19 +130,36 @@ RSpec.describe "Simulation steps", type: :request do
 
   describe "a building divided into lots" do
     BUILDING = PROPERTY.merge(property_type: "building",
-                              lots: [{ surface: "" }, { surface: "40", monthly_rent: "500" },
-                                     { surface: "60", monthly_rent: "700" }]).freeze
+                              lots: { "-1" => { surface: "" }, "0" => { surface: "40", monthly_rent: "" },
+                                      "1" => { surface: "60", monthly_rent: "" } }).freeze
+    LOT_RENTS = RENTAL.except(:monthly_rent)
+                      .merge(lots: { "0" => { surface: "40", monthly_rent: "500" },
+                                     "1" => { surface: "60", monthly_rent: "700" } }).freeze
 
-    it "creates the building with the surface and the rent of its lots: 40 + 60 m², 500 + 700 €" do
+    def lot_rents = Nokogiri::HTML(response.body).css("input[name*='[lots]'][name$='[monthly_rent]']:not([type=hidden])").map { _1["value"] }
+
+    it "asks the surface of each lot with the property, and leaves its rent to the letting" do
+      submit("property", BUILDING)
+
+      expect(response).to redirect_to(new_simulation_step_path(step: "purchase"))
+    end
+
+    it "proposes the rent of each lot from its own surface: 650 × √(40/50) ≈ 580 €, 650 × √(60/50) ≈ 710 €" do
       submit("property", BUILDING)
       submit("purchase", PURCHASE)
 
       get new_simulation_step_path(step: "rental")
-      rent = Nokogiri::HTML(response.body).at_css("#simulation_monthly_rent")
-      expect(rent.attributes).to include("value", "disabled")
-      expect(rent["value"]).to eq("1200")
 
-      submit("rental", RENTAL.except(:monthly_rent))
+      total = Nokogiri::HTML(response.body).at_css("#simulation_monthly_rent")
+      expect(lot_rents).to eq(%w[580 710])
+      expect(total.attributes).to include("disabled")
+      expect(total["value"]).to eq("1290")
+    end
+
+    it "creates the building with the surface and the rent of its lots: 40 + 60 m², 500 + 700 €" do
+      submit("property", BUILDING)
+      submit("purchase", PURCHASE)
+      submit("rental", LOT_RENTS)
       submit("charges", CHARGES)
 
       expect(Simulation.last).to have_attributes(
@@ -151,9 +168,21 @@ RSpec.describe "Simulation steps", type: :request do
       )
     end
 
+    it "keeps the rent of a lot when the property page is answered again" do
+      submit("property", BUILDING)
+      submit("purchase", PURCHASE)
+      submit("rental", LOT_RENTS)
+
+      submit("property", BUILDING.merge(lots: { "-1" => { surface: "" }, "1" => { surface: "60", monthly_rent: "700" },
+                                                "2" => { surface: "50", monthly_rent: "" } }))
+      get new_simulation_step_path(step: "rental")
+
+      expect(lot_rents).to eq(%w[700 650])
+    end
+
     it "forgets every lot once the list has been emptied" do
       submit("property", BUILDING)
-      submit("property", PROPERTY.merge(property_type: "building", surface: "250", lots: [{ surface: "" }]))
+      submit("property", PROPERTY.merge(property_type: "building", surface: "250", lots: { "-1" => { surface: "" } }))
       submit("purchase", PURCHASE)
       submit("rental", RENTAL)
       submit("charges", CHARGES)
@@ -161,11 +190,17 @@ RSpec.describe "Simulation steps", type: :request do
       expect(Simulation.last).to have_attributes(surface: 250, monthly_rent: 1_000, lots: [])
     end
 
-    it "sends the list back to the page with the lot that was refused" do
-      submit("property", BUILDING.merge(lots: [{ surface: "", monthly_rent: "500" }]))
-
+    it "refuses a lot without a surface on the property page, and without a rent on the letting page" do
+      submit("property", BUILDING.merge(lots: { "0" => { surface: "", monthly_rent: "500" } }))
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.body).to include("doivent chacun avoir une surface et un loyer")
+      expect(response.body).to include("doivent chacun avoir une surface")
+
+      submit("property", BUILDING)
+      submit("purchase", PURCHASE)
+      submit("rental", LOT_RENTS.merge(lots: { "0" => { surface: "40", monthly_rent: "" },
+                                               "1" => { surface: "60", monthly_rent: "700" } }))
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.body).to include("doivent chacun avoir un loyer")
     end
   end
 

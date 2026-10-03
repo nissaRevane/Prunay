@@ -1,12 +1,13 @@
-<div class="lot-row" data-lots-target="row">
-  <%= number_field_tag "#{f.object_name}[lots][][surface]", lot["surface"], id: nil, step: "0.01", min: "0.01",
+<% name = "#{f.object_name}[lots][#{index}]" %>
+<% id = "#{f.object_name}_lots_#{index}_surface" %>
+<%= tag.div class: "lot-row", data: { lots_target: "row", index: index } do %>
+  <%= label_tag id, t("views.simulations.lots.number", number: number), data: { lots_number: true } %>
+  <%= number_field_tag "#{name}[surface]", lot["surface"], id: id, step: "0.01", min: "0.01",
       class: "form-control", required: true, disabled: disabled,
-      aria: { label: Simulation.human_attribute_name(:surface) },
       data: { lots_target: "surface", action: "input->lots#refresh" } %>
-  <%= number_field_tag "#{f.object_name}[lots][][monthly_rent]", lot["monthly_rent"], id: nil, step: "0.01", min: "0",
-      class: "form-control", required: true, disabled: disabled,
-      aria: { label: Simulation.human_attribute_name(:monthly_rent) },
-      data: { lots_target: "rent", action: "input->lots#refresh" } %>
+  <% if rents %>
+    <%= hidden_field_tag "#{name}[monthly_rent]", lot["monthly_rent"], id: nil, disabled: disabled %>
+  <% end %>
   <button type="button" class="icon-btn" aria-label="<%= t("views.simulations.lots.remove") %>"
           data-action="lots#remove">×</button>
-</div>
+<% end %>

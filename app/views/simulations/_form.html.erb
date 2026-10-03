@@ -1,8 +1,7 @@
 <%# Le formulaire de modification : les quatre pages de la création en un seul écran, chacune
     devenue un groupe. Corriger un chiffre ne fait pas retraverser l'assistant. %>
 <%= form_with(model: simulation, class: "form",
-                  data: { controller: "credit lots", lots_building_value: "building",
-                          **credit_values(simulation) }) do |f| %>
+                  data: { controller: "credit lots", **lots_values, **credit_values(simulation) }) do |f| %>
   <%= render "shared/errors", resource: simulation %>
 
   <fieldset class="form-fieldset">
@@ -39,7 +38,7 @@
       </div>
     </div>
 
-    <%= render "simulations/lot_fields", f: f %>
+    <%= render "simulations/lot_fields", f: f, rents: false %>
   </fieldset>
 
   <fieldset class="form-fieldset">
@@ -136,6 +135,8 @@
         <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true %>
       </div>
     </div>
+
+    <%= render "simulations/lot_rent_fields", f: f, surfaces: false, template: true %>
 
     <div class="form-group">
       <%= f.label :occupancy_months %>

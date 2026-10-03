@@ -1,4 +1,4 @@
-<div data-controller="lots" data-lots-building-value="building">
+<%= tag.div data: { controller: "lots", **lots_values } do %>
   <div class="form-group">
     <%= f.label :property_type %>
     <%= f.select :property_type, property_type_options, {}, class: "form-control", required: true, autofocus: true,
@@ -30,5 +30,5 @@
     </div>
   </div>
 
-  <%= render "simulations/lot_fields", f: f %>
-</div>
+  <%= render "simulations/lot_fields", f: f, rents: true %>
+<% end %>

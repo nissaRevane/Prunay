@@ -52,7 +52,7 @@ class Simulation < ApplicationRecord
   validates :surface, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :property]
   validates :energy_rating, inclusion: { in: ENERGY_RATINGS, allow_blank: true }, on: [:create, :update, :property]
   validates :lots, length: { maximum: MAX_LOTS }, on: [:create, :update, :property], if: :building?
-  validate :lots_well_formed, on: [:create, :update, :property], if: :building?
+  validate :lot_surfaces_given, on: [:create, :update, :property], if: :building?
 
   validates :purchase_date, presence: true, on: [:create, :update, :purchase]
   validates :purchase_price, presence: true, numericality: { greater_than: 0 }, on: [:create, :update, :purchase]
@@ -80,6 +80,7 @@ class Simulation < ApplicationRecord
 
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
+  validate :lot_rents_given, on: [:create, :update, :rental], if: :building?
   validates :monthly_charges, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
   validates :occupancy_months, presence: true,
@@ -111,6 +112,8 @@ class Simulation < ApplicationRecord
   def divided_into_lots? = building? && lots.any?
 
   def lots=(rows)
+    rows = rows.to_h.sort_by { |index, _| index.to_i }.map(&:last) if rows.respond_to?(:each_pair)
+
     super(Array(rows).map { |row| row.to_h.stringify_keys.slice(*LOT_FIELDS) }
                      .reject { |row| row.values.all?(&:blank?) })
   end
@@ -127,7 +130,7 @@ class Simulation < ApplicationRecord
     @assumptions ||= Assumptions.for(user)
   end
 
-  def estimate(field) = Estimate.new(assumptions).for(field, surface, property_type)
+  def estimate(field, surface = self.surface) = Estimate.new(assumptions).for(field, surface, property_type)
 
   def rent_reference = RentReference.for(city)
 
@@ -259,13 +262,14 @@ class Simulation < ApplicationRecord
 
   def lot_total(field) = lots.sum { |lot| lot[field].to_d }
 
-  def lots_well_formed
-    valid = lots.all? do |lot|
-      surface, rent = lot.values_at(*LOT_FIELDS).map { |value| BigDecimal(value.to_s, exception: false) }
-      surface&.positive? && rent && !rent.negative?
-    end
+  def lot_values(field) = lots.map { |lot| BigDecimal(lot[field].to_s, exception: false) }
 
-    errors.add(:lots, :invalid) unless valid
+  def lot_surfaces_given
+    errors.add(:lots, :surface_missing) unless lot_values("surface").all? { |surface| surface&.positive? }
+  end
+
+  def lot_rents_given
+    errors.add(:lots, :rent_missing) unless lot_values("monthly_rent").all? { |rent| rent && !rent.negative? }
   end
 
   # Les colonnes gardent la somme des lots, que le reste du calcul lit sans les connaître.

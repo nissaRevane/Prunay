@@ -239,7 +239,7 @@ body:has(.home) main.container {
 
 .lot-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: var(--space-2);
   align-items: center;
   margin-bottom: var(--space-2);
@@ -251,6 +251,10 @@ body:has(.home) main.container {
 
 .lot-row {
   display: contents;
+}
+
+.lot-row label {
+  margin-bottom: 0;
 }
 
 /* Sur un petit écran, seule l'étape en cours dit son nom. */

@@ -39,7 +39,28 @@ module SimulationsHelper
   end
 
   def lot_total_options(simulation, field)
-    simulation.divided_into_lots? ? { value: Assumptions.whole(simulation.public_send(field)), disabled: true } : {}
+    return {} unless simulation.divided_into_lots?
+
+    total = field == :monthly_rent ? simulation.lots.sum { |lot| lot_rent_value(simulation, lot).to_d } : simulation.surface
+    { value: Assumptions.whole(total), disabled: true }
+  end
+
+  def lots_values
+    { lots_building_value: "building", lots_number_value: t("views.simulations.lots.number", number: "%{number}"),
+      lots_surface_value: t("views.simulations.show.surface_value", surface: "%{surface}") }
+  end
+
+  def lot_surface_label(lot)
+    return if lot["surface"].blank?
+
+    t("views.simulations.show.surface_value",
+      surface: number_with_precision(lot["surface"].to_d, precision: 2, strip_insignificant_zeros: true))
+  end
+
+  def lot_rent_value(simulation, lot)
+    return lot["monthly_rent"] if lot["monthly_rent"].present? || lot["surface"].blank?
+
+    Assumptions.whole(simulation.estimate(:monthly_rent, lot["surface"]))
   end
 
   def property_type_options
