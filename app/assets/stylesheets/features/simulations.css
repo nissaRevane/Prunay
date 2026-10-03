@@ -253,11 +253,15 @@ body:has(.home) main.container {
   display: contents;
 }
 
+.lot-grid-letting {
+  grid-template-columns: auto repeat(3, 1fr);
+}
+
 .lot-row label {
   margin-bottom: 0;
 }
 
-/* Sur un petit écran, seule l'étape en cours dit son nom. */
+/* Sur un petit écran, seule l'étape en cours dit son nom, et un lot se nomme au-dessus de ses champs. */
 @media (max-width: 768px) {
   .wizard-progress {
     flex-wrap: nowrap;
@@ -273,5 +277,17 @@ body:has(.home) main.container {
 
   .wizard-progress-step:not(.is-current) .wizard-progress-label {
     display: none;
+  }
+
+  .lot-grid-letting {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lot-grid-letting > span:first-child {
+    display: none;
+  }
+
+  .lot-grid-letting .lot-label {
+    grid-column: 1 / -1;
   }
 }

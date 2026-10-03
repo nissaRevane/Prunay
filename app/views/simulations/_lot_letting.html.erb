@@ -1,0 +1,22 @@
+<% name = "#{f.object_name}[lots][#{index}]" %>
+<%= tag.div class: "lot-row", data: { lots_target: "lettingRow", index: index } do %>
+  <span class="lot-label">
+    <span data-lots-number><%= t("views.simulations.lots.number", number: number) %></span>
+    <span class="note" data-lots-surface><%= lot_surface_label(lot) %></span>
+  </span>
+  <% if surfaces %>
+    <%= hidden_field_tag "#{name}[surface]", lot["surface"], id: nil, disabled: disabled %>
+  <% end %>
+  <%= number_field_tag "#{name}[monthly_rent]", lot["monthly_rent"], id: nil, step: "0.01", min: "0",
+      class: "form-control", required: true, disabled: disabled,
+      aria: { label: Simulation.human_attribute_name(:monthly_rent) },
+      data: { lots_target: "rent", action: "input->lots#refresh" } %>
+  <%= number_field_tag "#{name}[monthly_charges]", lot["monthly_charges"], id: nil, step: "0.01", min: "0",
+      class: "form-control", required: true, disabled: disabled,
+      aria: { label: Simulation.human_attribute_name(:monthly_charges) },
+      data: { lots_target: "charges", action: "input->lots#refresh" } %>
+  <%= number_field_tag "#{name}[occupancy_months]", lot["occupancy_months"], id: nil, step: "0.5", min: "0",
+      max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true, disabled: disabled,
+      aria: { label: Simulation.human_attribute_name(:occupancy_months) },
+      data: { lots_target: "months", action: "input->lots#refresh" } %>
+<% end %>

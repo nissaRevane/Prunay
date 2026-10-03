@@ -41,13 +41,19 @@ module SimulationsHelper
   def lot_total_options(simulation, field)
     return {} unless simulation.divided_into_lots?
 
-    total = field == :monthly_rent ? simulation.lots.sum { |lot| lot_rent_value(simulation, lot).to_d } : simulation.surface
-    { value: Assumptions.whole(total), disabled: true }
+    proposed = simulation.dup.tap { |copy| copy.lots = simulation.lots.map { |lot| proposed_lot(simulation, lot) } }
+    { value: Assumptions.whole(proposed.public_send(field)), disabled: true }
   end
 
   def lots_values
     { lots_building_value: "building", lots_number_value: t("views.simulations.lots.number", number: "%{number}"),
       lots_surface_value: t("views.simulations.show.surface_value", surface: "%{surface}") }
+  end
+
+  def lot_total_hint(simulation, field)
+    return unless simulation.divided_into_lots?
+
+    tag.p(t("views.simulations.lots.#{field}_total", count: simulation.lots.size), class: "hint")
   end
 
   def lot_surface_label(lot)
@@ -57,10 +63,10 @@ module SimulationsHelper
       surface: number_with_precision(lot["surface"].to_d, precision: 2, strip_insignificant_zeros: true))
   end
 
-  def lot_rent_value(simulation, lot)
-    return lot["monthly_rent"] if lot["monthly_rent"].present? || lot["surface"].blank?
+  def proposed_lot(simulation, lot)
+    return lot if lot["surface"].blank?
 
-    Assumptions.whole(simulation.estimate(:monthly_rent, lot["surface"]))
+    Simulation::Step.lot_defaults(simulation, lot["surface"]).merge(lot.compact_blank)
   end
 
   def property_type_options
@@ -373,6 +379,9 @@ module SimulationsHelper
   end
 
   def monthly_label(key, amount, projection)
+    lots = projection.simulation.lots.size if projection.simulation.divided_into_lots?
+    return statement_label(:"#{key}_of_lots", amount: number_to_currency(amount), count: lots) if lots
+
     statement_label(key, amount: number_to_currency(amount), months: months_label(projection))
   end
 

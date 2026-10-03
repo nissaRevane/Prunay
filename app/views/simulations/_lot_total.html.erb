@@ -1,0 +1,8 @@
+<%= tag.div class: "detail-item", hidden: local_assigns[:regimes].present?,
+            data: local_assigns[:regimes] ? regime_scope(regimes) : {} do %>
+  <dt class="detail-label">
+    <%= Simulation.human_attribute_name(field) %>
+    <span class="note"><%= t("views.simulations.lots.#{field}_total", count: simulation.lots.size) %></span>
+  </dt>
+  <dd class="detail-value"><%= value %></dd>
+<% end %>

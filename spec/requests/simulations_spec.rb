@@ -730,21 +730,27 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#panel-parameters .summary")).to be_nil
     end
 
-    it "shows the surface and the rent of a building divided into lots without letting them be typed" do
-      simulation.update!(property_type: "building", lots: [{ surface: "40", monthly_rent: "500" },
-                                                           { surface: "60", monthly_rent: "700" }])
+    it "shows what a building divided into lots sums up without letting it be typed" do
+      simulation.update!(property_type: "building", lots: [
+        { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
+        { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
+      ])
 
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML5(response.body)
       words = doc.css(".page-header .summary .inline-word .inline-edit-display").map(&:text)
-      rent = doc.css("#panel-parameters .detail-item")
-                .find { |item| item.at_css(".detail-label").text.include?(Simulation.human_attribute_name(:monthly_rent)) }
+      item = lambda do |field|
+        doc.css("#panel-parameters .detail-item")
+           .find { |line| line.at_css(".detail-label").text.include?(Simulation.human_attribute_name(field)) }
+      end
 
       expect(words).not_to include("100 m²")
       expect(doc.at_css(".page-header .summary").text).to include("100 m²")
-      expect(rent.at_css("#simulation_monthly_rent")).to be_nil
-      expect(rent.text).to include("La somme des loyers des 2 lots", currency(1_200).gsub(/\s+/, " "))
+      expect(doc.at_css("#panel-parameters #simulation_monthly_rent, #panel-parameters #simulation_occupancy_months")).to be_nil
+      expect(item.(:monthly_rent).text).to include("La somme des loyers des 2 lots", currency(1_200).gsub(/\s+/, " "))
+      expect(item.(:monthly_charges).text).to include("La somme des charges des 2 lots", currency(150).gsub(/\s+/, " "))
+      expect(item.(:occupancy_months).text).to include("pondérée par leur loyer", "10,3 mois par an")
     end
 
     it "announces a purchase still to come in the future" do
@@ -1395,6 +1401,18 @@ RSpec.describe "Simulations", type: :request do
       expect(response.body).to include("panel-micro_foncier")
     end
 
+    it "reads the rent of a building divided into lots against each lot's own months" do
+      simulation.update!(property_type: "building", lots: [
+        { surface: "40", monthly_rent: "500", monthly_charges: "0", occupancy_months: "12" },
+        { surface: "60", monthly_rent: "700", monthly_charges: "0", occupancy_months: "9" }
+      ])
+
+      get statement_simulation_path(simulation, regime: :foncier_reel, year: 2)
+
+      expect(response.body).to include("selon les mois loués de chacun des 2 lots")
+      expect(response.body).not_to include("par mois ×")
+    end
+
     it "renders the statement of one year under one regime" do
       get statement_simulation_path(simulation, regime: :foncier_reel, year: 1)
 
@@ -1497,24 +1515,26 @@ RSpec.describe "Simulations", type: :request do
         .to include(Simulation.human_attribute_name(:monthly_rent), "doit être supérieur ou égal à 0")
     end
 
-    it "details a building lot by lot from the edit form: 45 + 55 m², 600 + 650 €" do
+    it "details a building lot by lot from the edit form: 45 + 55 m², 600 + 650 €, 600 × 12 + 650 × 6 a year" do
       simulation = create(:simulation, user: user, property_type: "building", surface: 200, monthly_rent: 2_000)
 
       patch simulation_path(simulation), params: {
-        simulation: { lots: { "-1" => { surface: "" }, "0" => { surface: "45", monthly_rent: "600" },
-                              "1" => { surface: "55", monthly_rent: "650" } } }
+        simulation: { lots: { "-1" => { surface: "" },
+                              "0" => { surface: "45", monthly_rent: "600", monthly_charges: "0", occupancy_months: "12" },
+                              "1" => { surface: "55", monthly_rent: "650", monthly_charges: "0", occupancy_months: "6" } } }
       }
 
-      expect(simulation.reload).to have_attributes(surface: 100, monthly_rent: 1_250)
+      expect(simulation.reload).to have_attributes(surface: 100, monthly_rent: 1_250,
+                                                   annual_rent_excluding_charges: 11_100)
     end
 
     it "leaves the lots alone when a single other value is saved" do
-      simulation = create(:simulation, user: user, property_type: "building",
-                                       lots: [{ surface: "45", monthly_rent: "600" }])
+      lot = { "surface" => "45", "monthly_rent" => "600", "monthly_charges" => "0", "occupancy_months" => "12" }
+      simulation = create(:simulation, user: user, property_type: "building", lots: [lot])
 
-      patch simulation_path(simulation), params: { simulation: { monthly_rent: "1000" } }
+      patch simulation_path(simulation), params: { simulation: { monthly_rent: "1000", occupancy_months: "6" } }
 
-      expect(simulation.reload).to have_attributes(monthly_rent: 600, lots: [{ "surface" => "45", "monthly_rent" => "600" }])
+      expect(simulation.reload).to have_attributes(monthly_rent: 600, occupancy_months: 12, lots: [lot])
     end
 
     it "edits every page of the creation on a single form" do

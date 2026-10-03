@@ -5,8 +5,10 @@
   <%= number_field_tag "#{name}[surface]", lot["surface"], id: id, step: "0.01", min: "0.01",
       class: "form-control", required: true, disabled: disabled,
       data: { lots_target: "surface", action: "input->lots#refresh" } %>
-  <% if rents %>
-    <%= hidden_field_tag "#{name}[monthly_rent]", lot["monthly_rent"], id: nil, disabled: disabled %>
+  <% if lettings %>
+    <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
+      <%= hidden_field_tag "#{name}[#{field}]", lot[field], id: nil, disabled: disabled %>
+    <% end %>
   <% end %>
   <button type="button" class="icon-btn" aria-label="<%= t("views.simulations.lots.remove") %>"
           data-action="lots#remove">×</button>

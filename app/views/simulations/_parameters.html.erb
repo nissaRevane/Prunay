@@ -48,13 +48,8 @@
 
   <dl class="panel rows">
     <% if simulation.divided_into_lots? %>
-      <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regimes_without_rent_premium) do %>
-        <dt class="detail-label">
-          <%= Simulation.human_attribute_name(:monthly_rent) %>
-          <span class="note"><%= t("views.simulations.lots.rent_sum", count: simulation.lots.size) %></span>
-        </dt>
-        <dd class="detail-value"><%= number_to_currency(simulation.monthly_rent) %></dd>
-      <% end %>
+      <%= render "simulations/lot_total", simulation: simulation, field: :monthly_rent,
+                 value: number_to_currency(simulation.monthly_rent), regimes: regimes_without_rent_premium %>
     <% else %>
       <%= editable_detail simulation, :monthly_rent, number_to_currency(simulation.monthly_rent), regimes: regimes_without_rent_premium do |f| %>
         <%= f.number_field :monthly_rent, step: "0.01", min: "0", class: "form-control", required: true %>
@@ -71,13 +66,20 @@
       <% end %>
     <% end %>
 
-    <%= editable_detail simulation, :monthly_charges, number_to_currency(simulation.monthly_charges) do |f| %>
-      <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true %>
-    <% end %>
+    <% occupancy = t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) %>
+    <% if simulation.divided_into_lots? %>
+      <%= render "simulations/lot_total", simulation: simulation, field: :monthly_charges,
+                 value: number_to_currency(simulation.monthly_charges) %>
+      <%= render "simulations/lot_total", simulation: simulation, field: :occupancy_months, value: occupancy %>
+    <% else %>
+      <%= editable_detail simulation, :monthly_charges, number_to_currency(simulation.monthly_charges) do |f| %>
+        <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true %>
+      <% end %>
 
-    <%= editable_detail simulation, :occupancy_months, t("views.simulations.show.occupancy_value", months: number_with_precision(simulation.occupancy_months, precision: 1, strip_insignificant_zeros: true)) do |f| %>
-      <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR,
-          class: "form-control", required: true %>
+      <%= editable_detail simulation, :occupancy_months, occupancy do |f| %>
+        <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR,
+            class: "form-control", required: true %>
+      <% end %>
     <% end %>
 
     <%= editable_detail simulation, :rental_start_date, l(simulation.rental_start_date, format: :long) do |f| %>

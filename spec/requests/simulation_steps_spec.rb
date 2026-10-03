@@ -130,54 +130,61 @@ RSpec.describe "Simulation steps", type: :request do
 
   describe "a building divided into lots" do
     BUILDING = PROPERTY.merge(property_type: "building",
-                              lots: { "-1" => { surface: "" }, "0" => { surface: "40", monthly_rent: "" },
-                                      "1" => { surface: "60", monthly_rent: "" } }).freeze
-    LOT_RENTS = RENTAL.except(:monthly_rent)
-                      .merge(lots: { "0" => { surface: "40", monthly_rent: "500" },
-                                     "1" => { surface: "60", monthly_rent: "700" } }).freeze
+                              lots: { "-1" => { surface: "" }, "0" => { surface: "40" }, "1" => { surface: "60" } }).freeze
+    LETTINGS = RENTAL.except(:monthly_rent, :monthly_charges, :occupancy_months).merge(
+      lots: { "0" => { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
+              "1" => { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" } }
+    ).freeze
 
-    def lot_rents = Nokogiri::HTML(response.body).css("input[name*='[lots]'][name$='[monthly_rent]']:not([type=hidden])").map { _1["value"] }
+    def lot_values(field)
+      Nokogiri::HTML(response.body).css("input[name*='[lots]'][name$='[#{field}]']:not([type=hidden])").map { _1["value"] }
+    end
 
-    it "asks the surface of each lot with the property, and leaves its rent to the letting" do
+    def total(field) = Nokogiri::HTML(response.body).at_css("#simulation_#{field}")
+
+    it "asks the surface of each lot with the property, and leaves the rest to the letting" do
       submit("property", BUILDING)
 
       expect(response).to redirect_to(new_simulation_step_path(step: "purchase"))
     end
 
-    it "proposes the rent of each lot from its own surface: 650 × √(40/50) ≈ 580 €, 650 × √(60/50) ≈ 710 €" do
+    it "proposes each lot's rent from its own surface: 650 × √(40/50) ≈ 580 €, 650 × √(60/50) ≈ 710 €" do
       submit("property", BUILDING)
       submit("purchase", PURCHASE)
 
       get new_simulation_step_path(step: "rental")
 
-      total = Nokogiri::HTML(response.body).at_css("#simulation_monthly_rent")
-      expect(lot_rents).to eq(%w[580 710])
-      expect(total.attributes).to include("disabled")
-      expect(total["value"]).to eq("1290")
+      expect(lot_values(:monthly_rent)).to eq(%w[580 710])
+      expect(lot_values(:monthly_charges)).to eq(%w[0 0])
+      expect(lot_values(:occupancy_months)).to eq(%w[11 11])
+      expect(%i[monthly_rent monthly_charges occupancy_months].map { |field| total(field)["value"] }).to eq(%w[1290 0 11])
+      expect(total(:monthly_rent).attributes).to include("disabled")
     end
 
-    it "creates the building with the surface and the rent of its lots: 40 + 60 m², 500 + 700 €" do
+    it "creates the building from its lots: 40 + 60 m², 500 + 700 €, 50 + 100 € of charges, 12 and 9 months" do
       submit("property", BUILDING)
       submit("purchase", PURCHASE)
-      submit("rental", LOT_RENTS)
+      submit("rental", LETTINGS)
       submit("charges", CHARGES)
 
-      expect(Simulation.last).to have_attributes(
-        surface: 100, monthly_rent: 1_200,
-        lots: [{ "surface" => "40", "monthly_rent" => "500" }, { "surface" => "60", "monthly_rent" => "700" }]
-      )
+      created = Simulation.last
+      expect(created).to have_attributes(surface: 100, monthly_rent: 1_200, monthly_charges: 150,
+                                         occupancy_months: BigDecimal("10.3"), annual_rent_excluding_charges: 12_300)
+      expect(created.lots.last).to eq("surface" => "60", "monthly_rent" => "700", "monthly_charges" => "100",
+                                      "occupancy_months" => "9")
     end
 
-    it "keeps the rent of a lot when the property page is answered again" do
+    it "keeps what the letting page said of a lot when the property page is answered again" do
       submit("property", BUILDING)
       submit("purchase", PURCHASE)
-      submit("rental", LOT_RENTS)
+      submit("rental", LETTINGS)
 
-      submit("property", BUILDING.merge(lots: { "-1" => { surface: "" }, "1" => { surface: "60", monthly_rent: "700" },
-                                                "2" => { surface: "50", monthly_rent: "" } }))
+      kept = LETTINGS[:lots]["1"]
+      submit("property", BUILDING.merge(lots: { "-1" => { surface: "" }, "1" => kept, "2" => { surface: "50" } }))
       get new_simulation_step_path(step: "rental")
 
-      expect(lot_rents).to eq(%w[700 650])
+      expect(lot_values(:monthly_rent)).to eq(%w[700 650])
+      expect(lot_values(:occupancy_months)).to eq(%w[9 11])
     end
 
     it "forgets every lot once the list has been emptied" do
@@ -187,20 +194,19 @@ RSpec.describe "Simulation steps", type: :request do
       submit("rental", RENTAL)
       submit("charges", CHARGES)
 
-      expect(Simulation.last).to have_attributes(surface: 250, monthly_rent: 1_000, lots: [])
+      expect(Simulation.last).to have_attributes(surface: 250, monthly_rent: 1_000, occupancy_months: 11, lots: [])
     end
 
-    it "refuses a lot without a surface on the property page, and without a rent on the letting page" do
+    it "refuses a lot without a surface on the property page, and without its months on the letting page" do
       submit("property", BUILDING.merge(lots: { "0" => { surface: "", monthly_rent: "500" } }))
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to include("doivent chacun avoir une surface")
 
       submit("property", BUILDING)
       submit("purchase", PURCHASE)
-      submit("rental", LOT_RENTS.merge(lots: { "0" => { surface: "40", monthly_rent: "" },
-                                               "1" => { surface: "60", monthly_rent: "700" } }))
+      submit("rental", LETTINGS.merge(lots: LETTINGS[:lots].merge("0" => LETTINGS[:lots]["0"].merge(occupancy_months: ""))))
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.body).to include("doivent chacun avoir un loyer")
+      expect(response.body).to include("doivent chacun avoir un loyer, des charges et de 0 à 12 mois loués")
     end
   end
 

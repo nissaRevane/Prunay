@@ -1,0 +1,21 @@
+<%# Les lots d'un immeuble, côté location : le loyer, les charges et les mois loués de chacun. %>
+<% building = f.object.building? %>
+<%= tag.div class: "form-group", hidden: !building, data: { lots_target: "editor" } do %>
+  <div class="lot-grid lot-grid-letting" data-lots-target="lettingList">
+    <span></span>
+    <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
+      <span class="label"><%= Simulation.human_attribute_name(field) %></span>
+    <% end %>
+
+    <% f.object.lots.each_with_index do |lot, index| %>
+      <%= render "simulations/lot_letting", f: f, lot: proposed_lot(f.object, lot), index: index, number: index + 1,
+                                            surfaces: surfaces, disabled: !building %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if template %>
+  <template data-lots-target="lettingTemplate">
+    <%= render "simulations/lot_letting", f: f, lot: {}, index: "__INDEX__", number: nil, surfaces: false, disabled: false %>
+  </template>
+<% end %>

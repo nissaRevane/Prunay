@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <%= render "simulations/lot_fields", f: f, rents: false %>
+    <%= render "simulations/lot_fields", f: f, lettings: false %>
   </fieldset>
 
   <fieldset class="form-fieldset">
@@ -123,6 +123,8 @@
   <fieldset class="form-fieldset">
     <legend><%= t("views.simulations.steps.rental.title") %></legend>
 
+    <%= render "simulations/lot_letting_fields", f: f, surfaces: false, template: true %>
+
     <div class="form-row">
       <div class="form-group form-group-half">
         <%= f.label :monthly_rent %>
@@ -132,15 +134,15 @@
 
       <div class="form-group form-group-half">
         <%= f.label :monthly_charges %>
-        <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true %>
+        <%= f.number_field :monthly_charges, step: "0.01", min: "0", class: "form-control", required: true,
+            data: { lots_target: "totalCharges" }, **lot_total_options(simulation, :monthly_charges) %>
       </div>
     </div>
 
-    <%= render "simulations/lot_rent_fields", f: f, surfaces: false, template: true %>
-
     <div class="form-group">
       <%= f.label :occupancy_months %>
-      <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control", required: true %>
+      <%= f.number_field :occupancy_months, step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR, class: "form-control",
+          required: true, data: { lots_target: "totalMonths" }, **lot_total_options(simulation, :occupancy_months) %>
     </div>
 
     <div class="form-group">

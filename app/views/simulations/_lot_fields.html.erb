@@ -12,12 +12,12 @@
     <span></span>
 
     <% f.object.lots.each_with_index do |lot, index| %>
-      <%= render "simulations/lot", f: f, lot: lot, index: index, number: index + 1, rents: rents, disabled: !building %>
+      <%= render "simulations/lot", f: f, lot: lot, index: index, number: index + 1, lettings: lettings, disabled: !building %>
     <% end %>
   </div>
 
   <template data-lots-target="template">
-    <%= render "simulations/lot", f: f, lot: {}, index: "__INDEX__", number: nil, rents: rents, disabled: false %>
+    <%= render "simulations/lot", f: f, lot: {}, index: "__INDEX__", number: nil, lettings: lettings, disabled: false %>
   </template>
 
   <button type="button" class="btn btn-outline btn-sm" data-action="lots#add"><%= t("views.simulations.lots.add") %></button>

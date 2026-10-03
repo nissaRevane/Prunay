@@ -26,7 +26,9 @@ class Simulation < ApplicationRecord
 
   MAX_LOAN_DURATION_YEARS = Projection::HORIZON_YEARS
 
-  LOT_FIELDS = %w[surface monthly_rent].freeze
+  LOT_LETTING_FIELDS = %w[monthly_rent monthly_charges occupancy_months].freeze
+
+  LOT_FIELDS = ["surface", *LOT_LETTING_FIELDS].freeze
 
   MAX_LOTS = 20
 
@@ -80,7 +82,7 @@ class Simulation < ApplicationRecord
 
   validates :monthly_rent, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
-  validate :lot_rents_given, on: [:create, :update, :rental], if: :building?
+  validate :lot_lettings_given, on: [:create, :update, :rental], if: :building?
   validates :monthly_charges, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :rental]
   validates :occupancy_months, presence: true,
@@ -121,6 +123,11 @@ class Simulation < ApplicationRecord
   def surface = divided_into_lots? ? lot_total("surface") : super
 
   def monthly_rent = divided_into_lots? ? lot_total("monthly_rent") : super
+
+  def monthly_charges = divided_into_lots? ? lot_total("monthly_charges") : super
+
+  # Pondérés par le loyer : le loyer total × ces mois approche le loyer de l'année.
+  def occupancy_months = divided_into_lots? ? lots_occupancy_months : super
 
   def steps = Step.all_for(self)
 
@@ -198,20 +205,22 @@ class Simulation < ApplicationRecord
 
   def annual_rent = annual_rent_excluding_charges + annual_provision_for_charges
 
-  def annual_rent_excluding_charges = monthly_rent * occupancy_months
+  def annual_rent_excluding_charges = lettings.sum { |rent, _, months| rent * months }
 
   # Une année de projection ne loue que les mois postérieurs à la mise en location.
-  def occupancy_months_in(year) = year.nil? ? occupancy_months : (occupancy_months * rented_share(year)).round(2)
+  def occupancy_months_in(year, months = occupancy_months) = year.nil? ? months : (months * rented_share(year)).round(2)
 
-  def monthly_rent_under(regime) = (monthly_rent * (1 + Taxation.rent_premium_rate(regime).to_d / 100)).round(2)
+  def monthly_rent_under(regime) = rent_under(monthly_rent, regime)
 
   def annual_rent_excluding_charges_under(regime, year = nil)
-    (monthly_rent_under(regime) * occupancy_months_in(year)).round(2)
+    lettings.sum { |rent, _, months| (rent_under(rent, regime) * occupancy_months_in(year, months)).round(2) }
   end
 
   def annual_rent_under(regime) = annual_rent_excluding_charges_under(regime) + annual_provision_for_charges
 
-  def annual_provision_for_charges(year = nil) = (monthly_charges * occupancy_months_in(year)).round(2)
+  def annual_provision_for_charges(year = nil)
+    lettings.sum { |_, charges, months| (charges * occupancy_months_in(year, months)).round(2) }
+  end
 
   def annual_charges = ANNUAL_CHARGES.sum { |field| public_send(field) }
 
@@ -262,23 +271,44 @@ class Simulation < ApplicationRecord
 
   def lot_total(field) = lots.sum { |lot| lot[field].to_d }
 
-  def lot_values(field) = lots.map { |lot| BigDecimal(lot[field].to_s, exception: false) }
+  def lots_occupancy_months
+    rent = lot_total("monthly_rent")
+    return (lot_total("occupancy_months") / lots.size).round(1) unless rent.positive?
+
+    (lots.sum { |lot| lot["monthly_rent"].to_d * lot["occupancy_months"].to_d } / rent).round(1)
+  end
+
+  def lettings
+    return [[monthly_rent, monthly_charges, occupancy_months]] unless divided_into_lots?
+
+    lots.map { |lot| lot.values_at(*LOT_LETTING_FIELDS).map(&:to_d) }
+  end
+
+  def rent_under(rent, regime) = (rent * (1 + Taxation.rent_premium_rate(regime).to_d / 100)).round(2)
+
+  def decimal(value) = BigDecimal(value.to_s, exception: false)
 
   def lot_surfaces_given
-    errors.add(:lots, :surface_missing) unless lot_values("surface").all? { |surface| surface&.positive? }
+    errors.add(:lots, :surface_missing) unless lots.all? { |lot| decimal(lot["surface"])&.positive? }
   end
 
-  def lot_rents_given
-    errors.add(:lots, :rent_missing) unless lot_values("monthly_rent").all? { |rent| rent && !rent.negative? }
+  def lot_lettings_given
+    valid = lots.all? do |lot|
+      rent, charges, months = lot.values_at(*LOT_LETTING_FIELDS).map { |value| decimal(value) }
+      [rent, charges].all? { |amount| amount && !amount.negative? } && months&.positive? && months <= MONTHS_PER_YEAR
+    end
+
+    errors.add(:lots, :letting_missing) unless valid
   end
 
-  # Les colonnes gardent la somme des lots, que le reste du calcul lit sans les connaître.
   def settle_lots
     return self.lots = [] unless building?
     return if lots.empty?
 
     self[:surface] = surface
     self[:monthly_rent] = monthly_rent
+    self[:monthly_charges] = monthly_charges
+    self[:occupancy_months] = occupancy_months
   end
 
   def rented_share(year)

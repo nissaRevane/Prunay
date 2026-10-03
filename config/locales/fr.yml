@@ -107,7 +107,7 @@ fr:
               quota_exceeded: "Vous avez atteint la limite de %{count} simulations : supprimez-en une pour en ajouter une autre."
             lots:
               surface_missing: doivent chacun avoir une surface
-              rent_missing: doivent chacun avoir un loyer
+              letting_missing: "doivent chacun avoir un loyer, des charges et de 0 à 12 mois loués"
               too_long: "ne peuvent dépasser %{count}"
   errors:
     messages:
@@ -272,9 +272,15 @@ fr:
         number: "Lot %{number}"
         add: Ajouter un lot
         remove: Retirer ce lot
-        rent_sum:
+        monthly_rent_total:
           one: Le loyer de l'unique lot
           other: "La somme des loyers des %{count} lots"
+        monthly_charges_total:
+          one: Les charges de l'unique lot
+          other: "La somme des charges des %{count} lots"
+        occupancy_months_total:
+          one: Les mois loués de l'unique lot
+          other: "La moyenne des %{count} lots, pondérée par leur loyer"
       reference:
         source: "Loyer d'annonce charges comprises, relevé par le Baromètre Pierria"
         missing: Pas de données pour cette commune, saisissez le loyer manuellement.
@@ -426,6 +432,8 @@ fr:
         hint_sale_profit: "Le produit de la revente, une fois récupéré le capital encore engagé."
         detail_rent_excluding_charges: "%{amount} par mois × %{months} mois loués"
         detail_provision_for_charges: "Provision de %{amount} par mois × %{months} mois loués"
+        detail_rent_excluding_charges_of_lots: "%{amount} par mois, selon les mois loués de chacun des %{count} lots"
+        detail_provision_for_charges_of_lots: "Provision de %{amount} par mois, selon les mois loués de chacun des %{count} lots"
         detail_provision_repaid: "Provision remboursée par le locataire"
         detail_loan_interest: Intérêts
         detail_loan_insurance: Assurance emprunteur

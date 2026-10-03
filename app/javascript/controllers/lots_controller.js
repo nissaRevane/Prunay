@@ -2,11 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 
 const NUMBER = new Intl.NumberFormat("fr-FR")
 
-// Les lots d'un immeuble : la surface se dit avec le bien, le loyer avec la location. Tant
-// qu'il reste un lot, la surface et le loyer de l'immeuble en sont la somme, non saisie.
+// Les lots d'un immeuble : la surface se dit avec le bien, le reste avec la location. Tant
+// qu'il reste un lot, les champs de l'immeuble en montrent le total, sans le laisser saisir.
 export default class extends Controller {
   static targets = ["type", "editor", "template", "list", "row", "surface",
-                    "rentTemplate", "rentList", "rentRow", "rent", "totalSurface", "totalRent"]
+                    "lettingTemplate", "lettingList", "lettingRow", "rent", "charges", "months",
+                    "totalSurface", "totalRent", "totalCharges", "totalMonths"]
   static values = { building: String, number: String, surface: String }
 
   connect() {
@@ -18,8 +19,8 @@ export default class extends Controller {
     const index = this.nextIndex++
 
     this.listTarget.insertAdjacentHTML("beforeend", this.#fill(this.templateTarget, index))
-    if (this.hasRentTemplateTarget) {
-      this.rentListTarget.insertAdjacentHTML("beforeend", this.#fill(this.rentTemplateTarget, index))
+    if (this.hasLettingTemplateTarget) {
+      this.lettingListTarget.insertAdjacentHTML("beforeend", this.#fill(this.lettingTemplateTarget, index))
     }
     this.surfaceTargets.at(-1).focus()
     this.refresh()
@@ -41,12 +42,14 @@ export default class extends Controller {
     })
 
     this.#number(this.rowTargets)
-    this.#number(this.rentRowTargets)
+    this.#number(this.lettingRowTargets)
     this.#describe()
 
-    const divided = building && this.rowTargets.length + this.rentRowTargets.length > 0
-    this.#total(this.totalSurfaceTargets, this.surfaceTargets, divided)
-    this.#total(this.totalRentTargets, this.rentTargets, divided)
+    const divided = building && this.rowTargets.length + this.lettingRowTargets.length > 0
+    this.#total(this.totalSurfaceTargets, divided, () => this.#sum(this.surfaceTargets))
+    this.#total(this.totalRentTargets, divided, () => this.#sum(this.rentTargets))
+    this.#total(this.totalChargesTargets, divided, () => this.#sum(this.chargesTargets))
+    this.#total(this.totalMonthsTargets, divided, () => this.#months())
   }
 
   #fill(template, index) {
@@ -60,7 +63,7 @@ export default class extends Controller {
   }
 
   #describe() {
-    this.rentRowTargets.forEach((row) => {
+    this.lettingRowTargets.forEach((row) => {
       const surface = this.surfaceTargets.find((input) => input.closest("[data-index]").dataset.index === row.dataset.index)
       if (!surface) return
 
@@ -70,12 +73,29 @@ export default class extends Controller {
     })
   }
 
-  #total(fields, inputs, divided) {
-    const sum = inputs.reduce((total, input) => total + (parseFloat(input.value) || 0), 0)
-
+  #total(fields, divided, compute) {
     fields.forEach((field) => {
       field.disabled = divided
-      if (divided) field.value = Math.round(sum * 100) / 100
+      if (divided) field.value = compute()
     })
+  }
+
+  #sum(inputs) {
+    return Math.round(inputs.reduce((total, input) => total + this.#value(input), 0) * 100) / 100
+  }
+
+  // Les mois de chaque lot pèsent son loyer, comme Simulation#occupancy_months.
+  #months() {
+    const rent = this.#sum(this.rentTargets)
+    const months = this.monthsTargets.map((input) => this.#value(input))
+    const average = rent > 0
+      ? this.rentTargets.reduce((total, input, index) => total + this.#value(input) * months[index], 0) / rent
+      : months.reduce((total, value) => total + value, 0) / months.length
+
+    return Math.round(average * 10) / 10
+  }
+
+  #value(input) {
+    return parseFloat(input.value) || 0
   }
 }

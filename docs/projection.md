@@ -7,7 +7,9 @@
 - **Growth**: the first year uses the amounts as entered, which describe the twelve months
   after the purchase. Each later year compounds them: rent by rent growth, charges and costs
   by inflation.
-- **Rent**: only the months actually let count.
+- **Rent**: only the months actually let count. A building in lots counts each lot's rent and
+  provision against that lot's own months, then adds them up. The year statement then gives
+  the monthly total without a single number of months, since there is none.
 - **Unfurnished vs furnished**: the rent is read excluding charges under the unfurnished
   regimes and including charges under the furnished ones. Both give the same result before
   tax.

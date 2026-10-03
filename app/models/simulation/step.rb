@@ -57,6 +57,14 @@ module Simulation::Step
     }
   end
 
+  def lot_defaults(simulation, surface)
+    {
+      "monthly_rent" => simulation.estimate(:monthly_rent, surface),
+      "monthly_charges" => simulation.estimate(:monthly_charges, surface),
+      "occupancy_months" => simulation.assumptions.occupancy_months
+    }.transform_values { |value| Assumptions.whole(value) }
+  end
+
   def charge_defaults(simulation)
     (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
   end
