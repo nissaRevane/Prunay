@@ -76,7 +76,7 @@ Un besoin général modifie la primitive, jamais un écran. Vérifier à 375 px.
 - `Simulation`, `User`, `Assumptions` : les seuls ActiveRecord.
 - `Loan`, `AmortizationSchedule`, `Projection`, `Taxation::*`, `Simulation::Estimate`,
   `Simulation::Step` : des objets simples, hors base, chacun responsable d'un calcul.
-- Une constante vit sur l'objet qu'elle concerne (`Loan::DEFAULT_RATE`,
+- Une constante vit sur l'objet qu'elle concerne (`Loan::EARLY_REPAYMENT_RATE`,
   `Projection::HORIZON_YEARS`, `Taxation::SOCIAL_CHARGES_RATE`).
 - Les contextes de validation de `Simulation` portent le nom des pages de création
   (`Simulation::Step::NAMES`) : une page de plus s'ajoute là **et** dans les validations.
