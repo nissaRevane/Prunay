@@ -26,7 +26,7 @@
       <%= f.number_field :furniture, step: "0.01", min: "0", class: "form-control", required: true %>
     <% end %>
 
-    <% Taxation::NAMES.each do |regime| %>
+    <% simulation.regimes.each do |regime| %>
       <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label"><%= t("views.simulations.show.project_cost") %></dt>
         <dd class="detail-value"><%= number_to_currency(simulation.total_investment_under(regime)) %></dd>
@@ -74,7 +74,7 @@
       <%= f.date_field :rental_start_date, class: "form-control", required: true %>
     <% end %>
 
-    <% Taxation::NAMES.each do |regime| %>
+    <% simulation.regimes.each do |regime| %>
       <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label">
           <%= t("views.simulations.show.annual_rent_total") %>
@@ -110,7 +110,7 @@
       <dd class="detail-value"><%= number_to_currency(simulation.annual_business_tax) %></dd>
     <% end %>
 
-    <% Taxation::NAMES.each do |regime| %>
+    <% simulation.regimes.each do |regime| %>
       <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
         <dt class="detail-label"><%= t("views.simulations.show.annual_charges_total") %></dt>
         <dd class="detail-value"><%= number_to_currency(annual_charges_under(simulation, regime)) %></dd>

@@ -57,16 +57,16 @@ module SimulationsHelper
     tabs << ECONOMIC_CONDITIONS_TAB
   end
 
-  def simulation_panels(schedule)
-    simulation_tabs(schedule).flat_map { |name| taxation_tab?(name) ? Taxation::NAMES.map(&:to_s) : name }
+  def simulation_panels(simulation, schedule)
+    simulation_tabs(schedule).flat_map { |name| taxation_tab?(name) ? simulation.regimes.map(&:to_s) : name }
   end
 
   def taxation_tab?(name) = name == TAXATION_TAB
 
   def taxation_regime?(name) = Taxation::NAMES.include?(name.to_s.to_sym)
 
-  def opened_regime(tab, regime)
-    [tab, regime].find { |name| taxation_regime?(name) }&.to_s || Taxation::REVIEW_REGIME.to_s
+  def opened_regime(simulation, tab, regime)
+    [tab, regime].find { |name| simulation.regimes.include?(name.to_s.to_sym) }&.to_s || Taxation::REVIEW_REGIME.to_s
   end
 
   def panel_label_id(name) = taxation_regime?(name) ? "regime-#{name}" : "tab-#{name}"

@@ -27,7 +27,7 @@ class Simulation::BestReturn
     return @best if defined?(@best)
 
     # Le balayage coûte ~100 ms et ne dépend que de la ligne de la simulation.
-    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return", 2]) { search }
+    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return", 3]) { search }
   end
 
   def search
@@ -45,7 +45,7 @@ class Simulation::BestReturn
     champion = nil
     won = nil
 
-    Taxation::NAMES.each do |regime|
+    simulation.regimes.each do |regime|
       scanned = projection(regime)
 
       scanned.years.each do |year|

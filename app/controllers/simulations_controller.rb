@@ -1,7 +1,7 @@
 class SimulationsController < ApplicationController
   include RendersSimulation
 
-  # Une carte coûte le balayage des quatre régimes sur trente ans.
+  # Une carte coûte le balayage des régimes sur trente ans.
   PER_PAGE = 12
 
   before_action :set_simulation, only: [:show, :dashboard, :statement, :edit, :update, :destroy]
@@ -28,7 +28,7 @@ class SimulationsController < ApplicationController
 
   # Les 124 fiches d'année pesaient 80 % de la page ; celle-ci s'ouvre seule.
   def statement
-    return head :not_found unless Taxation::NAMES.include?(params[:regime].to_s.to_sym)
+    return head :not_found unless @simulation.regimes.include?(params[:regime].to_s.to_sym)
 
     projection = @simulation.projection(params[:regime])
     year = projection.year(params[:year].to_i) or return head :not_found

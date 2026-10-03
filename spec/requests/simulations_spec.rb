@@ -666,6 +666,23 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#regime-foncier_reel")["aria-checked"]).to eq("true")
     end
 
+    it "leaves the micro-foncier out once the rents pass 15 000 a year" do
+      above = create(:simulation, user: user, monthly_rent: 1_300)
+
+      get simulation_path(above, tab: "micro_foncier", regime: "micro_foncier")
+
+      doc = Nokogiri::HTML(response.body)
+
+      expect(doc.css(".tab-select .tab-option").map { |option| option["data-tab-name"] })
+        .to eq(%w[foncier_reel micro_bic lmnp])
+      expect(doc.at_css("#panel-micro_foncier")).to be_nil
+      expect(doc.at_css(".tabs .tab-select .tab")["id"]).to eq("tab-foncier_reel")
+
+      get statement_simulation_path(above, regime: :micro_foncier, year: 1)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it "opens the panel that tab names and leaves the others hidden" do
       get simulation_path(simulation, tab: "foncier_reel")
 

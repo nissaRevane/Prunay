@@ -10,7 +10,7 @@
 
   <div class="tab-options" role="menu" aria-label="<%= t("views.simulations.show.regimes_menu") %>"
        data-tabs-target="options" hidden>
-    <% Taxation::NAMES.each do |name| %>
+    <% regimes.each do |name| %>
       <button type="button" class="tab-option" role="menuitemradio" id="regime-<%= name %>"
               aria-checked="<%= name.to_s == regime %>"
               data-tabs-target="option" data-tab-name="<%= name %>" data-action="click->tabs#select">

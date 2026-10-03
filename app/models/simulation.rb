@@ -158,7 +158,11 @@ class Simulation < ApplicationRecord
 
   def projection(regime) = Projection.new(self, regime)
 
-  def projections = Taxation::NAMES.index_with { |regime| projection(regime) }
+  def regimes
+    Taxation::NAMES.select { |regime| Taxation.available?(regime, annual_rent_excluding_charges_under(regime)) }
+  end
+
+  def projections = regimes.index_with { |regime| projection(regime) }
 
   def best_return
     @best_return ||= BestReturn.new(self)

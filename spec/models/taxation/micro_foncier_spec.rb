@@ -10,6 +10,13 @@ RSpec.describe Taxation::MicroFoncier do
     end
   end
 
+  describe ".available?" do
+    it "admits gross rents up to 15 000 a year and no further" do
+      expect(described_class.available?(15_000)).to be(true)
+      expect(described_class.available?(BigDecimal("15000.01"))).to be(false)
+    end
+  end
+
   describe "#taxable_income" do
     it "is what the allowance leaves of the rent" do
       expect(taxation.taxable_income).to eq(8_400)

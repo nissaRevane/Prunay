@@ -19,7 +19,10 @@ Each regime defines its own taxable base, allowance, social charges rate and its
 The provision for charges is not income, since it covers an expense, so the base is the rent
 excluding charges. Social charges are 17.2 %.
 
-- **Micro-foncier**: a flat 30 % allowance replaces every deductible charge.
+- **Micro-foncier**: a flat 30 % allowance replaces every deductible charge. Only open while
+  the year's rent excluding charges stays within 15 000 € (art. 32 CGI); above it the regime
+  isn't offered at all. The check reads the entered rent over the months let, so a rent that
+  grows past the ceiling later keeps the regime, and the household's other rents aren't known.
 - **Foncier réel**: no allowance. The year's charges and the loan interest, insurance
   included, are deducted.
 

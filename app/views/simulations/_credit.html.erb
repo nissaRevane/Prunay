@@ -50,7 +50,7 @@
         <dd class="detail-value"><%= number_to_currency(simulation.furniture) %></dd>
       <% end %>
 
-      <% Taxation::NAMES.each do |regime| %>
+      <% simulation.regimes.each do |regime| %>
         <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
           <dt class="detail-label"><%= t("views.simulations.show.initial_outlay") %></dt>
           <dd class="detail-value"><%= number_to_currency(simulation.initial_outlay(regime)) %></dd>

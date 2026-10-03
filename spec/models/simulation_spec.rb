@@ -367,6 +367,20 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "#regimes" do
+    it "offers every regime while 1 250 a month for 12 months stays at the 15 000 ceiling" do
+      expect(build(:simulation, monthly_rent: 1_250).regimes).to eq(Taxation::NAMES)
+    end
+
+    it "drops the micro-foncier once 1 300 a month for 12 months makes 15 600" do
+      expect(build(:simulation, monthly_rent: 1_300).regimes).to eq([:foncier_reel, :micro_bic, :lmnp])
+    end
+
+    it "counts only the months let: 1 300 for 11 months makes 14 300, under the ceiling" do
+      expect(build(:simulation, monthly_rent: 1_300, occupancy_months: 11).regimes).to include(:micro_foncier)
+    end
+  end
+
   describe "#projection" do
     it "hands the projection this simulation" do
       expect(build(:simulation).projection(:micro_foncier)).to be_a(Projection)
