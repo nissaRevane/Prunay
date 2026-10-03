@@ -26,52 +26,77 @@
   </dialog>
 </div>
 
-<% if @types.any? %>
-  <%= form_with url: simulations_path, method: :get, class: "toolbar",
-      data: { controller: "filter", turbo_frame: "simulations", turbo_action: "advance" } do |form| %>
-    <%= form.search_field :q, value: @filters["q"], class: "form-control toolbar-search",
-        placeholder: t("views.simulations.index.search"), autocomplete: "off",
-        aria: { label: t("views.simulations.index.search") }, data: { action: "input->filter#search" } %>
+<%= tag.div data: { controller: "selection",
+                    selection_one_value: t("views.simulations.index.selected.one"),
+                    selection_other_value: t("views.simulations.index.selected.other") } do %>
+  <% if @types.any? %>
+    <%= form_with url: simulations_path, method: :get, class: "toolbar",
+        data: { controller: "filter", turbo_frame: "simulations", turbo_action: "advance" } do |form| %>
+      <%= form.search_field :q, value: @filters["q"], class: "form-control toolbar-search",
+          placeholder: t("views.simulations.index.search"), autocomplete: "off",
+          aria: { label: t("views.simulations.index.search") }, data: { action: "input->filter#search" } %>
 
-    <% if @types.many? %>
-      <div class="chip-group chip-group-scroll" role="radiogroup" aria-label="<%= t("views.simulations.index.type_filter") %>">
-        <label class="chip">
-          <%= form.radio_button :type, "", checked: @filters["type"].blank?, data: { action: "filter#submit" } %>
-          <%= t("views.simulations.index.all_types") %>
-        </label>
-        <% @types.each do |type| %>
+      <% if @types.many? %>
+        <div class="chip-group chip-group-scroll" role="radiogroup" aria-label="<%= t("views.simulations.index.type_filter") %>">
           <label class="chip">
-            <%= form.radio_button :type, type, checked: @filters["type"] == type, data: { action: "filter#submit" } %>
-            <%= t("simulations.property_type_icons.#{type}") %> <%= t("simulations.property_types.#{type}") %>
+            <%= form.radio_button :type, "", checked: @filters["type"].blank?, data: { action: "filter#submit" } %>
+            <%= t("views.simulations.index.all_types") %>
           </label>
-        <% end %>
-      </div>
+          <% @types.each do |type| %>
+            <label class="chip">
+              <%= form.radio_button :type, type, checked: @filters["type"] == type, data: { action: "filter#submit" } %>
+              <%= t("simulations.property_type_icons.#{type}") %> <%= t("simulations.property_types.#{type}") %>
+            </label>
+          <% end %>
+        </div>
+      <% end %>
+
+      <button type="button" class="btn btn-outline btn-sm selection-start" data-action="selection#start">
+        <%= t("views.simulations.index.select") %>
+      </button>
     <% end %>
   <% end %>
-<% end %>
 
-<%= turbo_frame_tag "simulations", data: { turbo_action: "advance" } do %>
-  <% if @simulations.any? %>
-    <div class="panel-grid">
-      <%= render partial: "simulations/card", collection: @simulations, as: :simulation %>
-    </div>
+  <%= turbo_frame_tag "simulations", data: { turbo_action: "advance" } do %>
+    <% if @simulations.any? %>
+      <%= form_with url: destroy_many_simulations_path, method: :delete,
+          data: { turbo_frame: "_top", turbo_confirm: t("views.simulations.index.confirm_destroy_selection") } do |form| %>
+        <div class="selection-bar">
+          <label class="form-check">
+            <input type="checkbox" data-selection-target="all" data-action="selection#toggleAll">
+            <%= t("views.simulations.index.select_all") %>
+          </label>
+          <span class="hint" data-selection-target="count"></span>
+          <button type="button" class="btn btn-outline btn-sm" data-action="selection#stop">
+            <%= t("views.simulations.index.cancel_selection") %>
+          </button>
+          <%= form.button t("views.simulations.index.destroy_selection"), class: "btn btn-danger btn-sm",
+              disabled: true, data: { selection_target: "submit" } %>
+        </div>
 
-    <% if @pages > 1 %>
-      <nav class="pagination" aria-label="<%= t("views.simulations.index.pagination") %>">
-        <% if @page > 1 %>
-          <%= link_to t("views.simulations.index.previous_page"), simulations_path(@filters.merge(page: @page - 1)),
-              class: "btn btn-outline" %>
-        <% end %>
-        <span class="hint"><%= t("views.simulations.index.page", page: @page, pages: @pages) %></span>
-        <% if @page < @pages %>
-          <%= link_to t("views.simulations.index.next_page"), simulations_path(@filters.merge(page: @page + 1)),
-              class: "btn btn-outline" %>
-        <% end %>
-      </nav>
+        <div class="panel-grid">
+          <%= render partial: "simulations/card", collection: @simulations, as: :simulation,
+              locals: { selectable: true } %>
+        </div>
+      <% end %>
+
+      <% if @pages > 1 %>
+        <nav class="pagination" aria-label="<%= t("views.simulations.index.pagination") %>">
+          <% if @page > 1 %>
+            <%= link_to t("views.simulations.index.previous_page"), simulations_path(@filters.merge(page: @page - 1)),
+                class: "btn btn-outline" %>
+          <% end %>
+          <span class="hint"><%= t("views.simulations.index.page", page: @page, pages: @pages) %></span>
+          <% if @page < @pages %>
+            <%= link_to t("views.simulations.index.next_page"), simulations_path(@filters.merge(page: @page + 1)),
+                class: "btn btn-outline" %>
+          <% end %>
+        </nav>
+      <% end %>
+    <% elsif @types.any? %>
+      <p class="empty-state"><%= t("views.simulations.index.no_match") %></p>
+    <% else %>
+      <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
     <% end %>
-  <% elsif @types.any? %>
-    <p class="empty-state"><%= t("views.simulations.index.no_match") %></p>
-  <% else %>
-    <p class="empty-state"><%= t("views.simulations.index.empty") %></p>
   <% end %>
 <% end %>

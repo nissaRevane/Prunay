@@ -1487,6 +1487,44 @@ RSpec.describe "Simulations", type: :request do
     end
   end
 
+  describe "DELETE /simulations/selection" do
+    let!(:rennes) { create(:simulation, user: user, city: "Rennes") }
+    let!(:nantes) { create(:simulation, user: user, city: "Nantes") }
+    let!(:brest) { create(:simulation, user: user, city: "Brest") }
+
+    it "destroys the two ticked simulations and keeps the third" do
+      delete destroy_many_simulations_path, params: { ids: [rennes.id, nantes.id] }
+
+      expect(user.simulations.reload).to eq([brest])
+      expect(flash[:notice]).to eq("2 simulations supprimées.")
+    end
+
+    it "leaves another account's simulation alone" do
+      other = create(:simulation, user: create(:user))
+
+      expect {
+        delete destroy_many_simulations_path, params: { ids: [other.id, brest.id] }
+      }.to change(Simulation, :count).by(-1)
+
+      expect(Simulation.exists?(other.id)).to be(true)
+    end
+
+    it "returns to the filtered list it was sent from" do
+      delete destroy_many_simulations_path, params: { ids: [brest.id] },
+                                            headers: { "HTTP_REFERER" => simulations_url(q: "Rennes") }
+
+      expect(response).to redirect_to(simulations_url(q: "Rennes"))
+    end
+
+    it "lays a checkbox on each card of the list, inside the deletion form" do
+      get simulations_path
+
+      form = Nokogiri::HTML(response.body).at_css("form[action='#{destroy_many_simulations_path}']")
+      expect(form.css(".simulation-card input[name='ids[]']").map { |box| box["value"].to_i })
+        .to match_array([rennes.id, nantes.id, brest.id])
+    end
+  end
+
   describe "the navigation shell" do
     it "carries the simulations alone in the top menu of a signed-in user, the settings behind the email" do
       get simulations_path

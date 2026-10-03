@@ -210,6 +210,15 @@ fr:
         page: "Page %{page} sur %{pages}"
         previous_page: "← Précédentes"
         next_page: "Suivantes →"
+        select: Sélectionner
+        select_all: Tout sélectionner
+        select_card: "Sélectionner %{name}"
+        selected:
+          one: "%{count} sélectionnée"
+          other: "%{count} sélectionnées"
+        cancel_selection: Annuler
+        destroy_selection: Supprimer
+        confirm_destroy_selection: Supprimer les simulations sélectionnées ? Cette action est irréversible.
       form:
         cancel: Annuler
       # Les charges annuelles se demandent par groupe, et les mêmes groupes servent à
@@ -449,6 +458,10 @@ fr:
       created: Simulation créée avec succès.
       updated: Simulation mise à jour avec succès.
       destroyed: Simulation supprimée avec succès.
+      destroyed_many:
+        zero: Aucune simulation supprimée.
+        one: Simulation supprimée avec succès.
+        other: "%{count} simulations supprimées."
     errors:
       not_found: La ressource demandée est introuvable.
       throttled: Trop de demandes en peu de temps. Patientez quelques minutes avant de réessayer.

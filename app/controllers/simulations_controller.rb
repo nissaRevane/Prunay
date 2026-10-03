@@ -64,6 +64,12 @@ class SimulationsController < ApplicationController
     redirect_to simulations_path, notice: t("flash.simulations.destroyed"), status: :see_other
   end
 
+  def destroy_many
+    destroyed = current_user.simulations.where(id: params[:ids]).destroy_all
+    redirect_back_or_to simulations_path, notice: t("flash.simulations.destroyed_many", count: destroyed.size),
+                                          status: :see_other
+  end
+
   private
 
   def set_simulation

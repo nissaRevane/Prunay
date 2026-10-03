@@ -1,4 +1,4 @@
-/* Ce qui n'appartient qu'aux simulations : accueil, barre de filtres, phrase du bien, étiquette énergie, frise. */
+/* Ce qui n'appartient qu'aux simulations : accueil, barre de filtres, sélection, phrase du bien, étiquette énergie, frise. */
 
 body:has(.home) {
   display: flex;
@@ -56,6 +56,71 @@ body:has(.home) main.container {
 .toolbar-search {
   flex: 1 1 16rem;
   max-width: 24rem;
+}
+
+.selection-start {
+  margin-left: auto;
+}
+
+.selection-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) 0;
+  background: var(--color-bg);
+}
+
+.selection-bar .btn-danger {
+  margin-left: auto;
+}
+
+.simulation-card-select {
+  display: none;
+}
+
+.is-selecting .selection-start {
+  display: none;
+}
+
+.is-selecting .selection-bar {
+  display: flex;
+}
+
+.is-selecting .simulation-card-select {
+  display: block;
+}
+
+.is-selecting .simulation-card {
+  padding-left: calc(var(--space-3) + var(--space-5));
+}
+
+/* En sélection, toute la carte coche sa case au lieu d'ouvrir la fiche. */
+.simulation-card-select::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.simulation-card-select input {
+  position: absolute;
+  top: calc(var(--space-4) + var(--space-1));
+  left: var(--space-3);
+  width: var(--text-lg);
+  height: var(--text-lg);
+  accent-color: var(--color-primary);
+}
+
+.simulation-card:has(.simulation-card-select :checked) {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
 }
 
 .pagination {

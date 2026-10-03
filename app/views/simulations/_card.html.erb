@@ -1,7 +1,14 @@
 <%# Un bien de la liste : son meilleur TRI, le régime et l'année qui le donnent, et le cash-flow
-    mensuel. Rien ne s'y modifie ni ne s'y supprime : tout se fait sur la fiche. %>
+    mensuel. Sur la liste, une case le désigne pour une suppression groupée. %>
 <% best = simulation.best_return %>
 <article class="panel panel-link stack simulation-card">
+  <% if local_assigns[:selectable] %>
+    <label class="simulation-card-select">
+      <input type="checkbox" name="ids[]" value="<%= simulation.id %>"
+             aria-label="<%= t("views.simulations.index.select_card", name: simulation.name) %>"
+             data-selection-target="item" data-action="selection#refresh">
+    </label>
+  <% end %>
   <header class="panel-header">
     <hgroup>
       <h2 class="panel-title">

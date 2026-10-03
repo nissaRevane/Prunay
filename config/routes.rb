@@ -38,6 +38,8 @@ Prunay::Application.routes.draw do
 
   # Celles d'une simulation vivent dans un onglet : elles ne se demandent pas pendant la création.
   resources :simulations, except: [:create] do
+    delete :destroy_many, on: :collection, path: "selection"
+
     # Changer l'année de revente ne refait que le tableau de bord : les courbes ne bougent pas.
     get :dashboard, on: :member, path: "tableau-de-bord"
 

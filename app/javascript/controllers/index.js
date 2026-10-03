@@ -39,6 +39,9 @@ application.register("projection", ProjectionController)
 import RentEstimateController from "controllers/rent_estimate_controller"
 application.register("rent-estimate", RentEstimateController)
 
+import SelectionController from "controllers/selection_controller"
+application.register("selection", SelectionController)
+
 import StatementController from "controllers/statement_controller"
 application.register("statement", StatementController)
 

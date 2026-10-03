@@ -116,7 +116,7 @@ all use these classes. Do not create another row style.
 **Actions**
 
 - `.btn` plus one variant: `.btn-primary`, `.btn-outline` or `.btn-danger`. `.btn-sm` and
-  `.btn-lg` change the size.
+  `.btn-lg` change the size. A disabled `.btn` fades and takes no click.
 - `.icon-btn` is a square button for a glyph: ‹ › ×. It is used to close a modal, to step
   through a carousel or a year, and to dismiss a message. `.stepper` groups arrows around a
   value.
