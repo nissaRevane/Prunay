@@ -83,6 +83,13 @@ RSpec.describe "Express simulations", type: :request do
         .to eq("≈ 650 €")
     end
 
+    it "proposes for a building the rents of its lots: 2 × 650 × √(35/50), rounded to 540" do
+      get express_simulation_rent_reference_path(property_type: "building", city: "Nantes", surface: "70")
+
+      expect(Nokogiri::HTML(response.body).at_css("[data-rent-estimate-placeholder]")["data-rent-estimate-placeholder"])
+        .to eq("≈ 1 080 €")
+    end
+
     it "says nothing at all while the city is still to be typed" do
       get express_simulation_rent_reference_path(property_type: "apartment", city: "", surface: "30")
 
@@ -121,6 +128,14 @@ RSpec.describe "Express simulations", type: :request do
         loan_rate: BigDecimal("3.6"), loan_duration_years: 20, occupancy_months: 11,
         property_tax: 700, furniture: 2_110
       )
+    end
+
+    it "divides a building into lots: 380 m² into 6 lots of 50 and one of 80" do
+      post express_simulations_path,
+           params: { simulation: ANSWERS.merge(property_type: "building", surface: "380", monthly_rent: "1900") }
+
+      expect(user.simulations.last.lots.map { |lot| lot.values_at("surface", "monthly_rent") })
+        .to eq([*Array.new(6, %w[50 250]), %w[80 400]])
     end
 
     it "inherits the economic conditions of the user" do

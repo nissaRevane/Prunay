@@ -145,6 +145,8 @@ class Simulation < ApplicationRecord
 
   # Le baromètre énonce un loyer charges comprises : la provision en sort avant la proposition.
   def proposed_rent
+    return lots.sum { |lot| estimate(:monthly_rent, lot["surface"]) } if divided_into_lots?
+
     market = market_rent
 
     market.nil? ? estimate(:monthly_rent) : [market - estimate(:monthly_charges), 0].max

@@ -32,7 +32,14 @@ can't be typed: the sum of the surfaces, of the rents and of the charges, and th
 averaged with each lot weighted by its rent, so that the total rent times those months is the
 year's rent. The calculation itself goes lot by lot (see [projection](projection.md)). On the
 simulation page these totals are shown but can't be corrected in place: the lots are changed
-on the edit form. The quick form only asks for the whole.
+on the edit form.
+
+The quick form only asks for the whole, and divides a building on its own: under 100 m², two
+halves; above, lots of 50 m² until less than 100 m² remain, which make the last lot (380 m²
+gives six lots of 50 and one of 80). The twentieth lot, the most a building takes, keeps
+whatever is left. A rent typed is shared by surface, the last lot taking the leftover cents;
+left empty, each lot gets the rent proposed for its own surface, and the estimate shown in the
+field is their sum.
 
 Emptying the list goes back to answers typed for the whole building. Lots only belong to a
 building: changing the property type drops them.

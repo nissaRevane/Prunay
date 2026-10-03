@@ -22,7 +22,7 @@ module Simulations
     end
 
     def rent_reference
-      simulation = current_user.simulations.build(reference_params)
+      simulation = Simulation::Preset.divide(current_user.simulations.build(reference_params))
 
       render partial: "simulations/express/rent_reference", locals: { simulation: simulation }
     end
