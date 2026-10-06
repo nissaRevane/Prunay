@@ -129,7 +129,8 @@ all use these classes. Do not create another row style.
 `.section-header` (an `h2` and its control: a stepper or a button), `.subsection-title`,
 `.columns` and `.column`, `.tabs` and `.tab`, `.modal` (`.modal-narrow`, `.modal-header`,
 `.modal-title`, `.modal-actions`, `.modal-body`) on a native `<dialog>`, and `.table` inside
-`.table-scroll`.
+`.table-scroll`. Inside a panel, a table loses its frame and lines up with the panel's rows;
+its `tfoot` is a subtotal.
 
 **Feedback**: `.alert` (`-success`, `-danger`, `-warning`, and `.alerts` for a list of them),
 `.empty-state`, and `.help`, the question mark whose explanation shows on hover or focus.

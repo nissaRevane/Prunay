@@ -1,37 +1,40 @@
-<%# Les lots d'un immeuble, chaque valeur corrigeable d'un clic comme le reste de la fiche. %>
-<div class="section">
-  <div class="section-header">
-    <h2><%= t("views.simulations.show.lots_detail") %></h2>
-  </div>
-
-  <div class="table-scroll">
-    <table class="table">
-      <thead>
-        <tr>
-          <th><%= t("views.simulations.lots.lot") %></th>
-          <% Simulation::LOT_FIELDS.each do |field| %>
-            <th class="num"><%= t("views.simulations.lots.columns.#{field}") %></th>
-          <% end %>
-        </tr>
-      </thead>
-      <tbody>
-        <% simulation.lots.each_index do |index| %>
-          <tr>
-            <td><%= t("views.simulations.lots.number", number: index + 1) %></td>
-            <% Simulation::LOT_FIELDS.each do |field| %>
-              <%= editable_lot_cell simulation, index, field %>
-            <% end %>
-          </tr>
+<%# Les lots d'un immeuble : leur somme tient lieu de loyer, de charges et de mois loués. %>
+<div class="table-scroll">
+  <table class="table">
+    <thead>
+      <tr>
+        <th><%= t("views.simulations.lots.lot") %></th>
+        <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
+          <th class="num"><%= t("views.simulations.lots.columns.#{field}") %></th>
         <% end %>
-      </tbody>
-      <tfoot>
+      </tr>
+    </thead>
+    <tbody>
+      <% simulation.lots.each_index do |index| %>
         <tr>
-          <td><%= t("views.simulations.lots.total") %></td>
-          <% Simulation::LOT_FIELDS.each do |field| %>
-            <td class="num"><%= lot_figure(field, simulation.public_send(field)) %></td>
+          <td>
+            <%= t("views.simulations.lots.number", number: index + 1) %>
+            <span class="note"><%= editable_lot simulation, index, "surface" %></span>
+          </td>
+          <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
+            <td class="num"><%= editable_lot simulation, index, field %></td>
           <% end %>
         </tr>
-      </tfoot>
-    </table>
-  </div>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>
+          <%= t("views.simulations.lots.total") %>
+          <span class="note"><%= lot_figure("surface", simulation.surface) %></span>
+        </td>
+        <td class="num"><%= lot_figure("monthly_rent", simulation.monthly_rent) %></td>
+        <td class="num"><%= lot_figure("monthly_charges", simulation.monthly_charges) %></td>
+        <td class="num">
+          <%= lot_figure("occupancy_months", simulation.occupancy_months) %>
+          <span class="note"><%= t("views.simulations.lots.weighted") %></span>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
 </div>

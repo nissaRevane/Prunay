@@ -206,15 +206,9 @@ module SimulationsHelper
     end
   end
 
-  def editable_lot_cell(simulation, index, field)
-    label = t("views.simulations.lots.cell", field: Simulation.human_attribute_name(field), number: index + 1)
-
-    tag.td(class: "num", data: { controller: "inline-edit" }) do
-      tag.button(lot_figure(field, simulation.lots[index][field]), type: "button", class: "inline-edit-display",
-                 title: label, data: { inline_edit_target: "display", action: "inline-edit#open" }) +
-        inline_edit_form(simulation, parameters_url(simulation)) do |f|
-          lot_inputs(f, simulation.lots, index, field, label)
-        end
+  def editable_lot(simulation, index, field)
+    editable_word(simulation, field, lot_figure(field, simulation.lots[index][field])) do |f|
+      lot_inputs(f, simulation.lots, index, field)
     end
   end
 
@@ -348,7 +342,8 @@ module SimulationsHelper
 
   private
 
-  def lot_inputs(form, lots, index, field, label)
+  def lot_inputs(form, lots, index, field)
+    label = t("views.simulations.lots.cell", field: Simulation.human_attribute_name(field), number: index + 1)
     inputs = lots.each_with_index.flat_map do |lot, row|
       Simulation::LOT_FIELDS.map do |name|
         input = "#{form.object_name}[lots][#{row}][#{name}]"

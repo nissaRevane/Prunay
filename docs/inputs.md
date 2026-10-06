@@ -31,8 +31,8 @@ As long as one lot is given, the building's own fields show what the lots add up
 can't be typed: the sum of the surfaces, of the rents and of the charges, and the months let
 averaged with each lot weighted by its rent, so that the total rent times those months is the
 year's rent. The calculation itself goes lot by lot (see [projection](projection.md)). On the
-simulation page these totals are shown but can't be corrected in place; under them, a table
-lists the lots, and each of their values is corrected in place like any other.
+simulation page the letting lists the lots in a table whose last line is these totals: they
+can't be corrected in place, but each lot's own values can, like any other.
 
 The quick form only asks for the whole, and divides a building on its own: under 100 m², two
 halves; above, lots of 50 m² until less than 100 m² remain, which make the last lot (380 m²

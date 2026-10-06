@@ -730,7 +730,7 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#panel-parameters .summary")).to be_nil
     end
 
-    it "shows what a building divided into lots sums up without letting it be typed" do
+    it "lists the lots in the letting, totalled 40 + 60 m², 500 + 700 €, 50 + 100 €, (500 × 12 + 700 × 9) / 1 200 months" do
       simulation.update!(property_type: "building", lots: [
         { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
         { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
@@ -740,20 +740,22 @@ RSpec.describe "Simulations", type: :request do
 
       doc = Nokogiri::HTML5(response.body)
       words = doc.css(".page-header .summary .inline-word .inline-edit-display").map(&:text)
-      item = lambda do |field|
-        doc.css("#panel-parameters .detail-item")
-           .find { |line| line.at_css(".detail-label").text.include?(Simulation.human_attribute_name(field)) }
-      end
+      table = doc.at_css("#panel-parameters .panel .table")
+      table.css("form").remove
+      line = ->(row) { row.text.gsub(/\s+/, " ").strip }
 
       expect(words).not_to include("100 m²")
       expect(doc.at_css(".page-header .summary").text).to include("100 m²")
       expect(doc.at_css("#panel-parameters #simulation_monthly_rent, #panel-parameters #simulation_occupancy_months")).to be_nil
-      expect(item.(:monthly_rent).text).to include("La somme des loyers des 2 lots", currency(1_200).gsub(/\s+/, " "))
-      expect(item.(:monthly_charges).text).to include("La somme des charges des 2 lots", currency(150).gsub(/\s+/, " "))
-      expect(item.(:occupancy_months).text).to include("pondérée par leur loyer", "10,3 mois par an")
+      expect(table.css("tbody tr").map(&line)).to eq([
+        "Lot 1 40 m² #{currency(500)} #{currency(50)} 12",
+        "Lot 2 60 m² #{currency(700)} #{currency(100)} 9"
+      ].map { |text| text.gsub(/\s+/, " ") })
+      expect(line.(table.at_css("tfoot tr")))
+        .to eq("Total 100 m² #{currency(1_200)} #{currency(150)} 10,3 moyenne pondérée".gsub(/\s+/, " "))
     end
 
-    it "lists the lots of a building under the letting: 40 + 60 m², 500 + 700 €, 50 + 100 € of charges" do
+    it "lets each value of a lot be corrected in place, and none of their totals" do
       simulation.update!(property_type: "building", lots: [
         { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
         { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
@@ -761,16 +763,11 @@ RSpec.describe "Simulations", type: :request do
 
       get simulation_path(simulation)
 
-      doc = Nokogiri::HTML5(response.body)
-      table = doc.at_css("#panel-parameters .table")
-      cells = ->(row) { row.css("td").map { |cell| (cell.at_css(".inline-edit-display") || cell).text.strip } }
+      table = Nokogiri::HTML5(response.body).at_css("#panel-parameters .table")
 
-      expect(table.css("tbody tr").map(&cells)).to eq([
-        ["Lot 1", "40 m²", currency(500), currency(50), "12"],
-        ["Lot 2", "60 m²", currency(700), currency(100), "9"]
-      ])
-      expect(cells.(table.at_css("tfoot tr"))).to eq(["Total", "100 m²", currency(1_200), currency(150), "10,3"])
-      expect(table.css("tbody .inline-edit-form input[type=number]").size).to eq(8)
+      expect(table.css("tbody input[type=number]").map { |input| input["name"] })
+        .to eq((0..1).flat_map { |row| Simulation::LOT_FIELDS.map { |field| "simulation[lots][#{row}][#{field}]" } })
+      expect(table.css("tfoot form")).to be_empty
     end
 
     it "lists no lot for a building typed as a whole" do

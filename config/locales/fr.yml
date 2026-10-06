@@ -273,11 +273,11 @@ fr:
         lot: Lot
         total: Total
         cell: "%{field}, lot %{number}"
+        weighted: moyenne pondérée
         columns:
-          surface: Surface
           monthly_rent: Loyer
           monthly_charges: Charges
-          occupancy_months: Mois loués
+          occupancy_months: Mois
         add: Ajouter un lot
         remove: Retirer ce lot
         monthly_rent_total:
@@ -359,7 +359,6 @@ fr:
         credit_detail: Le crédit
         insurance_included: "dont %{amount} d'assurance"
         rental_detail: La location
-        lots_detail: Les lots
         furnished_rent: Loyer meublé
         furnished_rent_hint: prime de %{rate} sur le nu
         annual_rent_total: Encaissé sur une année

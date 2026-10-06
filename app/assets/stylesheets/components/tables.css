@@ -23,6 +23,7 @@
 
 .table td {
   white-space: nowrap;
+  vertical-align: baseline;
 }
 
 .table th {
@@ -34,9 +35,37 @@
 }
 
 .table tfoot td {
-  border-top: 2px solid var(--color-text);
+  border-top: 1px solid var(--color-border);
   border-bottom: none;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.table .note {
+  display: block;
+}
+
+.table .num .note {
+  white-space: normal;
+}
+
+/* Dans un panneau, le tableau perd son cadre et s'aligne sur les lignes. */
+.panel .table-scroll {
+  margin-bottom: var(--space-2);
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.panel .table th {
+  background: none;
+}
+
+.panel .table :is(th, td):first-child {
+  padding-left: 0;
+}
+
+.panel .table :is(th, td):last-child {
+  padding-right: 0;
 }
 
 .table .inline-edit-form .form-control {
