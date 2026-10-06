@@ -32,6 +32,15 @@ module SimulationsHelper
 
   WORD_ACTIONS = "click->inline-edit#open keydown.enter->inline-edit#open keydown.space->inline-edit#open".freeze
 
+  LOT_FIELD_OPTIONS = {
+    "surface" => { step: "0.01", min: "0.01" },
+    "monthly_rent" => { step: "0.01", min: "0" },
+    "monthly_charges" => { step: "0.01", min: "0" },
+    "occupancy_months" => { step: "0.5", min: "0", max: Simulation::MONTHS_PER_YEAR }
+  }.freeze
+
+  LOT_AMOUNTS = %w[monthly_rent monthly_charges].freeze
+
   def credit_values(simulation)
     { credit_rate_value: Simulation::NOTARY_FEES_RATE.to_f, credit_base_value: Simulation::NOTARY_FEES_BASE,
       credit_share_value: (simulation.assumptions.down_payment_share / 100).to_f,
@@ -197,6 +206,25 @@ module SimulationsHelper
     end
   end
 
+  def editable_lot_cell(simulation, index, field)
+    label = t("views.simulations.lots.cell", field: Simulation.human_attribute_name(field), number: index + 1)
+
+    tag.td(class: "num", data: { controller: "inline-edit" }) do
+      tag.button(lot_figure(field, simulation.lots[index][field]), type: "button", class: "inline-edit-display",
+                 title: label, data: { inline_edit_target: "display", action: "inline-edit#open" }) +
+        inline_edit_form(simulation, parameters_url(simulation)) do |f|
+          lot_inputs(f, simulation.lots, index, field, label)
+        end
+    end
+  end
+
+  def lot_figure(field, amount)
+    return number_to_currency(amount) if LOT_AMOUNTS.include?(field)
+
+    figure = number_with_precision(amount.to_d, precision: 2, strip_insignificant_zeros: true)
+    field == "surface" ? t("views.simulations.show.surface_value", surface: figure) : figure
+  end
+
   def suggested_field(form, attribute, **options)
     list_id = "#{form.field_id(attribute)}_suggestions"
 
@@ -319,6 +347,20 @@ module SimulationsHelper
   end
 
   private
+
+  def lot_inputs(form, lots, index, field, label)
+    inputs = lots.each_with_index.flat_map do |lot, row|
+      Simulation::LOT_FIELDS.map do |name|
+        input = "#{form.object_name}[lots][#{row}][#{name}]"
+        next hidden_field_tag(input, lot[name], id: nil) unless row == index && name == field
+
+        number_field_tag(input, lot[name], id: nil, class: "form-control", required: true,
+                                           aria: { label: label }, **LOT_FIELD_OPTIONS.fetch(name))
+      end
+    end
+
+    safe_join(inputs)
+  end
 
   # Un montant se lit en euros, un taux en pourcents, le reste tel quel.
   def warning_value(name, value)

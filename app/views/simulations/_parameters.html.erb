@@ -98,6 +98,10 @@
   </dl>
 </div>
 
+<% if simulation.divided_into_lots? %>
+  <%= render "simulations/lots", simulation: simulation %>
+<% end %>
+
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.charges_detail") %></h2>

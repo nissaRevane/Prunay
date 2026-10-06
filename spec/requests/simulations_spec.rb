@@ -753,6 +753,34 @@ RSpec.describe "Simulations", type: :request do
       expect(item.(:occupancy_months).text).to include("pondérée par leur loyer", "10,3 mois par an")
     end
 
+    it "lists the lots of a building under the letting: 40 + 60 m², 500 + 700 €, 50 + 100 € of charges" do
+      simulation.update!(property_type: "building", lots: [
+        { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
+        { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
+      ])
+
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML5(response.body)
+      table = doc.at_css("#panel-parameters .table")
+      cells = ->(row) { row.css("td").map { |cell| (cell.at_css(".inline-edit-display") || cell).text.strip } }
+
+      expect(table.css("tbody tr").map(&cells)).to eq([
+        ["Lot 1", "40 m²", currency(500), currency(50), "12"],
+        ["Lot 2", "60 m²", currency(700), currency(100), "9"]
+      ])
+      expect(cells.(table.at_css("tfoot tr"))).to eq(["Total", "100 m²", currency(1_200), currency(150), "10,3"])
+      expect(table.css("tbody .inline-edit-form input[type=number]").size).to eq(8)
+    end
+
+    it "lists no lot for a building typed as a whole" do
+      simulation.update!(property_type: "building")
+
+      get simulation_path(simulation)
+
+      expect(Nokogiri::HTML5(response.body).at_css("#panel-parameters .table")).to be_nil
+    end
+
     it "announces a purchase still to come in the future" do
       date = Date.current.next_year
       simulation.update!(purchase_date: date, address: "14 rue du Beau Laurier")
@@ -1535,6 +1563,25 @@ RSpec.describe "Simulations", type: :request do
       patch simulation_path(simulation), params: { simulation: { monthly_rent: "1000", occupancy_months: "6" } }
 
       expect(simulation.reload).to have_attributes(monthly_rent: 600, occupancy_months: 12, lots: [lot])
+    end
+
+    it "corrects the rent of lot 2 from its cell and keeps the rest: 600 + 650 becomes 600 + 700 €" do
+      lots = [{ "surface" => "45", "monthly_rent" => "600", "monthly_charges" => "20", "occupancy_months" => "12" },
+              { "surface" => "55", "monthly_rent" => "650", "monthly_charges" => "30", "occupancy_months" => "6" }]
+      simulation = create(:simulation, user: user, property_type: "building", lots: lots)
+
+      get simulation_path(simulation, tab: "parameters")
+
+      form = Nokogiri::HTML5(response.body).css("#panel-parameters tbody .inline-edit-form")[5]
+      pairs = form.css("input[name]").map { |input| [input["name"], input["value"].to_s] }
+      field = form.at_css("input[type=number]")["name"]
+      pairs = pairs.map { |name, value| [name, name == field ? "700" : value] }
+
+      patch form["action"], params: Rack::Utils.parse_nested_query(URI.encode_www_form(pairs))
+
+      expect(field).to eq("simulation[lots][1][monthly_rent]")
+      expect(simulation.reload).to have_attributes(monthly_rent: 1_300, monthly_charges: 50,
+                                                   lots: [lots[0], lots[1].merge("monthly_rent" => "700")])
     end
 
     it "edits every page of the creation on a single form" do

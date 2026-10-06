@@ -270,6 +270,14 @@ fr:
       lots:
         hint: "Détaillez l'immeuble lot par lot : sa surface devient la somme des leurs, et la location demandera le loyer de chacun."
         number: "Lot %{number}"
+        lot: Lot
+        total: Total
+        cell: "%{field}, lot %{number}"
+        columns:
+          surface: Surface
+          monthly_rent: Loyer
+          monthly_charges: Charges
+          occupancy_months: Mois loués
         add: Ajouter un lot
         remove: Retirer ce lot
         monthly_rent_total:
@@ -351,6 +359,7 @@ fr:
         credit_detail: Le crédit
         insurance_included: "dont %{amount} d'assurance"
         rental_detail: La location
+        lots_detail: Les lots
         furnished_rent: Loyer meublé
         furnished_rent_hint: prime de %{rate} sur le nu
         annual_rent_total: Encaissé sur une année
