@@ -50,7 +50,10 @@ only under the furnished regimes. Its upkeep is a charge of the year that grows 
 inflation, and only the furnished regimes pay it.
 
 - **Micro-BIC**: a 50 % allowance on receipts, which covers every charge, the CFE included.
-  Not checked: the 77 700 € receipts ceiling above which the regime no longer applies.
+  Only open while the year's receipts, the 5 % premium and the provision for charges
+  included, stay within 77 700 € (art. 50-0 CGI); above it the regime isn't offered. The
+  law only closes it after two years above the ceiling, which a constant rent makes moot.
+  As with the micro-foncier, the household's other furnished lettings aren't known.
 - **LMNP**: no allowance. The charges, the CFE, the accountant (the one charge that only this
   regime pays, and only its cash flow bears) and the loan interest are deducted at cost, plus
   depreciation.

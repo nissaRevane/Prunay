@@ -191,9 +191,7 @@ class Simulation < ApplicationRecord
 
   def projection(regime) = Projection.new(self, regime)
 
-  def regimes
-    Taxation::NAMES.select { |regime| Taxation.available?(regime, annual_rent_excluding_charges_under(regime)) }
-  end
+  def regimes = Taxation::NAMES.select { |regime| Taxation.available?(regime, annual_receipts_under(regime)) }
 
   def projections = regimes.index_with { |regime| projection(regime) }
 
@@ -221,6 +219,12 @@ class Simulation < ApplicationRecord
   end
 
   def annual_rent_under(regime) = annual_rent_excluding_charges_under(regime) + annual_provision_for_charges
+
+  def annual_receipts_under(regime)
+    return annual_rent_under(regime) if Taxation.regime(regime).provision_in_receipts?
+
+    annual_rent_excluding_charges_under(regime)
+  end
 
   def annual_provision_for_charges(year = nil)
     lettings.sum { |_, charges, months| (charges * occupancy_months_in(year, months)).round(2) }

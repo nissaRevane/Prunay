@@ -8,7 +8,7 @@ module Taxation
     # Au-delà de ces loyers bruts annuels, le réel s'impose (art. 32 CGI).
     RECEIPTS_CEILING = 15_000
 
-    def self.available?(rent_excluding_charges) = rent_excluding_charges <= RECEIPTS_CEILING
+    def self.available?(receipts) = receipts <= RECEIPTS_CEILING
 
     def allowance_rate = ALLOWANCE_RATE
 

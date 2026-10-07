@@ -27,7 +27,7 @@ class Simulation::BestReturn
     return @best if defined?(@best)
 
     # Le balayage coûte ~100 ms et ne dépend que de la ligne de la simulation.
-    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return", 3]) { search }
+    @best = Rails.cache.fetch([simulation.cache_key_with_version, "best_return", 4]) { search }
   end
 
   def search

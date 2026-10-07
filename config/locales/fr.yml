@@ -334,7 +334,7 @@ fr:
         dashboard_no_rate: TRI
         dashboard_gross_yield: Rendement brut
         dashboard_other_measure: "L'autre mesure du rendement"
-        ranking_title: Les quatre régimes à cette échéance
+        ranking_title: Les régimes à cette échéance
         ranking_regime: Régime
         ranking_taxes: Impôt cumulé
         ranking_sale_profit: Gain à la revente

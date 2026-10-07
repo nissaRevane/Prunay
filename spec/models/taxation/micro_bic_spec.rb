@@ -12,6 +12,13 @@ RSpec.describe Taxation::MicroBic do
     end
   end
 
+  describe ".available?" do
+    it "admits receipts up to 77 700 a year and no further" do
+      expect(described_class.available?(77_700)).to be(true)
+      expect(described_class.available?(BigDecimal("77700.01"))).to be(false)
+    end
+  end
+
   describe "#allowance" do
     it "takes half of the receipts, whatever the charges really were" do
       expect(taxation.allowance).to eq(6_600)

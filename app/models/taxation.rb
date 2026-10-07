@@ -28,7 +28,7 @@ module Taxation
 
   def self.furnished?(name) = regime(name).furnished?
 
-  def self.available?(name, rent_excluding_charges) = regime(name).available?(rent_excluding_charges)
+  def self.available?(name, receipts) = regime(name).available?(receipts)
 
   def self.for(name, **attributes) = regime(name).new(**attributes)
 end

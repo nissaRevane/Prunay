@@ -27,7 +27,7 @@ module Taxation
 
     def self.furnished? = false
 
-    def self.available?(_rent_excluding_charges) = true
+    def self.available?(_receipts) = true
 
     # Ce que le régime déclare avant tout abattement.
     def taxable_income = raise NotImplementedError

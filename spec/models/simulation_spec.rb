@@ -471,6 +471,14 @@ RSpec.describe Simulation, type: :model do
     it "counts only the months let: 1 300 for 11 months makes 14 300, under the ceiling" do
       expect(build(:simulation, monthly_rent: 1_300, occupancy_months: 11).regimes).to include(:micro_foncier)
     end
+
+    it "keeps the micro-BIC while 6 150 plus 5 % for 12 months makes 77 490" do
+      expect(build(:simulation, monthly_rent: 6_150).regimes).to include(:micro_bic)
+    end
+
+    it "drops the micro-BIC once 50 of provision a month brings the receipts to 78 090" do
+      expect(build(:simulation, monthly_rent: 6_150, monthly_charges: 50).regimes).to eq([:foncier_reel, :lmnp])
+    end
   end
 
   describe "#projection" do
