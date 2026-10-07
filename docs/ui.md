@@ -131,7 +131,8 @@ all use these classes. Do not create another row style.
 `.columns` and `.column`, `.tabs` and `.tab`, `.modal` (`.modal-narrow`, `.modal-header`,
 `.modal-title`, `.modal-actions`, `.modal-body`) on a native `<dialog>`, and `.table` inside
 `.table-scroll`. Inside a panel, a table loses its frame and lines up with the panel's rows;
-its `tfoot` is a subtotal.
+its `tfoot` is a subtotal. A last column of row buttons (a lot's ×) is a `.cell-action`: as
+narrow as its glyph, with no gap before it.
 
 **Feedback**: `.alert` (`-success`, `-danger`, `-warning`, and `.alerts` for a list of them),
 `.empty-state`, and `.help`, the question mark whose explanation shows on hover or focus.

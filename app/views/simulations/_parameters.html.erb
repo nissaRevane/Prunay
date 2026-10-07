@@ -44,9 +44,6 @@
 <div class="section">
   <div class="section-header">
     <h2><%= t("views.simulations.show.rental_detail") %></h2>
-    <% if simulation.divided_into_lots? && simulation.lots.size < Simulation::MAX_LOTS %>
-      <%= add_lot simulation %>
-    <% end %>
   </div>
 
   <div class="panel">

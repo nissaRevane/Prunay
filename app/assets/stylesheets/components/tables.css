@@ -68,8 +68,9 @@
   padding-right: 0;
 }
 
-.table .button_to {
-  display: inline;
+.table .cell-action {
+  width: 1%;
+  padding-left: 0;
 }
 
 .table .inline-edit-form .form-control {

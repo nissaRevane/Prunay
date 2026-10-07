@@ -1,5 +1,6 @@
 <%# Les lots d'un immeuble : leur somme tient lieu de loyer, de charges et de mois loués. %>
 <% removable = simulation.lots.size > 1 %>
+<% columns = 1 + Simulation::LOT_LETTING_FIELDS.size + (removable ? 1 : 0) %>
 <div class="table-scroll">
   <table class="table">
     <thead>
@@ -8,6 +9,9 @@
         <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
           <th class="num"><%= t("views.simulations.lots.columns.#{field}") %></th>
         <% end %>
+        <% if removable %>
+          <th class="cell-action"></th>
+        <% end %>
       </tr>
     </thead>
     <tbody>
@@ -15,7 +19,6 @@
         <tr>
           <td>
             <%= t("views.simulations.lots.number", number: index + 1) %>
-            <%= remove_lot simulation, index if removable %>
             <span class="note"><%= editable_lot simulation, index, "surface" %></span>
           </td>
           <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
@@ -30,6 +33,14 @@
               <% end %>
             </td>
           <% end %>
+          <% if removable %>
+            <td class="cell-action"><%= remove_lot simulation, index %></td>
+          <% end %>
+        </tr>
+      <% end %>
+      <% if simulation.lots.size < Simulation::MAX_LOTS %>
+        <tr>
+          <td colspan="<%= columns %>"><%= add_lot simulation %></td>
         </tr>
       <% end %>
     </tbody>
@@ -45,6 +56,9 @@
           <%= lot_figure("occupancy_months", simulation.occupancy_months) %>
           <span class="note"><%= t("views.simulations.lots.weighted") %></span>
         </td>
+        <% if removable %>
+          <td class="cell-action"></td>
+        <% end %>
       </tr>
     </tfoot>
   </table>

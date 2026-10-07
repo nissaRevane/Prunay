@@ -61,14 +61,13 @@ RSpec.describe "Lots of a building", type: :request do
   end
 
   describe "GET /simulations/:id" do
-    it "offers to add a lot and to remove each one" do
+    it "offers to remove each lot at the end of its line, and to add one on the last line" do
       get simulation_path(simulation, tab: "parameters")
 
-      doc = Nokogiri::HTML5(response.body)
-      expect(doc.at_css("#panel-parameters .section-header form")["action"])
-        .to eq(simulation_lots_path(simulation, tab: "parameters"))
-      expect(doc.css("#panel-parameters tbody form.button_to").map { |form| form["action"] })
-        .to eq([0, 1].map { |index| simulation_lot_path(simulation, index, tab: "parameters") })
+      rows = Nokogiri::HTML5(response.body).css("#panel-parameters tbody tr")
+      expect(rows.map { |row| row.at_css("td:last-child form.button_to")&.[]("action") })
+        .to eq([0, 1].map { |index| simulation_lot_path(simulation, index, tab: "parameters") } + [nil])
+      expect(rows.last.at_css("form")["action"]).to eq(simulation_lots_path(simulation, tab: "parameters"))
     end
 
     it "offers no addition past the twentieth lot" do
@@ -76,7 +75,8 @@ RSpec.describe "Lots of a building", type: :request do
 
       get simulation_path(simulation, tab: "parameters")
 
-      expect(Nokogiri::HTML5(response.body).at_css("#panel-parameters .section-header form")).to be_nil
+      expect(Nokogiri::HTML5(response.body).css("#panel-parameters tbody form").map { |form| form["action"] })
+        .not_to include(simulation_lots_path(simulation, tab: "parameters"))
     end
 
     it "offers no removal of a single lot" do

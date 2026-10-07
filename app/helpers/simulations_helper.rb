@@ -217,11 +217,12 @@ module SimulationsHelper
     url = simulation_lots_path(simulation, tab: PARAMETERS_TAB, regime: params[:regime])
 
     tag.span(class: "inline-word", data: { controller: "inline-edit" }) do
-      tag.button(t("views.simulations.lots.add"), type: "button", class: "btn btn-outline btn-sm",
-                                                  data: { inline_edit_target: "display", action: "inline-edit#open" }) +
+      tag.span(t("views.simulations.lots.add_line"), class: "inline-edit-display", role: "button", tabindex: 0,
+                                                     data: { inline_edit_target: "display", action: WORD_ACTIONS }) +
         form_with(scope: :lot, url: url, class: "inline-edit-form", html: { hidden: true },
                   data: { inline_edit_target: "form", action: INLINE_EDIT_ACTIONS }) do |f|
-          f.number_field :surface, class: "form-control", required: true, placeholder: label, aria: { label: label },
+          f.number_field :surface, class: "form-control", required: true, aria: { label: label },
+                                   placeholder: t("views.simulations.lots.surface_unit"),
                                    **LOT_FIELD_OPTIONS.fetch("surface")
         end
     end

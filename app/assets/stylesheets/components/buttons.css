@@ -97,7 +97,7 @@
 .icon-btn-inline {
   width: auto;
   height: auto;
-  padding: 0 var(--space-1);
+  padding: 0;
   background: none;
   border-color: transparent;
   font-size: var(--text-base);

@@ -749,7 +749,8 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#panel-parameters #simulation_monthly_rent, #panel-parameters #simulation_occupancy_months")).to be_nil
       expect(table.css("tbody tr").map(&line)).to eq([
         "Lot 1 40 m² #{currency(500)} #{currency(50)} 12",
-        "Lot 2 60 m² #{currency(700)} #{currency(100)} 9"
+        "Lot 2 60 m² #{currency(700)} #{currency(100)} 9",
+        "+ Ajouter un lot"
       ].map { |text| text.gsub(/\s+/, " ") })
       expect(line.(table.at_css("tfoot tr")))
         .to eq("Total 100 m² #{currency(1_200)} #{currency(150)} 10,3 moyenne pondérée".gsub(/\s+/, " "))
@@ -763,7 +764,7 @@ RSpec.describe "Simulations", type: :request do
 
       get simulation_path(simulation)
 
-      notes = Nokogiri::HTML5(response.body).css("#panel-parameters .table tbody tr").map do |row|
+      notes = Nokogiri::HTML5(response.body).css("#panel-parameters .table tbody tr").take(2).map do |row|
         row.css(".note[data-regimes]").to_h { |note| [note["data-regimes"], note.text.gsub(/\s+/, " ").strip] }
       end
 
@@ -783,7 +784,8 @@ RSpec.describe "Simulations", type: :request do
       table = Nokogiri::HTML5(response.body).at_css("#panel-parameters .table")
 
       expect(table.css("tbody input[type=number]").map { |input| input["name"] })
-        .to eq((0..1).flat_map { |row| Simulation::LOT_FIELDS.map { |field| "simulation[lots][#{row}][#{field}]" } })
+        .to eq((0..1).flat_map { |row| Simulation::LOT_FIELDS.map { |field| "simulation[lots][#{row}][#{field}]" } } +
+               ["lot[surface]"])
       expect(table.css("tfoot form")).to be_empty
     end
 
