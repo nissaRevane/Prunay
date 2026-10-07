@@ -94,6 +94,15 @@
   pointer-events: none;
 }
 
+.icon-btn-inline {
+  width: auto;
+  height: auto;
+  padding: 0 var(--space-1);
+  background: none;
+  border-color: transparent;
+  font-size: var(--text-base);
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;

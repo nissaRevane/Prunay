@@ -212,6 +212,30 @@ module SimulationsHelper
     end
   end
 
+  def add_lot(simulation)
+    label = t("views.simulations.lots.new_surface")
+    url = simulation_lots_path(simulation, tab: PARAMETERS_TAB, regime: params[:regime])
+
+    tag.span(class: "inline-word", data: { controller: "inline-edit" }) do
+      tag.button(t("views.simulations.lots.add"), type: "button", class: "btn btn-outline btn-sm",
+                                                  data: { inline_edit_target: "display", action: "inline-edit#open" }) +
+        form_with(scope: :lot, url: url, class: "inline-edit-form", html: { hidden: true },
+                  data: { inline_edit_target: "form", action: INLINE_EDIT_ACTIONS }) do |f|
+          f.number_field :surface, class: "form-control", required: true, placeholder: label, aria: { label: label },
+                                   **LOT_FIELD_OPTIONS.fetch("surface")
+        end
+    end
+  end
+
+  def remove_lot(simulation, index)
+    number = index + 1
+    url = simulation_lot_path(simulation, index, tab: PARAMETERS_TAB, regime: params[:regime])
+
+    button_to "×", url, method: :delete, class: "icon-btn icon-btn-inline",
+                        aria: { label: t("views.simulations.lots.remove_number", number:) },
+                        form: { data: { turbo_confirm: t("views.simulations.lots.confirm_remove", number:) } }
+  end
+
   def lot_figure(field, amount)
     return number_to_currency(amount) if LOT_AMOUNTS.include?(field)
 

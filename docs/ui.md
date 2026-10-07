@@ -118,8 +118,9 @@ all use these classes. Do not create another row style.
 - `.btn` plus one variant: `.btn-primary`, `.btn-outline` or `.btn-danger`. `.btn-sm` and
   `.btn-lg` change the size. A disabled `.btn` fades and takes no click.
 - `.icon-btn` is a square button for a glyph: ‹ › ×. It is used to close a modal, to step
-  through a carousel or a year, and to dismiss a message. `.stepper` groups arrows around a
-  value.
+  through a carousel or a year, and to dismiss a message. `.icon-btn-inline` drops the frame
+  and takes the size of the text, for a glyph that sits in a dense row, such as a lot's ×.
+  `.stepper` groups arrows around a value.
 - `.chip` is a toggle: a radio inside a label (the type filter), or a button with
   `aria-pressed` (the statement's detail switch). `.chip-group` lines chips up, and
   `.chip-group-scroll` lets them scroll on one line on mobile.

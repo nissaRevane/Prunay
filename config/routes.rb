@@ -47,5 +47,8 @@ Prunay::Application.routes.draw do
     get :statement, on: :member, path: "annee"
 
     resource :economic_conditions, only: [:update], module: :simulations, path: "conditions-economiques"
+
+    # Un lot se désigne par son rang : la liste n'a pas d'autre identifiant.
+    resources :lots, only: [:create, :destroy], module: :simulations, constraints: { id: /\d+/ }
   end
 end

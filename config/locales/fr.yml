@@ -280,7 +280,10 @@ fr:
           monthly_charges: Charges
           occupancy_months: Mois
         add: Ajouter un lot
+        new_surface: Surface en m²
         remove: Retirer ce lot
+        remove_number: "Retirer le lot %{number}"
+        confirm_remove: "Retirer le lot %{number} ?"
         monthly_rent_total:
           one: Le loyer de l'unique lot
           other: "La somme des loyers des %{count} lots"

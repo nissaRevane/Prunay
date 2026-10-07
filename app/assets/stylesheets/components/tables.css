@@ -68,6 +68,10 @@
   padding-right: 0;
 }
 
+.table .button_to {
+  display: inline;
+}
+
 .table .inline-edit-form .form-control {
   width: 6rem;
   text-align: right;
