@@ -38,6 +38,7 @@ export default class extends Controller {
   // requestSubmit refuse de partir sur un champ invalide : le dire, et garder la porte ouverte -
   // refermer rendrait l'ancienne valeur sans un mot.
   save() {
+    if (this.submitting) return
     if (!this.formTarget.checkValidity()) return this.reject()
 
     this.syncTab()
@@ -62,11 +63,13 @@ export default class extends Controller {
 
   lock() {
     this.pending = true
+    this.submitting = true
   }
 
   // Un refus rouvre la porte : le champ garde ce qui a été tapé et redevient annulable.
   release(event) {
     this.pending = event.detail.success
+    this.submitting = event.detail.success
   }
 
   get field() {
