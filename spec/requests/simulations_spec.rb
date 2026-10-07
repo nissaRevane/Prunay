@@ -1543,6 +1543,15 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.css("#panel-micro_foncier tbody tr")[1].text).to include(currency(12_000, precision: 0).gsub(/\s+/, " "))
     end
 
+    it "redraws inside the page's frame, so the next value saved finds it again" do
+      simulation = create(:simulation, user: user)
+
+      patch simulation_path(simulation), params: { simulation: { monthly_rent: "1000" } }, as: :turbo_stream
+
+      stream = Nokogiri::HTML(response.body).at_css("turbo-stream")
+      expect([stream["action"], stream["target"]]).to eq(["update", "simulation_#{simulation.id}"])
+    end
+
     it "answers a refused value with the message alone" do
       simulation = create(:simulation, user: user, monthly_rent: 800)
 
