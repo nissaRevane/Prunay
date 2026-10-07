@@ -128,6 +128,14 @@ RSpec.describe Simulation, type: :model do
       expect(building.annual_rent_excluding_charges_under(:lmnp)).to eq(12_915)
     end
 
+    it "sums the furnished rents of the lots: 500.10 × 1.05 = 525.11, 700.10 × 1.05 = 735.11, 1 260.22 €" do
+      odd = building(lots: [LOTS.first.merge(monthly_rent: "500.10"), LOTS.last.merge(monthly_rent: "700.10")])
+
+      expect(odd.monthly_rents_under(:lmnp)).to eq([BigDecimal("525.11"), BigDecimal("735.11")])
+      expect(odd.monthly_rent_under(:lmnp)).to eq(BigDecimal("1260.22"))
+      expect(odd.monthly_rents_under(:micro_foncier)).to eq([BigDecimal("500.10"), BigDecimal("700.10")])
+    end
+
     it "collects each lot's provision for its own months: 50 × 12 + 100 × 9 = 1 500 €" do
       expect(building.annual_provision_for_charges).to eq(1_500)
     end

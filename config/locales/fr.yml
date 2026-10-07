@@ -274,6 +274,7 @@ fr:
         total: Total
         cell: "%{field}, lot %{number}"
         weighted: moyenne pondérée
+        furnished_rent: "%{amount} meublé"
         columns:
           monthly_rent: Loyer
           monthly_charges: Charges

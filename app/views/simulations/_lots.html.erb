@@ -17,7 +17,16 @@
             <span class="note"><%= editable_lot simulation, index, "surface" %></span>
           </td>
           <% Simulation::LOT_LETTING_FIELDS.each do |field| %>
-            <td class="num"><%= editable_lot simulation, index, field %></td>
+            <td class="num">
+              <%= editable_lot simulation, index, field %>
+              <% if field == "monthly_rent" %>
+                <% regimes_with_rent_premium.each do |regime| %>
+                  <% rent = number_to_currency(simulation.monthly_rents_under(regime)[index]) %>
+                  <%= tag.span t("views.simulations.lots.furnished_rent", amount: rent),
+                               class: "note", hidden: true, data: regime_scope(regime) %>
+                <% end %>
+              <% end %>
+            </td>
           <% end %>
         </tr>
       <% end %>

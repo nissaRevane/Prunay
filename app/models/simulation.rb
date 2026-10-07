@@ -212,7 +212,9 @@ class Simulation < ApplicationRecord
   # Une année de projection ne loue que les mois postérieurs à la mise en location.
   def occupancy_months_in(year, months = occupancy_months) = year.nil? ? months : (months * rented_share(year)).round(2)
 
-  def monthly_rent_under(regime) = rent_under(monthly_rent, regime)
+  def monthly_rent_under(regime) = monthly_rents_under(regime).sum
+
+  def monthly_rents_under(regime) = lettings.map { |rent, _, _| rent_under(rent, regime) }
 
   def annual_rent_excluding_charges_under(regime, year = nil)
     lettings.sum { |rent, _, months| (rent_under(rent, regime) * occupancy_months_in(year, months)).round(2) }

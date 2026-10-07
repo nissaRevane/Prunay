@@ -741,7 +741,7 @@ RSpec.describe "Simulations", type: :request do
       doc = Nokogiri::HTML5(response.body)
       words = doc.css(".page-header .summary .inline-word .inline-edit-display").map(&:text)
       table = doc.at_css("#panel-parameters .panel .table")
-      table.css("form").remove
+      table.css("form, [hidden]").remove
       line = ->(row) { row.text.gsub(/\s+/, " ").strip }
 
       expect(words).not_to include("100 m²")
@@ -753,6 +753,23 @@ RSpec.describe "Simulations", type: :request do
       ].map { |text| text.gsub(/\s+/, " ") })
       expect(line.(table.at_css("tfoot tr")))
         .to eq("Total 100 m² #{currency(1_200)} #{currency(150)} 10,3 moyenne pondérée".gsub(/\s+/, " "))
+    end
+
+    it "reads each lot's furnished rent under the furnished regimes: 500 × 1.05 = 525, 700 × 1.05 = 735" do
+      simulation.update!(property_type: "building", lots: [
+        { surface: "40", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
+        { surface: "60", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
+      ])
+
+      get simulation_path(simulation)
+
+      notes = Nokogiri::HTML5(response.body).css("#panel-parameters .table tbody tr").map do |row|
+        row.css(".note[data-regimes]").to_h { |note| [note["data-regimes"], note.text.gsub(/\s+/, " ").strip] }
+      end
+
+      expect(notes).to eq([525, 735].map do |rent|
+        %w[micro_bic lmnp].index_with { "#{currency(rent)} meublé".gsub(/\s+/, " ") }
+      end)
     end
 
     it "lets each value of a lot be corrected in place, and none of their totals" do
