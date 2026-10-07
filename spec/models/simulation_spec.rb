@@ -481,6 +481,16 @@ RSpec.describe Simulation, type: :model do
     end
   end
 
+  describe "#professional_letting_possible?" do
+    it "stays false while 1 800 plus 5 % for 12 months makes 22 680" do
+      expect(build(:simulation, monthly_rent: 1_800).professional_letting_possible?).to be(false)
+    end
+
+    it "turns true once 50 of provision a month brings the receipts to 23 280" do
+      expect(build(:simulation, monthly_rent: 1_800, monthly_charges: 50).professional_letting_possible?).to be(true)
+    end
+  end
+
   describe "#projection" do
     it "hands the projection this simulation" do
       expect(build(:simulation).projection(:micro_foncier)).to be_a(Projection)

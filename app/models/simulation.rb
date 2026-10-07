@@ -193,6 +193,8 @@ class Simulation < ApplicationRecord
 
   def regimes = Taxation::NAMES.select { |regime| Taxation.available?(regime, annual_receipts_under(regime)) }
 
+  def professional_letting_possible? = annual_receipts_under(:lmnp) > Taxation::Bic::PROFESSIONAL_RECEIPTS_THRESHOLD
+
   def projections = regimes.index_with { |regime| projection(regime) }
 
   def best_return

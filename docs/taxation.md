@@ -58,6 +58,13 @@ inflation, and only the furnished regimes pay it.
   regime pays, and only its cash flow bears) and the loan interest are deducted at cost, plus
   depreciation.
 
+**Professional status (LMP) isn't simulated.** A household whose furnished receipts pass
+23 000 € a year *and* its other activity income (wages, BIC, BNC, BA) becomes a professional
+letter: social contributions instead of social charges, a deficit set against total income,
+a business capital gain. Prunay doesn't know the household's activity income, so above
+23 000 € of receipts the two furnished tabs only warn that their figures may not hold. The
+regimes stay offered: most households earn more than they let, and stay LMNP.
+
 ## LMNP depreciation (`Taxation::DepreciationPlan`)
 
 Each component is depreciated on a straight line from the first year let. The first year

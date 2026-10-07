@@ -1,0 +1,8 @@
+<%# Le statut LMP dépend aussi des autres revenus d'activité du foyer, que Prunay ne connaît pas. %>
+<% if simulation.professional_letting_possible? %>
+  <p class="alert alert-warning">
+    <%= t("views.simulations.show.warning_professional_letting",
+          receipts: euros(simulation.annual_receipts_under(:lmnp)),
+          threshold: euros(Taxation::Bic::PROFESSIONAL_RECEIPTS_THRESHOLD)) %>
+  </p>
+<% end %>

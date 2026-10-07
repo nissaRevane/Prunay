@@ -8,6 +8,9 @@ module Taxation
     # Un meublé se loue plus cher qu'un nu, meubles et rotation compris.
     RENT_PREMIUM_RATE = BigDecimal("5")
 
+    # Au-delà, et passé les revenus d'activité du foyer, le loueur devient LMP.
+    PROFESSIONAL_RECEIPTS_THRESHOLD = 23_000
+
     def self.rent_premium_rate = RENT_PREMIUM_RATE
 
     def self.provision_in_receipts? = true

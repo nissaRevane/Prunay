@@ -352,6 +352,10 @@ fr:
         warning_no_return: Aucune revente ne rend l'opération rentable à cette échéance.
         warning_below_inflation: "Le rendement ne bat pas l'inflation retenue (%{rate})."
         warning_low_gross_yield: "Rendement brut faible (%{rate})."
+        warning_professional_letting: >-
+          Les recettes meublées atteignent %{receipts} par an, au-delà de %{threshold} : si elles
+          dépassent aussi les autres revenus d'activité du foyer, le loueur devient professionnel
+          (LMP), avec des cotisations sociales et une plus-value que la simulation ne couvre pas.
         tax_income_tax: Impôt sur le revenu
         tax_social_charges: Prélèvements sociaux
         tax_capital_gain_tax: Impôt sur la plus-value

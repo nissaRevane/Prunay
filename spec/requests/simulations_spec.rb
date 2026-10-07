@@ -666,6 +666,25 @@ RSpec.describe "Simulations", type: :request do
       expect(doc.at_css("#regime-foncier_reel")["aria-checked"]).to eq("true")
     end
 
+    it "warns of the professional status on the furnished tabs only, past 23 000 of receipts" do
+      above = create(:simulation, user: user, monthly_rent: 1_800, monthly_charges: 50)
+
+      get simulation_path(above)
+
+      doc = Nokogiri::HTML(response.body)
+      warned = %w[micro_foncier foncier_reel micro_bic lmnp].select do |name|
+        doc.at_css("#panel-#{name} .alert-warning")&.text&.gsub(/[[:space:]]/, " ")&.include?("23 280")
+      end
+
+      expect(warned).to eq(%w[micro_bic lmnp])
+    end
+
+    it "leaves the furnished tabs unwarned while the receipts stay at 22 680" do
+      get simulation_path(create(:simulation, user: user, monthly_rent: 1_800))
+
+      expect(Nokogiri::HTML(response.body).css("#panel-lmnp .alert-warning")).to be_empty
+    end
+
     it "leaves the micro-foncier out once the rents pass 15 000 a year" do
       above = create(:simulation, user: user, monthly_rent: 1_300)
 
