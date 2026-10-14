@@ -433,5 +433,16 @@ RSpec.describe "Simulation steps", type: :request do
       expect(steps[2].at_css(".wizard-progress-label").text.strip)
         .to eq(I18n.t("views.simulations.steps.credit.title"))
     end
+
+    it "links the pages already answered and only those" do
+      submit("property", PROPERTY)
+      submit("purchase", ON_CREDIT)
+      follow_redirect!
+
+      links = Nokogiri::HTML(response.body).css(".wizard-progress-step").map { |step| step.at_css("a")&.[]("href") }
+
+      expect(links).to eq([new_simulation_step_path(step: "property"), new_simulation_step_path(step: "purchase"),
+                           nil, nil, nil])
+    end
   end
 end

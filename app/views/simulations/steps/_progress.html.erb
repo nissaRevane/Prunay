@@ -3,8 +3,15 @@
 <ol class="wizard-progress">
   <% steps.each_with_index do |step, index| %>
     <li class="wizard-progress-step <%= "is-current" if step == current_step %> <%= "is-done" if index < step_index %>">
-      <span class="wizard-progress-number"><%= index + 1 %></span>
-      <span class="wizard-progress-label"><%= t("views.simulations.steps.#{step}.title") %></span>
+      <% if index < step_index %>
+        <%= link_to new_simulation_step_path(step: step), class: "wizard-progress-link" do %>
+          <span class="wizard-progress-number"><%= index + 1 %></span>
+          <span class="wizard-progress-label"><%= t("views.simulations.steps.#{step}.title") %></span>
+        <% end %>
+      <% else %>
+        <span class="wizard-progress-number"><%= index + 1 %></span>
+        <span class="wizard-progress-label"><%= t("views.simulations.steps.#{step}.title") %></span>
+      <% end %>
     </li>
   <% end %>
 </ol>

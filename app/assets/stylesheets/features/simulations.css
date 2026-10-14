@@ -190,6 +190,7 @@ body:has(.home) main.container {
 }
 
 .wizard-progress-step {
+  position: relative;
   display: flex;
   flex: 1 1 160px;
   align-items: center;
@@ -205,6 +206,26 @@ body:has(.home) main.container {
 .wizard-progress-step.is-done {
   border-color: var(--color-positive);
   color: var(--color-text);
+}
+
+.wizard-progress-step.is-done:hover,
+.wizard-progress-step.is-done:focus-within {
+  border-color: var(--color-primary);
+}
+
+.wizard-progress-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+.wizard-progress-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
 }
 
 .wizard-progress-step.is-current {
