@@ -61,6 +61,8 @@ correct, not a calculation. The exceptions:
   ordinary upkeep on top (see the LMNP in [taxation](taxation.md)).
 - **Outside an apartment**: no condominium fees are proposed (the user can still enter some),
   and the upkeep has a reference of its own in the account (1 500 € for 50 m² by default).
+- **A building in lots**: like the rent, the property tax and the upkeep are proposed for each
+  lot from its own surface, then summed. The other charges are read on the whole surface.
 - **Down payment**: a tenth of the project cost, recomputed as the price is typed.
 
 Every reference belongs to the user's account (`Assumptions`). Before the account changes

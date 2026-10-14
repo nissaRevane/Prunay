@@ -5,6 +5,9 @@ module Simulation::Step
 
   CONDITIONS = { "credit" => :credit? }.freeze
 
+  # Comme le loyer, elles se proposent lot par lot puis s'additionnent.
+  LOT_CHARGES = %i[property_tax maintenance].freeze
+
   module_function
 
   def all_for(simulation) = NAMES.select { |name| applicable?(name, simulation) }
@@ -66,7 +69,15 @@ module Simulation::Step
   end
 
   def charge_defaults(simulation)
-    (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h { |field| [field.to_s, simulation.estimate(field)] }
+    (Simulation::ANNUAL_CHARGES + Simulation::REGIME_CHARGES).to_h do |field|
+      [field.to_s, charge_default(simulation, field)]
+    end
+  end
+
+  def charge_default(simulation, field)
+    return simulation.estimate(field) unless simulation.divided_into_lots? && LOT_CHARGES.include?(field)
+
+    simulation.lots.sum { |lot| simulation.estimate(field, lot["surface"]) }
   end
 
   def rental_start_date(simulation) = simulation.purchase_date.present? ? simulation.purchase_date >> 1 : nil

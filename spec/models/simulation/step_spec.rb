@@ -80,5 +80,12 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("charges", draft(surface: 50, property_type: "house")))
         .to include("condominium_fees" => 0, "maintenance" => 1_500)
     end
+
+    it "sums the property tax and the upkeep of lots of 50 and 200 m², the insurance on 250 m²" do
+      building = draft(property_type: "building", lots: [{ "surface" => "50" }, { "surface" => "200" }])
+
+      expect(described_class.defaults("charges", building))
+        .to include("property_tax" => 700 + 1_400, "maintenance" => 1_500 + 3_000, "insurance" => 340)
+    end
   end
 end
