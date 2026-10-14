@@ -808,6 +808,23 @@ RSpec.describe "Simulations", type: :request do
       expect(table.css("tfoot form")).to be_empty
     end
 
+    it "recalls in each lot's fields the rent proposed for 50 and 200 m²: 650 and 650 × √4 = 1 300 €" do
+      simulation.update!(property_type: "building", lots: [
+        { surface: "50", monthly_rent: "500", monthly_charges: "50", occupancy_months: "12" },
+        { surface: "200", monthly_rent: "700", monthly_charges: "100", occupancy_months: "9" }
+      ])
+
+      get simulation_path(simulation)
+
+      placeholders = Nokogiri::HTML5(response.body).css("#panel-parameters tbody input[type=number]")
+                             .to_h { |input| [input["name"], input["placeholder"]] }
+
+      expect(placeholders).to include("simulation[lots][0][monthly_rent]" => "650",
+                                      "simulation[lots][1][monthly_rent]" => "1\u202F300",
+                                      "simulation[lots][1][occupancy_months]" => "11",
+                                      "simulation[lots][1][surface]" => nil)
+    end
+
     it "lists no lot for a building typed as a whole" do
       simulation.update!(property_type: "building")
 
@@ -1053,6 +1070,16 @@ RSpec.describe "Simulations", type: :request do
 
       expect(item.at_css(".inline-edit-display").text.gsub(/\s+/, " ")).to eq(currency(200_000).gsub(/\s+/, " "))
       expect(item.at_css("form")["hidden"]).not_to be_nil
+    end
+
+    it "recalls in each field what the creation proposes for 50 m²: 2 110 € of furniture, 700 € of tax" do
+      get simulation_path(simulation)
+
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("#simulation_furniture")["placeholder"]).to eq("2\u202F110")
+      expect(doc.at_css("#simulation_property_tax")["placeholder"]).to eq("700")
+      expect(doc.at_css("#simulation_rent_growth_rate")["placeholder"]).to eq("1")
+      expect(doc.at_css("#simulation_purchase_price")["placeholder"]).to be_nil
     end
 
     it "carries no amortization tab without a credit" do

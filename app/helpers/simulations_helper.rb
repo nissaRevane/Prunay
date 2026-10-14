@@ -207,9 +207,16 @@ module SimulationsHelper
   end
 
   def editable_lot(simulation, index, field)
-    editable_word(simulation, field, lot_figure(field, simulation.lots[index][field])) do |f|
-      lot_inputs(f, simulation.lots, index, field)
+    lot = simulation.lots[index]
+    placeholder = default_placeholder(Simulation::Step.lot_defaults(simulation, lot["surface"])[field])
+
+    editable_word(simulation, field, lot_figure(field, lot[field])) do |f|
+      lot_inputs(f, simulation.lots, index, field, placeholder:)
     end
+  end
+
+  def default_placeholder(value)
+    number_with_precision(value, precision: 2, strip_insignificant_zeros: true) if value.is_a?(Numeric)
   end
 
   def add_lot(simulation)
@@ -275,6 +282,7 @@ module SimulationsHelper
 
   def inline_edit_form(simulation, url, &block)
     form_with model: simulation, url: url, method: :patch, class: "inline-edit-form", html: { hidden: true },
+              builder: InlineEditFormBuilder,
               data: { inline_edit_target: "form", action: INLINE_EDIT_ACTIONS }, &block
   end
 
@@ -367,14 +375,14 @@ module SimulationsHelper
 
   private
 
-  def lot_inputs(form, lots, index, field)
+  def lot_inputs(form, lots, index, field, placeholder:)
     label = t("views.simulations.lots.cell", field: Simulation.human_attribute_name(field), number: index + 1)
     inputs = lots.each_with_index.flat_map do |lot, row|
       Simulation::LOT_FIELDS.map do |name|
         input = "#{form.object_name}[lots][#{row}][#{name}]"
         next hidden_field_tag(input, lot[name], id: nil) unless row == index && name == field
 
-        number_field_tag(input, lot[name], id: nil, class: "form-control", required: true,
+        number_field_tag(input, lot[name], id: nil, class: "form-control", required: true, placeholder:,
                                            aria: { label: label }, **LOT_FIELD_OPTIONS.fetch(name))
       end
     end

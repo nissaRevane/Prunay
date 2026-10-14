@@ -133,6 +133,10 @@ class Simulation < ApplicationRecord
 
   def defaults_for(step) = Step.defaults(step, self)
 
+  def defaults
+    @defaults ||= Step::NAMES.map { |step| defaults_for(step) }.reduce(:merge).merge(assumptions.economic)
+  end
+
   def assumptions
     @assumptions ||= Assumptions.for(user)
   end
