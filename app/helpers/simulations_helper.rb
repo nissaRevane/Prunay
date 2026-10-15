@@ -17,7 +17,7 @@ module SimulationsHelper
 
   EXIT_YEAR_GLYPHS = { previous: "‹", next: "›" }.freeze
 
-  UNCHARGED_TAXES = %i[income_tax social_charges capital_gain_tax].freeze
+  UNCHARGED_TAXES = %i[income_tax social_charges corporate_tax dividend_tax capital_gain_tax].freeze
 
   INLINE_EDIT_ACTIONS = "change->inline-edit#save keydown.enter->inline-edit#confirm " \
                         "focusout->inline-edit#close keydown.esc->inline-edit#cancel " \
@@ -120,6 +120,8 @@ module SimulationsHelper
   def regimes_without_rent_premium = Taxation::NAMES - regimes_with_rent_premium
 
   def regimes_furnished = Taxation::NAMES.select { |name| Taxation.furnished?(name) }
+
+  def regimes_company = Taxation::NAMES.select { |name| Taxation.company?(name) }
 
   def rent_premium_label(regime) = rate_label(Taxation.rent_premium_rate(regime))
 
@@ -323,6 +325,8 @@ module SimulationsHelper
   # L'amortissement se montre même quand il ne laisse rien à imposer.
   def tax_detail_lines(year)
     taxation = year.taxation
+    return corporate_tax_detail_lines(taxation) if taxation.company?
+
     depreciation = depreciation_lines(taxation)
     return {} unless taxation.taxable_income.positive? || depreciation.any?
 
@@ -360,6 +364,31 @@ module SimulationsHelper
     }
 
     { statement_label(:fiscal_value) => gain.acquisition_value }.merge(reintegration_lines(gain)).merge(taxes)
+  end
+
+  def distribution_detail_lines(distribution)
+    { statement_label(:current_account_repayment) => distribution.current_account_repayment,
+      statement_label(:dividends) => distribution.dividends,
+      statement_label(:contribution) => -distribution.contribution }.reject { |_, amount| amount.zero? }
+  end
+
+  def dividend_tax_detail_lines(dividend)
+    return {} unless dividend.total.positive?
+
+    { dividend_income_tax_label(dividend) => -dividend.income_tax,
+      statement_label(:social_charges, rate: rate_label(dividend.social_charges_rate)) => -dividend.social_charges }
+  end
+
+  def liquidation_detail_lines(liquidation)
+    lines = { statement_label(:book_value) => liquidation.book_value,
+              statement_label(:capital_gain) => liquidation.amount,
+              statement_label(:capital_gain_corporate_tax) => -liquidation.corporate_tax }
+    return lines unless liquidation.bonus.positive?
+
+    lines.merge(statement_label(:liquidation_bonus) => liquidation.bonus)
+         .merge(dividend_tax_detail_lines(liquidation.bonus_taxation))
+         .merge(statement_label(:partition_duty, rate: rate_label(Taxation::Liquidation::PARTITION_DUTY_RATE)) =>
+                  -liquidation.partition_duty)
   end
 
   def immobilized_capital_detail_lines(projection, year)
@@ -439,6 +468,31 @@ module SimulationsHelper
 
   def capitalized_share_label(component)
     rate_label(Taxation::DepreciationPlan::CAPITALIZED_SHARES.fetch(component) * 100)
+  end
+
+  def corporate_tax_detail_lines(taxation)
+    lines = depreciation_lines(taxation)
+    lines[statement_label(:formation_costs)] = -taxation.formation_costs if taxation.formation_costs.positive?
+    lines[statement_label(:deferred_deficit)] = -taxation.deferred_deficit if taxation.deferred_deficit.positive?
+    if taxation.carried_forward_deficit.positive?
+      lines[statement_label(:carried_forward_deficit)] = taxation.carried_forward_deficit
+    end
+
+    lines.merge(statement_label(:taxable_profit) => taxation.taxable_income,
+                corporate_tax_label => -taxation.corporate_tax)
+  end
+
+  def corporate_tax_label
+    statement_label(:corporate_tax, reduced: rate_label(Taxation::SciIs::REDUCED_RATE),
+                                    ceiling: euros(Taxation::SciIs::REDUCED_RATE_CEILING),
+                                    standard: rate_label(Taxation::SciIs::STANDARD_RATE))
+  end
+
+  def dividend_income_tax_label(dividend)
+    return statement_label(:dividend_flat_tax, rate: rate_label(dividend.income_tax_rate)) if dividend.flat?
+
+    statement_label(:dividend_progressive_tax, rate: rate_label(dividend.income_tax_rate),
+                                               allowance: rate_label(Taxation::Dividend::ALLOWANCE_RATE))
   end
 
   def allowance_lines(taxation)

@@ -465,6 +465,62 @@ RSpec.describe Projection do
     end
   end
 
+  describe "under the SCI subject to corporate tax" do
+    subject(:projection) { described_class.new(build(:simulation, monthly_rent: 1_000, accounting_fees: 500), :sci_is) }
+
+    it "lends the whole outlay to the company, the formation costs on top: 216 612 + 1 000" do
+      expect(projection.initial_outlay).to eq(217_612)
+      expect(projection.years.first.immobilized_capital).to eq(217_612)
+    end
+
+    it "taxes the company's first year at 15 %: 12 000 - 500 - 5 753,76 - 1 000 of formation" do
+      taxation = projection.years[1].taxation
+
+      expect(taxation.result).to eq(BigDecimal("4746.24"))
+      expect(taxation.corporate_tax).to eq(BigDecimal("711.94"))
+      expect(projection.years[2].taxation.corporate_tax).to eq(BigDecimal("861.94"))
+    end
+
+    it "hands the year's cash back on the current account, untaxed: 12 000 - 500 - 711,94" do
+      year = projection.years[1]
+
+      expect(year.company_cash_flow).to eq(BigDecimal("10788.06"))
+      expect(year.cash_flow).to eq(BigDecimal("10788.06"))
+      expect(year.distribution.current_account).to eq(BigDecimal("206823.94"))
+      expect(year.immobilized_capital).to eq(BigDecimal("206823.94"))
+    end
+
+    it "pays dividends once the current account is repaid, and no tax of the household on the rent" do
+      lines = projection.tax_lines(projection.years.last)
+
+      expect(lines).to include(:corporate_tax, :dividend_tax)
+      expect(lines).not_to include(:income_tax, :social_charges)
+    end
+
+    it "sells at the book value net of depreciation, the liquidation among the costs: 216 612 - 5 753,76" do
+      year = projection.years[1]
+
+      expect(year.gain.book_value).to eq(BigDecimal("210858.24"))
+      expect(year.gain.current_account).to eq(BigDecimal("206823.94"))
+      expect(projection.sale_cost_lines(year)[:liquidation]).to eq(1_000)
+      expect(year.capital_gain).to eq(0)
+    end
+
+    it "gives back the year's corporate tax when the sale makes a loss" do
+      expect(projection.years[1].capital_gain_tax).to eq(BigDecimal("-711.94"))
+    end
+
+    it "has the associate lend what the rent does not cover while the loan runs" do
+      indebted = described_class.new(build(:simulation, :with_credit, accounting_fees: 500), :sci_is)
+      year = indebted.years[1]
+
+      expect(indebted.initial_outlay).to eq(23_388 + indebted.simulation.loan.upfront_fees + 1_000)
+      expect(year.company_cash_flow).to be_negative
+      expect(year.distribution.contribution).to eq(-year.company_cash_flow)
+      expect(year.cash_flow).to eq(year.company_cash_flow)
+    end
+  end
+
   describe "under evolving economic conditions" do
     subject(:projection) { described_class.new(simulation, :micro_foncier) }
 

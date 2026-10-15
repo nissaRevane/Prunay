@@ -17,14 +17,19 @@
   runs, the remainder in the year it is paid off, nothing after.
 - **Cash flow**: the charges, the tax and the annuity all come out of it. Depreciation lowers
   the tax base but never the cash flow.
+- **In the SCI**, that cash flow is the company's. The year's cash flow is what the associate
+  receives from it: the current account repaid, the dividends net of their tax, less what
+  they lend to cover a shortfall. What the company keeps is its treasury (see
+  [taxation](taxation.md)).
 
 ## Capital immobilized
 
 Day one counts what actually leaves the buyer's pocket: the whole project if paid in cash,
 the down payment alone with a loan (the annuities already repay the capital borrowed). Under
-a furnished regime, the furniture is added in both cases. The projection's final value only
-grows the price and the added value, since neither the notary fees nor the cost of the works
-are resold.
+a furnished regime, the furniture is added in both cases. In the SCI, the formation costs
+are added, and the whole outlay is lent to the company on the current account. The
+projection's final value only grows the price and the added value, since neither the notary
+fees nor the cost of the works are resold.
 
 ## Resale in a given year
 
@@ -38,6 +43,9 @@ The sale view deducts, in this order:
 2. **The capital gain tax** (see [taxation](taxation.md)).
 3. **The outstanding capital and the early repayment fee** (see [credit](credit.md)).
 
+In the SCI the sale costs include the liquidation costs, the tax includes what the
+liquidation bonus pays, and the treasury the company still holds is added to the proceeds.
+
 ## Internal rate of return
 
 The IRR for each year uses the cash flows the operation would have had if it had stopped
@@ -49,12 +57,12 @@ that year:
 
 It is the annual rate that brings their present value to zero, found by bisection since there
 is no closed form. The signature day has no rate, having only one cash flow, and neither does
-an operation that never pays anything back. It is the one figure on which the four regimes
+an operation that never pays anything back. It is the one figure on which the five regimes
 compare directly.
 
 ## Comparison and list
 
-- **Comparison**: two server-rendered SVG charts, each with the four regimes on the same
+- **Comparison**: two server-rendered SVG charts, each with the five regimes on the same
   axes, 31 points each:
   - the capital still immobilized, which crosses zero when the operation has paid for itself;
   - the profit a resale would leave that year.

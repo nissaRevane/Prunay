@@ -10,6 +10,9 @@
           <th><%= t("views.simulations.show.date") %></th>
           <th class="num"><%= t("views.simulations.show.#{projection.rent_column}") %></th>
           <th class="num"><%= t("views.simulations.show.cash_flow") %></th>
+          <% if projection.company? %>
+            <th class="num"><%= t("views.simulations.show.treasury") %></th>
+          <% end %>
           <th class="num"><%= t("views.simulations.show.immobilized_capital") %></th>
           <th class="num"><%= t("views.simulations.show.internal_rate_of_return") %></th>
         </tr>
@@ -24,6 +27,9 @@
             <td><%= l(year.date, format: :month_year) %></td>
             <td class="num"><%= euros(projection.rent_of(year)) %></td>
             <td class="num <%= tone(year.cash_flow) %>"><%= euros(year.cash_flow) %></td>
+            <% if projection.company? %>
+              <td class="num"><%= euros(year.treasury) %></td>
+            <% end %>
             <td class="num"><%= euros(year.immobilized_capital) %></td>
             <% rate = projection.internal_rate_of_return(year) %>
             <td class="num <%= rate_tone(rate) %>"><%= internal_rate_of_return_label(rate) %></td>

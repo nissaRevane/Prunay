@@ -464,7 +464,7 @@ RSpec.describe Simulation, type: :model do
     end
 
     it "drops the micro-foncier once 1 300 a month for 12 months makes 15 600" do
-      expect(build(:simulation, monthly_rent: 1_300).regimes).to eq([:foncier_reel, :micro_bic, :lmnp])
+      expect(build(:simulation, monthly_rent: 1_300).regimes).to eq([:foncier_reel, :micro_bic, :lmnp, :sci_is])
     end
 
     it "counts only the months let: 1 300 for 11 months makes 14 300, under the ceiling" do
@@ -476,7 +476,7 @@ RSpec.describe Simulation, type: :model do
     end
 
     it "drops the micro-BIC once 50 of provision a month brings the receipts to 78 090" do
-      expect(build(:simulation, monthly_rent: 6_150, monthly_charges: 50).regimes).to eq([:foncier_reel, :lmnp])
+      expect(build(:simulation, monthly_rent: 6_150, monthly_charges: 50).regimes).to eq([:foncier_reel, :lmnp, :sci_is])
     end
   end
 

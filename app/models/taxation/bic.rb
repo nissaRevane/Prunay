@@ -19,7 +19,7 @@ module Taxation
 
     def receipts = rent_excluding_charges + provision_for_charges
 
-    def social_charges_rate = FURNISHED_SOCIAL_CHARGES_RATE
+    def social_charges_rate = CAPITAL_INCOME_SOCIAL_CHARGES_RATE
 
     def business_tax = share(monthly_rent, BUSINESS_TAX_RATE)
 

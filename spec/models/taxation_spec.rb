@@ -24,13 +24,13 @@ RSpec.describe Taxation do
   end
 
   it "names the regimes in the order the simulation presents them" do
-    expect(described_class::NAMES).to eq([:micro_foncier, :foncier_reel, :micro_bic, :lmnp])
+    expect(described_class::NAMES).to eq([:micro_foncier, :foncier_reel, :micro_bic, :lmnp, :sci_is])
     expect(described_class::DEFAULT_REGIME).to eq(:micro_foncier)
   end
 
   it "carries a social charges rate for each world and the brackets of the scale" do
     expect(described_class::SOCIAL_CHARGES_RATE).to eq(BigDecimal("17.2"))
-    expect(described_class::FURNISHED_SOCIAL_CHARGES_RATE).to eq(BigDecimal("18.6"))
+    expect(described_class::CAPITAL_INCOME_SOCIAL_CHARGES_RATE).to eq(BigDecimal("18.6"))
     expect(described_class::MARGINAL_TAX_RATES).to eq([0, 11, 30, 41, 45])
     expect(described_class::DEFAULT_MARGINAL_TAX_RATE).to eq(30)
   end

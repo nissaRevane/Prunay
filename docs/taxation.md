@@ -1,15 +1,18 @@
 # Taxation
 
-The four regimes apply to the same property, rents and charges. Only the tax differs, and
-each regime has a tab and a projection of its own.
+The five regimes apply to the same property, rents and charges. Only the tax differs, and
+each regime has a tab and a projection of its own. Four tax the household directly; the
+fifth, the SCI subject to corporate tax, puts a company between the property and the
+household (see [below](#sci-subject-to-corporate-tax-taxationsciis)).
 
 ## Shared by every regime (`Taxation::Regime`)
 
 - **Income tax**: the household's marginal bracket (0, 11, 30, 41 or 45 %).
 - **Social charges**: due even when no bracket applies, and counted separately from income
   tax.
-- **No deficit carried forward, under any regime.** A year with no gain owes nothing, and
-  nothing passes to the next year.
+- **No deficit carried forward, except in the SCI.** A year with no gain owes nothing, and
+  nothing passes to the next year. Corporate tax is the one exception: its loss carries
+  forward.
 
 Each regime defines its own taxable base, allowance, social charges rate and its own charges
 (charges only that regime pays, which the projection adds to the year's charges).
@@ -92,9 +95,82 @@ first year with room for it. This is why an LMNP pays no tax for years. The orde
 deduction (building, then works, then furniture) is Prunay's choice, not the law's. It only
 matters for the capital gain, and it errs towards giving more back.
 
+## SCI subject to corporate tax (`Taxation::SciIs`)
+
+The company owns the property, borrows and lets it. The household only holds its shares, so
+two layers are computed: what the company earns and pays, and what reaches the household.
+Only the second compares with the other regimes.
+
+**Associates**: the simulation is the whole company. Every associate is assumed to share
+the household's bracket (a couple, typically), and the company meets the conditions of the
+reduced rate (capital fully paid up, at least 75 % held by individuals).
+
+**Unfurnished only.** At corporate tax a furnished letting is taxed the same way; it would
+only bring back the furnished premium, the furniture and the CFE. Not simulated for now.
+
+### The company
+
+- **Result**: the rent excluding charges, less the charges, the accountant, the loan
+  interest (insurance included) and the depreciation. The plan is the LMNP's, without the
+  furniture: building, initial works and the renewal tranches of the upkeep.
+- **Depreciation is never capped.** It may create a loss, and the loss carries forward with
+  no time limit, to the first year with a profit. The legal ceiling on the deduction (1 M€
+  plus half the rest) is out of reach of a single property.
+- **Formation costs**: a flat 1 000 € (articles of association, legal notice,
+  registration). The household pays them on day one; the company deducts them from its
+  first year.
+- **Corporate tax**: 15 % up to 42 500 € of profit, 25 % above (art. 219 CGI). No social
+  charges at the company's level: that is the whole point of the regime.
+- **No CFE**: an unfurnished letting of a dwelling is outside its scope.
+
+### What reaches the household
+
+The day-one outlay is lent to the company on the associate's current account, not paid in
+as capital. Every year the company then hands back all it can, in this order:
+
+1. **A shortfall is covered by the associate**, who lends the missing cash on the current
+   account. This is the regime's negative cash flow.
+2. **The current account is repaid first**, free of tax.
+3. **Then dividends**, within the distributable profit: the net results of past years, losses
+   included, less the dividends already paid.
+4. **What remains stays in the company's treasury** until the sale.
+
+Depreciation keeps the early profit low while the cash is there: the current account comes
+back first. Later the repaid principal, which is no charge, makes the profit larger than the
+cash, and dividends take over.
+
+**Dividends** pay the flat tax: 12.8 % income tax and 18.6 % social charges, 31.4 % in all
+since the 2026 social security financing act. The household may instead opt for its bracket
+on 60 % of the dividend (a 40 % allowance), the social charges unchanged. Prunay keeps
+whichever costs less, which is the bracket only at 0 or 11 %.
+
+**Not simulated**:
+
+- interest on the current account, whose deduction is capped and whose gain is small;
+- a salary for the manager, deductible but taxed at the household's bracket plus about
+  45 % of contributions: always a loss for a company that only lets;
+- leaving the profit in the company to buy another property. Prunay simulates one property,
+  and money left idle only delays the same flat tax.
+
+### The sale and the liquidation
+
+A sale in a given year is the company selling the property and being wound up the same
+year:
+
+- **Professional capital gain**: the sale price less the book value (price, notary fees,
+  works and renewal tranches, less every depreciation deducted). No allowance for the years
+  held, and no flat 15 % for works. The sale costs, the early repayment fee and a flat
+  1 000 € of liquidation costs (two legal notices, the final accounts) are deducted. The
+  gain joins the year's result, and corporate tax applies to the whole.
+- **The company then pays its debts**: the loan, then the current account, free of tax.
+- **The surplus** (the liquidation bonus) goes to the associate. It is taxed like a
+  dividend, plus a 2.5 % partition duty (art. 746 CGI).
+- **Not simulated**: selling the shares instead of the property, and keeping the company
+  after the sale.
+
 ## Capital gain on resale (`Taxation::CapitalGain`)
 
-A resale is taxed under the regime for private individuals. The gain is the sale price minus
+A resale outside the SCI is taxed under the regime for private individuals. The gain is the sale price minus
 the fiscal value:
 
 - **Fiscal value**: price paid + notary fees, plus from the sixth year a flat 15 % for works,

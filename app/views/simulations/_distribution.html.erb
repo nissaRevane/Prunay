@@ -1,0 +1,32 @@
+<%# Ce que la SCI fait de son cash-flow : elle en garde une part et rend le reste à l'associé. %>
+<% distribution = year.distribution %>
+<div class="detail-item detail-subtotal">
+  <span class="detail-label"><%= t("views.simulations.show.company_cash_flow") %></span>
+  <%= statement_hint("company_cash_flow") %>
+  <span class="detail-value"><%= number_to_currency(year.company_cash_flow) %></span>
+</div>
+<% if distribution.treasury.nonzero? || distribution.opening_treasury.nonzero? %>
+  <div class="detail-item">
+    <span class="detail-label">
+      <%= t("views.simulations.show.distribution_treasury") %>
+      <span class="note"><%= t("views.simulations.show.distribution_treasury_note",
+                               amount: number_to_currency(distribution.treasury)) %></span>
+    </span>
+    <span class="detail-value"><%= number_to_currency(-distribution.treasury_change) %></span>
+  </div>
+<% end %>
+<div class="detail-item detail-subtotal">
+  <span class="detail-label"><%= t("views.simulations.show.distribution_paid") %></span>
+  <span class="detail-value"><%= number_to_currency(distribution.paid) %></span>
+</div>
+<%= render "simulations/statement_detail", lines: distribution_detail_lines(distribution) %>
+<div class="detail-item">
+  <span class="detail-label"><%= t("views.simulations.show.dividend_tax") %></span>
+  <span class="detail-value"><%= number_to_currency(-distribution.dividend_tax) %></span>
+</div>
+<%= render "simulations/statement_detail", lines: dividend_tax_detail_lines(distribution.dividend) %>
+<div class="detail-item detail-total">
+  <span class="detail-label"><%= t("views.simulations.show.cash_flow") %></span>
+  <%= statement_hint("partner_cash_flow") %>
+  <span class="detail-value <%= tone(year.cash_flow) %>"><%= number_to_currency(year.cash_flow) %></span>
+</div>

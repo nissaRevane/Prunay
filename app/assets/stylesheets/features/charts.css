@@ -53,12 +53,15 @@
 .chart-foncier_reel { --chart-color: #16a34a; }
 .chart-micro_bic { --chart-color: #d97706; }
 .chart-lmnp { --chart-color: #7c3aed; }
+.chart-sci_is { --chart-color: #db2777; }
 
 .chart-part-notary_fees { --chart-color: #64748b; }
 .chart-part-property_tax { --chart-color: #2563eb; }
 .chart-part-business_tax { --chart-color: #d97706; }
 .chart-part-income_tax { --chart-color: #dc2626; }
 .chart-part-social_charges { --chart-color: #7c3aed; }
+.chart-part-corporate_tax { --chart-color: #db2777; }
+.chart-part-dividend_tax { --chart-color: #9333ea; }
 .chart-part-capital_gain_tax { --chart-color: #0f766e; }
 .chart-part-property { --chart-color: #2563eb; }
 .chart-part-administrative { --chart-color: #0891b2; }

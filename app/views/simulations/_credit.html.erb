@@ -50,6 +50,11 @@
         <dd class="detail-value"><%= number_to_currency(simulation.furniture) %></dd>
       <% end %>
 
+      <%= tag.div class: "detail-item", hidden: true, data: regime_scope(regimes_company) do %>
+        <dt class="detail-label"><%= Simulation.human_attribute_name(:formation_costs) %></dt>
+        <dd class="detail-value"><%= number_to_currency(Taxation::SciIs::FORMATION_COSTS) %></dd>
+      <% end %>
+
       <% simulation.regimes.each do |regime| %>
         <%= tag.div class: "detail-item detail-total", hidden: true, data: regime_scope(regime) do %>
           <dt class="detail-label"><%= t("views.simulations.show.initial_outlay") %></dt>

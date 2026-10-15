@@ -30,6 +30,7 @@ fr:
         initial_works: Travaux
         added_value: Valeur ajoutée
         furniture: Meubles
+        formation_costs: Création de la SCI
         credit: "L'achat est financé par un crédit"
         down_payment: Apport
         borrowed_capital: Capital
@@ -236,7 +237,7 @@ fr:
           letting:
             title: "L'exploitation locative"
           furnished:
-            title: "La location meublée"
+            title: "Le meublé et la société"
           other:
             title: Divers
       express:
@@ -309,6 +310,7 @@ fr:
         tab_foncier_reel: Foncier réel
         tab_micro_bic: Micro-BIC
         tab_lmnp: LMNP
+        tab_sci_is: "SCI à l'IS"
         tab_comparison: Comparaison
         tab_amortization: Crédit
         tab_economic_conditions: Contexte
@@ -349,6 +351,8 @@ fr:
         breakdown_loan_interest: Intérêts et assurance
         breakdown_taxes: Impôt et prélèvements sociaux
         breakdown_capital_repayment: Capital remboursé
+        breakdown_kept_in_company: Laissé dans la société
+        breakdown_dividend_tax: Impôt sur les dividendes
         warning_energy_rating: "Passoire thermique (DPE %{rating}) : la location est ou sera interdite."
         warning_no_return: Aucune revente ne rend l'opération rentable à cette échéance.
         warning_below_inflation: "Le rendement ne bat pas l'inflation retenue (%{rate})."
@@ -356,6 +360,8 @@ fr:
         warning_professional_letting: "Recettes meublées au-delà de %{threshold} (%{receipts}) : statut LMP possible, non simulé."
         tax_income_tax: Impôt sur le revenu
         tax_social_charges: Prélèvements sociaux
+        tax_corporate_tax: Impôt sur les sociétés
+        tax_dividend_tax: Impôt sur les dividendes
         tax_capital_gain_tax: Impôt sur la plus-value
         summary_html: "%{type} de %{surface} au %{address} à %{city}."
         summary_without_address_html: "%{type} de %{surface} à %{city}, %{address}."
@@ -413,12 +419,19 @@ fr:
         annual_rent_column: Loyers hors charges
         annual_rent_including_charges_column: Loyers charges comprises
         cash_flow: Cash-flow
+        treasury: Trésorerie de la société
         immobilized_capital: Capital immobilisé
         internal_rate_of_return: TRI
         no_internal_rate_of_return: "-"
         annual_charges_column: "Charges de l'année"
         provision_deducted: "provision pour charges de %{amount} déduite"
         income_tax_column: "Impôt sur le revenu et prélèvements sociaux"
+        corporate_tax_column: Impôt sur les sociétés
+        company_cash_flow: Cash-flow de la société
+        distribution_treasury: Mis en trésorerie
+        distribution_treasury_note: "trésorerie de %{amount} en fin d'année"
+        distribution_paid: "Versé à l'associé"
+        dividend_tax: Impôt sur les dividendes
         loan_interest_column: "Intérêts d'emprunt et assurance"
         pre_tax_result: Résultat avant impôt
         net_result: Résultat net
@@ -439,8 +452,13 @@ fr:
         hint_income_tax_column: "Votre tranche marginale et les prélèvements sociaux, sur la même assiette."
         hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
         hint_cash_flow: "Ce qui reste en poche une fois l'année écoulée, échéances et impôt payés."
+        hint_corporate_tax_column: "Payé par la société sur son bénéfice, amortissement et déficits passés déduits."
+        hint_company_cash_flow: "Ce qui reste à la société une fois l'année écoulée, échéances et IS payés."
+        hint_partner_cash_flow: "Ce que la société vous rend, compte courant puis dividendes nets, moins vos apports."
         hint_sale_property_value: "Le prix d'achat et la valeur ajoutée, revalorisés ; ni les frais ni le coût des travaux ne se revendent."
         hint_sale_capital_gain_tax: "19 % et 17,2 % après abattement pour durée de détention ; au LMNP, les amortissements déduits y reviennent."
+        hint_sale_liquidation_tax: "L'IS sur la plus-value, sans abattement ni amortissement épargné, puis le boni taxé comme un dividende."
+        hint_sale_treasury: "Ce que la société a gardé, qui revient à l'associé à la dissolution."
         hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
         hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
         hint_internal_rate_of_return: "Le rendement annuel de l'opération entière : mise de départ, cash-flows et revente, crédit et impôt compris."
@@ -464,6 +482,21 @@ fr:
         detail_deferred_depreciation: "Amortissements reportés des années précédentes"
         detail_carried_forward_depreciation: "Excédent d'amortissement reporté"
         detail_taxable_income: Revenu imposable
+        detail_formation_costs: Création de la SCI
+        detail_deferred_deficit: Déficit des années précédentes
+        detail_carried_forward_deficit: Déficit reporté
+        detail_taxable_profit: Bénéfice imposable
+        detail_corporate_tax: "Impôt sur les sociétés (%{reduced} jusqu'à %{ceiling}, %{standard} au-delà)"
+        detail_current_account_repayment: Remboursement du compte courant
+        detail_dividends: Dividendes
+        detail_contribution: Apport en compte courant
+        detail_dividend_flat_tax: "Prélèvement forfaitaire (%{rate})"
+        detail_dividend_progressive_tax: "Barème après abattement de %{allowance} (%{rate})"
+        detail_liquidation: Liquidation de la SCI
+        detail_book_value: Valeur nette comptable
+        detail_capital_gain_corporate_tax: "Impôt sur les sociétés de la plus-value"
+        detail_liquidation_bonus: Boni de liquidation
+        detail_partition_duty: "Droit de partage (%{rate})"
         detail_income_tax: "Impôt sur le revenu (%{rate})"
         detail_social_charges: "Prélèvements sociaux (%{rate})"
         detail_purchase_price: "Prix d'achat"
@@ -481,6 +514,9 @@ fr:
         sale_property_value: Valeur du bien
         sale_costs: Frais de revente
         sale_costs_note: "diagnostics et remise en état"
+        sale_costs_company_note: "diagnostics, remise en état et liquidation"
+        sale_treasury: Trésorerie de la société
+        sale_liquidation_tax: Impôts de la revente et de la liquidation
         sale_early_repayment_fee: "Indemnité de remboursement anticipé"
         sale_capital_gain_tax: Impôt sur la plus-value
         sale_capital_gain_note: "plus-value de %{amount}"

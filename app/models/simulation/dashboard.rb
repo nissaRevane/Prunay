@@ -63,15 +63,16 @@ class Simulation::Dashboard
     fields = simulation.credit? ? CREDIT_OUTLAY : CASH_OUTLAY
     lines = fields.index_with { |field| simulation.public_send(field) }
 
-    without_zeros(lines.merge(furniture: simulation.furniture_under(regime)))
+    without_zeros(lines.merge(furniture: simulation.furniture_under(regime),
+                              formation_costs: Taxation.formation_costs(regime)))
   end
 
   def annual_lines
     year = best.year
+    lines = { rent: year.rent_including_charges, charges: -year.charges_including_provision,
+              loan_interest: -year.loan_interest, taxes: -year.taxes, capital_repayment: -year.capital_repayment }
 
-    without_zeros({ rent: year.rent_including_charges, charges: -year.charges_including_provision,
-                    loan_interest: -year.loan_interest, taxes: -year.taxes,
-                    capital_repayment: -year.capital_repayment })
+    without_zeros(year.distribution ? lines.merge(company_lines(year.distribution)) : lines)
   end
 
   def alerts
@@ -100,6 +101,10 @@ class Simulation::Dashboard
     return unless gross_yield < GROSS_YIELD_FLOOR
 
     Alert.new(key: :low_gross_yield, values: { rate: gross_yield })
+  end
+
+  def company_lines(distribution)
+    { kept_in_company: -distribution.treasury_change, dividend_tax: -distribution.dividend_tax }
   end
 
   def without_zeros(lines) = lines.reject { |_, amount| amount.zero? }

@@ -3,11 +3,12 @@ module Taxation
   # frappent ensuite de la même façon. Seules trois méthodes les distinguent.
   class Regime
     attr_reader :rent_excluding_charges, :provision_for_charges, :marginal_tax_rate, :charges, :loan_interest,
-                :monthly_rent
+                :monthly_rent, :deferred_deficit, :formation_costs
 
     def initialize(rent_excluding_charges:, marginal_tax_rate:, provision_for_charges: 0, charges: 0,
                    loan_interest: 0, monthly_rent: 0, accounting_fees: 0, furniture_maintenance: 0,
-                   depreciation: {}, deferred_depreciation: {}, capitalized: {})
+                   depreciation: {}, deferred_depreciation: {}, capitalized: {}, deferred_deficit: 0,
+                   formation_costs: 0)
       @rent_excluding_charges = rent_excluding_charges.to_d
       @provision_for_charges = provision_for_charges.to_d
       @marginal_tax_rate = marginal_tax_rate.to_d
@@ -19,6 +20,8 @@ module Taxation
       @depreciation_lines = depreciation.transform_values(&:to_d)
       @deferred_depreciation = deferred_depreciation.transform_values(&:to_d)
       @capitalized_lines = capitalized.transform_values(&:to_d)
+      @deferred_deficit = deferred_deficit.to_d
+      @formation_costs = formation_costs.to_d
     end
 
     def self.provision_in_receipts? = false
@@ -28,6 +31,12 @@ module Taxation
     def self.furnished? = false
 
     def self.available?(_receipts) = true
+
+    def self.company? = false
+
+    def self.formation_costs = 0
+
+    def company? = self.class.company?
 
     # Ce que le régime déclare avant tout abattement.
     def taxable_income = raise NotImplementedError
@@ -64,6 +73,10 @@ module Taxation
     def own_charges = own_charge_lines.values.sum
 
     def business_tax = 0
+
+    def corporate_tax = 0
+
+    def carried_forward_deficit = 0
 
     def total = income_tax + social_charges
 

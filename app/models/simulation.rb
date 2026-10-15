@@ -177,7 +177,7 @@ class Simulation < ApplicationRecord
   # Les meubles ne s'achètent que sous un régime du meublé, et jamais à crédit.
   def furniture_under(regime) = Taxation.furnished?(regime) ? furniture : 0
 
-  def total_investment_under(regime) = total_investment + furniture_under(regime)
+  def total_investment_under(regime) = total_investment + furniture_under(regime) + Taxation.formation_costs(regime)
 
   def borrowed_capital
     return 0 unless credit?
@@ -254,13 +254,15 @@ class Simulation < ApplicationRecord
                monthly_rent: monthly_rent_under(regime), accounting_fees: self.accounting_fees,
                furniture_maintenance: self.furniture_maintenance, year: 1,
                depreciation: depreciation_plan.lines(year), deferred_depreciation: {},
-               capitalized: depreciation_plan.capitalized(year))
+               capitalized: depreciation_plan.capitalized(year), deferred_deficit: 0)
     Taxation.for(regime, rent_excluding_charges: rent_excluding_charges,
                          provision_for_charges: provision_for_charges, charges: charges,
                          loan_interest: loan_interest, marginal_tax_rate: marginal_tax_rate,
                          monthly_rent: monthly_rent, accounting_fees: accounting_fees,
                          furniture_maintenance: furniture_maintenance, depreciation: depreciation,
-                         deferred_depreciation: deferred_depreciation, capitalized: capitalized)
+                         deferred_depreciation: deferred_depreciation, capitalized: capitalized,
+                         deferred_deficit: deferred_deficit,
+                         formation_costs: year == 1 ? Taxation.formation_costs(regime) : 0)
   end
 
   def annual_taxes(regime = Taxation::DEFAULT_REGIME) = taxation(regime).total
@@ -277,7 +279,8 @@ class Simulation < ApplicationRecord
   def annual_cash_flow = annual_rent - annual_charges - annual_taxes - loan.annual_payment
 
   def initial_outlay(regime = Taxation::DEFAULT_REGIME)
-    (credit? ? down_payment + loan.upfront_fees : total_investment) + furniture_under(regime)
+    (credit? ? down_payment + loan.upfront_fees : total_investment) + furniture_under(regime) +
+      Taxation.formation_costs(regime)
   end
 
   private

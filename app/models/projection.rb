@@ -7,8 +7,8 @@ class Projection
 
   VIEWS = %w[result sale].freeze
 
-  TAX_COMPONENTS = %i[notary_fees property_tax business_tax income_tax social_charges
-                      capital_gain_tax].freeze
+  TAX_COMPONENTS = %i[notary_fees property_tax business_tax income_tax social_charges corporate_tax
+                      dividend_tax capital_gain_tax].freeze
 
   EXPENSE_COMPONENTS = %i[property administrative financing taxes].freeze
 
@@ -19,7 +19,8 @@ class Projection
   Year = Struct.new(:number, :date, :rent_excluding_charges, :charges_excluding_provision,
                     :provision_for_charges, :loan_interest, :loan_insurance, :capital_repayment,
                     :taxation, :gain, :immobilized_capital, :property_value,
-                    :remaining_loan_capital, :sale_costs, :early_repayment_fee, keyword_init: true) do
+                    :remaining_loan_capital, :sale_costs, :early_repayment_fee, :treasury, :distribution,
+                    keyword_init: true) do
     def taxes = taxation.total
 
     def capital_gain = gain.amount
@@ -33,7 +34,11 @@ class Projection
 
     def net_result = pre_tax_result - taxes
 
-    def cash_flow = net_result - capital_repayment
+    def company_cash_flow = net_result - capital_repayment
+
+    def cash_flow = distribution ? distribution.cash_flow : company_cash_flow
+
+    def dividend_tax = distribution ? distribution.dividend_tax : 0
 
     def rent_including_charges = rent_excluding_charges + provision_for_charges
 
@@ -43,7 +48,7 @@ class Projection
 
     def recovered? = immobilized_capital <= 0
 
-    def sale_proceeds = property_value - sale_costs - capital_gain_tax - remaining_loan_capital -
+    def sale_proceeds = property_value + treasury - sale_costs - capital_gain_tax - remaining_loan_capital -
                         early_repayment_fee
 
     def sale_profit = sale_proceeds - immobilized_capital
@@ -65,7 +70,11 @@ class Projection
   # Le meublé déclare la provision et déduit ce qu'elle couvre, le foncier non.
   def provision_in_receipts? = Taxation.regime(regime).provision_in_receipts?
 
+  def company? = Taxation.company?(regime)
+
   def rent_column = provision_in_receipts? ? "annual_rent_including_charges_column" : "annual_rent_column"
+
+  def tax_column = company? ? "corporate_tax_column" : "income_tax_column"
 
   def rent_of(year) = provision_in_receipts? ? year.rent_including_charges : year.rent_excluding_charges
 
@@ -85,6 +94,8 @@ class Projection
       totals[:business_tax] += year.taxation.business_tax
       totals[:income_tax] += year.taxation.income_tax
       totals[:social_charges] += year.taxation.social_charges
+      totals[:corporate_tax] += year.taxation.corporate_tax
+      totals[:dividend_tax] += year.dividend_tax
     end
 
     without_zeros({ notary_fees: @simulation.notary_fees }
@@ -103,7 +114,8 @@ class Projection
     costs = sale_cost_lines(exit_year)
     lines[:property] += @simulation.initial_works + @simulation.furniture_under(regime) +
                         costs.fetch(:refurbishment, 0)
-    lines[:administrative] += costs.fetch(:diagnostics, 0)
+    lines[:administrative] += costs.fetch(:diagnostics, 0) + costs.fetch(:liquidation, 0) +
+                              Taxation.formation_costs(regime)
     lines[:financing] += @simulation.loan.upfront_fees + exit_year.early_repayment_fee
     lines[:taxes] = tax_lines(exit_year).values.sum
 
@@ -158,7 +170,7 @@ class Projection
 
   def sale_cost_lines(year)
     costs = @simulation.sale_costs
-    lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment }
+    lines = { diagnostics: costs.diagnostics, refurbishment: costs.refurbishment, liquidation: liquidation_costs }
 
     without_zeros(lines.transform_values { |amount| compound(amount, @simulation.inflation_rate, year.number) })
   end
@@ -184,7 +196,10 @@ class Projection
     cumulative_cash_flow = 0
     cumulative_depreciation = 0
     deferred_depreciation = {}
-    sale_costs = @simulation.sale_costs.total
+    deferred_deficit = 0
+    accounts = opening_accounts
+    book_value = acquisition_cost
+    sale_costs = @simulation.sale_costs.total + liquidation_costs
 
     [origin_year] + (1..HORIZON_YEARS).map do |number|
       rent = compound(@simulation.annual_rent_excluding_charges_under(regime, number), @simulation.rent_growth_rate,
@@ -194,11 +209,13 @@ class Projection
       charges = compound(@simulation.annual_charges_excluding_provision(number), @simulation.inflation_rate, number - 1)
       loan_interest = interest.fetch(number, 0)
       property_value = compound(@simulation.market_value, @simulation.property_growth_rate, number)
-      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation)
+      taxation = taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation,
+                              deferred_deficit)
       deferred_depreciation = taxation.carried_forward_depreciation
+      deferred_deficit = taxation.carried_forward_deficit
       # Revendre ne reprend que le bâti déduit : ni travaux ni report.
       cumulative_depreciation += taxation.deducted_depreciation_lines.fetch(:building, 0)
-      gain = @simulation.capital_gain_taxation(property_value, number, depreciation: cumulative_depreciation)
+      book_value += taxation.capitalized - taxation.depreciation
 
       year = Year.new(
         number: number,
@@ -210,12 +227,20 @@ class Projection
         loan_insurance: insurance.fetch(number, 0),
         capital_repayment: principal.fetch(number, 0),
         taxation: taxation,
-        gain: gain,
         property_value: property_value,
         remaining_loan_capital: remaining.fetch(number, 0),
         sale_costs: compound(sale_costs, @simulation.inflation_rate, number),
-        early_repayment_fee: @simulation.loan.early_repayment_fee(remaining.fetch(number, 0))
+        early_repayment_fee: @simulation.loan.early_repayment_fee(remaining.fetch(number, 0)),
+        treasury: 0
       )
+      if company?
+        year.distribution = distribution_of(year, accounts)
+        accounts = year.distribution.balances
+        year.treasury = accounts[:treasury]
+        year.gain = liquidation_of(year, book_value, accounts[:current_account], taxation.taxable_result)
+      else
+        year.gain = @simulation.capital_gain_taxation(property_value, number, depreciation: cumulative_depreciation)
+      end
       cumulative_cash_flow += year.cash_flow
       year.immobilized_capital = outlay - cumulative_cash_flow
 
@@ -223,7 +248,8 @@ class Projection
     end
   end
 
-  def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation = {})
+  def taxation_for(rent, provision, charges, loan_interest, monthly_rent, number, deferred_depreciation = {},
+                   deferred_deficit = 0)
     elapsed = [number - 1, 0].max
     inflation = @simulation.inflation_rate
 
@@ -231,11 +257,31 @@ class Projection
                                  charges: charges, loan_interest: loan_interest, monthly_rent: monthly_rent,
                                  accounting_fees: compound(@simulation.accounting_fees, inflation, elapsed),
                                  furniture_maintenance: compound(@simulation.furniture_maintenance, inflation, elapsed),
-                                 year: number, deferred_depreciation: deferred_depreciation)
+                                 year: number, deferred_depreciation: deferred_depreciation,
+                                 deferred_deficit: deferred_deficit)
+  end
+
+  def opening_accounts = { treasury: 0, current_account: initial_outlay, retained_earnings: 0 }
+
+  def acquisition_cost = purchase_price + @simulation.notary_fees + @simulation.initial_works
+
+  def liquidation_costs = company? ? Taxation::SciIs::LIQUIDATION_COSTS : 0
+
+  def distribution_of(year, accounts)
+    Taxation::Distribution.new(company_cash_flow: year.company_cash_flow, net_income: year.taxation.net_income,
+                               marginal_tax_rate: @simulation.marginal_tax_rate, **accounts)
+  end
+
+  def liquidation_of(year, book_value, current_account, result = 0)
+    Taxation::Liquidation.new(sale_price: year.property_value, book_value: book_value,
+                              costs: year.sale_costs + year.early_repayment_fee,
+                              remaining_loan: year.remaining_loan_capital, treasury: year.treasury,
+                              current_account: current_account, marginal_tax_rate: @simulation.marginal_tax_rate,
+                              result: result)
   end
 
   def origin_year
-    Year.new(
+    year = Year.new(
       number: 0,
       date: @simulation.purchase_date,
       rent_excluding_charges: 0,
@@ -245,13 +291,20 @@ class Projection
       loan_insurance: 0,
       capital_repayment: 0,
       taxation: taxation_for(0, 0, 0, 0, 0, 0),
-      gain: @simulation.capital_gain_taxation(@simulation.market_value, 0),
       immobilized_capital: initial_outlay,
       property_value: @simulation.market_value,
       remaining_loan_capital: @simulation.loan.capital,
-      sale_costs: @simulation.sale_costs.total,
-      early_repayment_fee: @simulation.loan.early_repayment_fee(@simulation.loan.capital)
+      sale_costs: @simulation.sale_costs.total + liquidation_costs,
+      early_repayment_fee: @simulation.loan.early_repayment_fee(@simulation.loan.capital),
+      treasury: 0
     )
+    year.gain = if company?
+                  liquidation_of(year, acquisition_cost, initial_outlay)
+                else
+                  @simulation.capital_gain_taxation(@simulation.market_value, 0)
+                end
+
+    year
   end
 
   def indexed(amount, rate, year) = compound(amount, rate, year.number - 1)
