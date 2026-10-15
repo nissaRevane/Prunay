@@ -62,6 +62,8 @@ class Simulation < ApplicationRecord
             on: [:create, :update, :purchase]
   validates :furniture, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :purchase]
+  validates :added_value, presence: true, numericality: { greater_than_or_equal_to: 0 },
+            on: [:create, :update, :purchase]
   validates :down_payment, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :purchase]
   validates :down_payment, numericality: { less_than: :total_investment },
@@ -95,9 +97,6 @@ class Simulation < ApplicationRecord
   validates(*ANNUAL_CHARGES, *REGIME_CHARGES, presence: true, numericality: { greater_than_or_equal_to: 0 },
             on: [:create, :update, :charges])
 
-  # Une décote n'est pas un rabais : c'est ce que le bien vaut en plus du prix.
-  validates :purchase_discount, presence: true, numericality: { greater_than_or_equal_to: 0 },
-            on: [:create, :update]
 
   validates(*Assumptions::RATES, presence: true,
             numericality: { greater_than_or_equal_to: Assumptions::MIN_RATE,
@@ -171,7 +170,7 @@ class Simulation < ApplicationRecord
     (purchase_price * NOTARY_FEES_RATE + NOTARY_FEES_BASE).round(2)
   end
 
-  def market_value = purchase_price + purchase_discount
+  def market_value = purchase_price + added_value
 
   def total_investment = purchase_price + notary_fees + initial_works
 

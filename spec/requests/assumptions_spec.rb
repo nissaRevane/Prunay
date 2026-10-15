@@ -113,7 +113,7 @@ RSpec.describe "Assumptions", type: :request do
       expect(doc.at_css("#simulation_rent_growth_rate")["value"]).to eq("1.0")
     end
 
-    it "carries one self-saving field per assumption, and one for the discount" do
+    it "carries one self-saving field per assumption" do
       get simulation_path(simulation)
 
       doc = Nokogiri::HTML(response.body)
@@ -122,7 +122,7 @@ RSpec.describe "Assumptions", type: :request do
       expect(panel.css("form").map { |form| form["action"] }.uniq)
         .to eq([simulation_economic_conditions_path(simulation)])
       expect(panel.css("input[type=submit], button[type=submit]")).to be_empty
-      expect(panel.css(".detail-item").size).to eq(Assumptions::ECONOMIC.size + 1)
+      expect(panel.css(".detail-item").size).to eq(Assumptions::ECONOMIC.size)
     end
 
     it "points to the account assumptions, the only way to them outside the settings" do
@@ -168,24 +168,6 @@ RSpec.describe "Assumptions", type: :request do
       patch simulation_economic_conditions_path(taxed), params: { simulation: { marginal_tax_rate: "41" } }
 
       expect(taxed.reload.marginal_tax_rate).to eq(41)
-    end
-
-    it "carries the discount obtained at the purchase next to the rates" do
-      get simulation_path(simulation)
-
-      doc = Nokogiri::HTML(response.body)
-      expect(doc.at_css("#simulation_purchase_discount")).to be_present
-
-      patch simulation_economic_conditions_path(simulation), params: { simulation: { purchase_discount: "15000" } }
-
-      expect(simulation.reload.purchase_discount).to eq(15_000)
-    end
-
-    it "refuses a discount that would put the property under its price" do
-      patch simulation_economic_conditions_path(simulation), params: { simulation: { purchase_discount: "-1000" } }
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(simulation.reload.purchase_discount).to eq(0)
     end
 
     it "refuses a bracket the scale does not know" do

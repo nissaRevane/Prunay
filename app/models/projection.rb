@@ -125,7 +125,7 @@ class Projection
 
   def market_value = @simulation.market_value
 
-  def purchase_discount = @simulation.purchase_discount
+  def added_value = @simulation.added_value
 
   def occupancy_months = @simulation.occupancy_months
 

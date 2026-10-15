@@ -32,6 +32,7 @@ module Simulation::Step
     {
       "purchase_date" => Date.current >> simulation.assumptions.purchase_delay_months,
       "initial_works" => 0,
+      "added_value" => 0,
       "furniture" => simulation.estimate(:furniture),
       "down_payment" => down_payment(simulation)
     }

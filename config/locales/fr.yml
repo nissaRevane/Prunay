@@ -26,9 +26,9 @@ fr:
         lots: Les lots
         purchase_date: "Date d'achat"
         purchase_price: "Prix d'achat"
-        purchase_discount: "Décote à l'achat"
         notary_fees: Frais de notaire
         initial_works: Travaux
+        added_value: Valeur ajoutée
         furniture: Meubles
         credit: "L'achat est financé par un crédit"
         down_payment: Apport
@@ -261,6 +261,7 @@ fr:
           energy_rating_blank: Non renseigné
         purchase:
           title: "L'achat"
+          added_value_hint: "Ce que le bien vaut de plus que son prix une fois les travaux faits : un achat sous le prix du marché, des travaux qui le valorisent (cuisine neuve, extension, climatisation). Repeindre ou adapter le bien n'en ajoute pas."
         credit:
           title: Le crédit
         rental:
@@ -371,6 +372,7 @@ fr:
         rental_detail: La location
         furnished_rent: Loyer meublé
         furnished_rent_hint: prime de %{rate} sur le nu
+        added_value_note: "ce que le bien vaut au-delà de son prix, travaux faits"
         annual_rent_total: Encaissé sur une année
         annual_rent_total_hint: charges comprises, vacance déduite
         charges_detail: Les charges annuelles
@@ -440,7 +442,7 @@ fr:
         hint_income_tax_column: "Votre tranche marginale et les prélèvements sociaux, sur la même assiette."
         hint_capital_repayment_column: "Le capital rendu à la banque : une sortie, jamais une charge."
         hint_cash_flow: "Ce qui reste en poche une fois l'année écoulée, échéances et impôt payés."
-        hint_sale_property_value: "Le prix d'achat, décote comprise, revalorisé ; ni les frais ni les travaux ne se revendent."
+        hint_sale_property_value: "Le prix d'achat et la valeur ajoutée, revalorisés ; ni les frais ni le coût des travaux ne se revendent."
         hint_sale_capital_gain_tax: "19 % et 17,2 % après abattement pour durée de détention ; au LMNP, les amortissements déduits y reviennent."
         hint_remaining_capital: "Ce qu'il resterait à solder à la banque à cette date."
         hint_sale_early_repayment_fee: "3 % du capital rendu, plafonnés à six mois de ses intérêts."
@@ -468,7 +470,7 @@ fr:
         detail_income_tax: "Impôt sur le revenu (%{rate})"
         detail_social_charges: "Prélèvements sociaux (%{rate})"
         detail_purchase_price: "Prix d'achat"
-        detail_purchase_discount: "Décote obtenue à l'achat"
+        detail_added_value: Valeur ajoutée
         detail_property_growth: "Revalorisation depuis l'achat"
         detail_diagnostics: Diagnostics
         detail_refurbishment: Remise en état

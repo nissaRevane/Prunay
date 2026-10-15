@@ -10,6 +10,7 @@ RSpec.describe Simulation, type: :model do
     it { is_expected.to validate_presence_of(:purchase_date).on(:purchase) }
     it { is_expected.to validate_numericality_of(:purchase_price).is_greater_than(0).on(:purchase) }
     it { is_expected.to validate_numericality_of(:initial_works).is_greater_than_or_equal_to(0).on(:purchase) }
+    it { is_expected.to validate_numericality_of(:added_value).is_greater_than_or_equal_to(0).on(:purchase) }
     it { is_expected.to validate_numericality_of(:furniture).is_greater_than_or_equal_to(0).on(:purchase) }
 
     context "of a purchase financed by a credit" do
@@ -61,8 +62,6 @@ RSpec.describe Simulation, type: :model do
     it { is_expected.to validate_numericality_of(:occupancy_months).is_greater_than(0).is_less_than_or_equal_to(12).on(:rental) }
 
     it { is_expected.to validate_numericality_of(:property_tax).is_greater_than_or_equal_to(0).on(:charges) }
-
-    it { is_expected.to validate_numericality_of(:purchase_discount).is_greater_than_or_equal_to(0).on(:update) }
 
     it { is_expected.to validate_inclusion_of(:marginal_tax_rate).in_array(Taxation::MARGINAL_TAX_RATES).on(:update) }
 
@@ -303,8 +302,8 @@ RSpec.describe Simulation, type: :model do
   end
 
   describe "#market_value" do
-    it "adds the discount obtained to the price paid" do
-      expect(build(:simulation, purchase_price: 200_000, purchase_discount: 20_000).market_value).to eq(220_000)
+    it "adds the value the property is worth beyond its price to the price paid" do
+      expect(build(:simulation, purchase_price: 200_000, added_value: 20_000).market_value).to eq(220_000)
     end
 
     it "is the price itself when the property was bought at its value" do

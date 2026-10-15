@@ -23,7 +23,8 @@
 Day one counts what actually leaves the buyer's pocket: the whole project if paid in cash,
 the down payment alone with a loan (the annuities already repay the capital borrowed). Under
 a furnished regime, the furniture is added in both cases. The projection's final value only
-grows the price and the discount, since neither the notary fees nor the works are resold.
+grows the price and the added value, since neither the notary fees nor the cost of the works
+are resold.
 
 ## Resale in a given year
 

@@ -30,7 +30,7 @@ module Simulations
     end
 
     def economic_conditions_params
-      params.require(:simulation).permit(*Assumptions::ECONOMIC, :purchase_discount)
+      params.require(:simulation).permit(*Assumptions::ECONOMIC)
     end
   end
 end

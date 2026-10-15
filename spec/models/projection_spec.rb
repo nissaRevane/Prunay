@@ -563,19 +563,18 @@ RSpec.describe Projection do
     end
 
     it "revalues the property from its value and not from the price paid for it" do
-      discounted = described_class.new(build(:simulation, purchase_price: 200_000, purchase_discount: 20_000,
-                                             property_growth_rate: 3), :micro_foncier)
+      valued = described_class.new(build(:simulation, purchase_price: 200_000, added_value: 20_000,
+                                         property_growth_rate: 3), :micro_foncier)
 
-      expect(discounted.years.first.property_value).to eq(220_000)
-      expect(discounted.year(1).property_value).to eq(226_600)
-      expect(discounted.year(10).property_value).to eq(BigDecimal("295_661.60"))
+      expect(valued.years.first.property_value).to eq(220_000)
+      expect(valued.year(1).property_value).to eq(226_600)
+      expect(valued.year(10).property_value).to eq(BigDecimal("295_661.60"))
     end
 
-    it "makes the discount a gain from the very first day" do
-      discounted = described_class.new(build(:simulation, purchase_price: 200_000, purchase_discount: 20_000),
-                                       :micro_foncier)
+    it "makes the added value a gain from the very first day" do
+      valued = described_class.new(build(:simulation, purchase_price: 200_000, added_value: 20_000), :micro_foncier)
 
-      expect(discounted.years.first.capital_gain).to eq(3_388)
+      expect(valued.years.first.capital_gain).to eq(3_388)
     end
 
     it "inflates the sale costs like every other expense" do

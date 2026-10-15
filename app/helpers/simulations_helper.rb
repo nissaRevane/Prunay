@@ -333,10 +333,10 @@ module SimulationsHelper
     )
   end
 
-  # La décote est acquise dès la signature ; la revalorisation court après.
+  # La valeur ajoutée est acquise dès la signature ; la revalorisation court après.
   def property_value_detail_lines(projection, year)
     growth = year.property_value - projection.market_value
-    lines = { statement_label(:purchase_discount) => projection.purchase_discount,
+    lines = { statement_label(:added_value) => projection.added_value,
               statement_label(:property_growth) => growth }.reject { |_, amount| amount.zero? }
     return {} if lines.empty?
 

@@ -503,14 +503,14 @@ RSpec.describe "Simulations", type: :request do
       ])
     end
 
-    it "names the discount obtained at the purchase in the value of the property" do
-      discounted = create(:simulation, user: user, purchase_discount: 20_000)
+    it "names the added value in the value of the property" do
+      valued = create(:simulation, user: user, added_value: 20_000)
 
-      sale = statement_doc(discounted, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
+      sale = statement_doc(valued, :micro_foncier, 10).at_css("#micro_foncier-year-10-sale")
       lines = sale.css(".detail-breakdown .detail-item").map { |line| line.at_css(".detail-label").text.strip }
 
       expect(lines.first(2)).to eq([I18n.t("views.simulations.show.detail_purchase_price"),
-                                    I18n.t("views.simulations.show.detail_purchase_discount")])
+                                    I18n.t("views.simulations.show.detail_added_value")])
     end
 
     it "shows the rent excluding charges and says discreetly what the provision took off them" do
@@ -900,10 +900,14 @@ RSpec.describe "Simulations", type: :request do
         Simulation.human_attribute_name(:notary_fees) => currency(16_612).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:initial_works) => currency(20_000).gsub(/\s+/, " "),
         Simulation.human_attribute_name(:furniture) => currency(0).gsub(/\s+/, " "),
-        I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " ")
+        I18n.t("views.simulations.show.project_cost") => currency(236_612).gsub(/\s+/, " "),
+        Simulation.human_attribute_name(:added_value) =>
+          "#{currency(0).gsub(/\s+/, " ")} #{I18n.t("views.simulations.show.added_value_note")}"
       )
       expect(section.at_css(".detail-total .detail-label").text.strip)
         .to eq(I18n.t("views.simulations.show.project_cost"))
+      expect(section.css(".rows .detail-item").last.at_css(".detail-label").text.strip)
+        .to eq(Simulation.human_attribute_name(:added_value))
     end
 
     it "reserves the furniture and the cost it adds to the furnished regimes" do
@@ -1564,6 +1568,26 @@ RSpec.describe "Simulations", type: :request do
 
       expect(simulation.reload.early_repayment_fee).to be(false)
       expect(simulation.loan.early_repayment_fee(100_000)).to eq(0)
+    end
+
+    it "corrects the added value in place among the purchase parameters" do
+      simulation = create(:simulation, user: user)
+
+      get simulation_path(simulation)
+      expect(Nokogiri::HTML(response.body).at_css("#panel-parameters #simulation_added_value")).to be_present
+
+      patch simulation_path(simulation), params: { simulation: { added_value: "15000" } }
+
+      expect(simulation.reload.added_value).to eq(15_000)
+    end
+
+    it "refuses an added value that would put the property under its price" do
+      simulation = create(:simulation, user: user)
+
+      patch simulation_path(simulation), params: { simulation: { added_value: "-1000" } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(simulation.reload.added_value).to eq(0)
     end
 
     it "updates the simulation" do

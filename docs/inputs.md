@@ -89,14 +89,22 @@ and the household's marginal tax bracket. Each simulation keeps its own copy, ta
 account's defaults when it is created. Changing the defaults later never rewrites a
 projection that already exists.
 
-The same tab holds the **purchase discount**: how much more the buyer thinks the property is
-worth than what they paid. The market value (price + discount) is what the projection grows
-over the years. Notary fees, capital borrowed, depreciation and the fiscal value of the
-capital gain all stay based on the price actually paid. A discount is therefore a gain from
-day one, and it is taxed as one.
-
 Resale costs are the exception: they are read from the account every time, so changing them
 recomputes every simulation.
+
+## Added value
+
+Asked on the purchase page, under the works, and corrected among the purchase parameters: how
+much more the property is worth than its price once the works are done. It covers a property
+bought below its value and works that raise it (a new kitchen, an extension, air
+conditioning). Works that only adapt the property to the buyer's taste (repainting, moving a
+radiator) add nothing. Proposed at zero, since only the buyer can judge it.
+
+The upkeep keeps the property in the state the works left it, so the added value isn't worn
+down: the market value (price + added value) is what the projection grows over the years.
+Notary fees, capital borrowed, depreciation and the fiscal value of the capital gain all stay
+based on the price actually paid. The added value is therefore a gain from day one, and it is
+taxed as one.
 
 ## The letting
 

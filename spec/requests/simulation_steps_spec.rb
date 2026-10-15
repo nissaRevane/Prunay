@@ -14,7 +14,7 @@ RSpec.describe "Simulation steps", type: :request do
   end
 
   PROPERTY = { property_type: "apartment", city: "Prunay-le-Temple", surface: "50" }.freeze
-  PURCHASE = { purchase_price: "200000", initial_works: "20000", purchase_date: "2026-01-15",
+  PURCHASE = { purchase_price: "200000", initial_works: "20000", added_value: "15000", purchase_date: "2026-01-15",
                credit: "0", down_payment: "0" }.freeze
   ON_CREDIT = PURCHASE.merge(credit: "1", down_payment: "25000").freeze
   CREDIT = { loan_rate: "3.5", loan_duration_years: "20", loan_insurance: "21.16",
@@ -60,7 +60,7 @@ RSpec.describe "Simulation steps", type: :request do
       expect(response).to redirect_to(simulation)
       expect(simulation).to have_attributes(
         user: user, property_type: "apartment", city: "Prunay-le-Temple", surface: 50,
-        purchase_price: 200_000, initial_works: 20_000, purchase_date: Date.new(2026, 1, 15),
+        purchase_price: 200_000, initial_works: 20_000, added_value: 15_000, purchase_date: Date.new(2026, 1, 15),
         monthly_rent: 1_000, monthly_charges: 150, occupancy_months: 11,
         rental_start_date: Date.new(2026, 2, 15),
         property_tax: 700, insurance: 150, maintenance: 1_000, condominium_fees: 1_200,

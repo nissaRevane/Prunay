@@ -64,6 +64,12 @@
       <%= render "simulations/notary_fees", simulation: f.object %>
 
       <div class="form-group">
+        <%= f.label :added_value %>
+        <%= f.number_field :added_value, step: "0.01", min: "0", class: "form-control", required: true %>
+        <p class="hint"><%= t("views.simulations.steps.purchase.added_value_hint") %></p>
+      </div>
+
+      <div class="form-group">
         <%= f.label :furniture %>
         <%= f.number_field :furniture, step: "0.01", min: "0", class: "form-control", required: true %>
       </div>

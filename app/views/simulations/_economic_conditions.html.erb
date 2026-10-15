@@ -19,11 +19,6 @@
       <% end %>
     <% end %>
 
-    <%= editable_detail simulation, :purchase_discount, number_to_currency(simulation.purchase_discount),
-        url: url do |f| %>
-      <%= f.number_field :purchase_discount, step: "0.01", min: "0", class: "form-control", required: true %>
-    <% end %>
-
     <%= editable_detail simulation, :marginal_tax_rate, number_to_percentage(simulation.marginal_tax_rate, precision: 0), url: url do |f| %>
       <%= f.select :marginal_tax_rate, marginal_tax_rate_options, {}, class: "form-control" %>
     <% end %>

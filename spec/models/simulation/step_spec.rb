@@ -19,11 +19,12 @@ RSpec.describe Simulation::Step do
       expect(described_class.defaults("property", draft(surface: 50))).to eq({})
     end
 
-    it "dates the purchase three months out and assumes no works" do
+    it "dates the purchase three months out and assumes no works and no added value" do
       defaults = described_class.defaults("purchase", draft)
 
       expect(defaults["purchase_date"]).to eq(Date.current >> 3)
       expect(defaults["initial_works"]).to eq(0)
+      expect(defaults["added_value"]).to eq(0)
     end
 
     it "proposes furniture scaled on the surface" do
